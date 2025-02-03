@@ -1,10 +1,10 @@
-<div align="center"> <img src="bevy-flake.webp" alt="bevy-flake" width="200"/> </div>
+<div align="center"> <img src="bevy-flake.svg" alt="bevy-flake" width="200"/> </div>
 
 # bevy-flake
 
-A simple and easy to edit Nix development flake,
+A simple and easy-to-edit Nix development flake,
 for painless Bevy development and cross-compilation on NixOS.
-This flake is meant to help new NixOS users to hit the ground running,
+This flake is meant to help new NixOS users hit the ground running,
 and get started quickly, with as little hassle as possible.
 
 *This is accomplished using [rust-overlay][overlay] for the rust toolchain,
