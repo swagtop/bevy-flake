@@ -14,9 +14,11 @@ and [cargo-zigbuild][zigbuild] for cross-compilation with the Zig linker.*
 [zigbuild]: https://github.com/rust-cross/cargo-zigbuild
 
 ## Quick setup
-Fetch `flake.nix` into your project root directory:
+Fetch `flake.nix` into your project root directory, and add to git index:
 ```
+cd /path/to/project
 wget https://github.com/swagtop/bevy-flake/raw/refs/heads/main/flake.nix
+git add flake.nix
 ```
 
 Compile and run Bevy project for local machine:
