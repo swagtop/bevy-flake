@@ -34,6 +34,6 @@ cargo zigbuild --target aarch64-apple-darwin --release # Needs SDK!
 cargo zigbuild --target wasm32-unknown-unknown --release
 ```
 
-- [Detailed setup][docs/detailed_setup.md]
-- [Editing flake][docs/editing_flake.md]
-- [Common issues][docs/common_issues.md]
+- [Detailed setup](docs/detailed_setup.md)
+- [Editing flake](docs/editing_flake.md)
+- [Common issues](docs/common_issues.md)
