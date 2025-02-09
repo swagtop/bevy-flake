@@ -9,6 +9,7 @@
     flake-utils.lib.eachDefaultSystem (system: let
       overlays = [ (import rust-overlay) ];
       pkgs = import nixpkgs { inherit system overlays; };
+      lib = pkgs.lib;
 
       rustToolchain = pkgs.rust-bin.stable.latest.default.override {
         extensions = [ "rust-src" "rust-analyzer" ];
@@ -32,6 +33,10 @@
       # Removes your username from the final binary, changes it to 'user'.
       anonymizeBuild = "--remap-path-prefix=/home/$USER=/home/user";
 
+      devShellPackages = [
+        rustToolchain
+      ];
+
       buildShellPackages = with pkgs; [
         cargo-zigbuild
         clang
@@ -50,7 +55,7 @@
         wayland
       ];
 
-      nativeBuildInputsPackages = (with pkgs; [
+      compileTimePackages = (with pkgs; [
         alsa-lib-with-plugins
         lld
         pkg-config
@@ -59,7 +64,7 @@
       ++ waylandPackages # <--- Keep, even if you're having Wayland issues.
       );
 
-      runtimeLib = "${pkgs.lib.makeLibraryPath (with pkgs; [
+      runtimePackages = (with pkgs; [
         alsa-lib-with-plugins
         libGL
         libxkbcommon
@@ -68,19 +73,30 @@
       ]
       ++ xorgPackages
       ++ waylandPackages # <--- Comment out if you're having Wayland issues.
-      )}";
+      );
+
+      # Make '/path/to/lib:/path/to/another/lib' string from runtimePackages.
+      rpath = "${lib.makeLibraryPath runtimePackages}";
     in {
       devShells = {
         default = pkgs.mkShell {
           name = "bevy";
 
-          packages = [ rustToolchain ];
-          nativeBuildInputs = nativeBuildInputsPackages;
+          packages = devShellPackages;
+          nativeBuildInputs = compileTimePackages;
+          buildInputs = runtimePackages;
 
+          # Wrapping 'cargo' in a function to prevent easy-to-make mistakes.
           shellHook = ''
+            cargo() {
+              if [[ "$1" = @("build"|"zigbuild"|"xwin") ]]; then
+                printf "bevy-flake: Switch to build shell to build: "
+                echo "'nix develop .#build'"
+                return 1
+              else command cargo "$@"; fi
+            }
             export RUSTFLAGS="${anonymizeBuild}"
-            export RUSTFLAGS="-C target-cpu=native $RUSTFLAGS"
-            export RUSTFLAGS="-C link-args=-Wl,-rpath,${runtimeLib} $RUSTFLAGS"
+            export RUSTFLAGS="-C link-args=-Wl,-rpath,${rpath} $RUSTFLAGS"
           '';
         };
 
@@ -88,7 +104,7 @@
           name = "bevy-build";
 
           packages = buildShellPackages;
-          nativeBuildInputs = nativeBuildInputsPackages;
+          nativeBuildInputs = compileTimePackages;
 
           # Try to fetch appleSdk, if URL and hash is provided.
           appleSdk = if appleSdkUrl != "" && appleSdkHash != "" then 
@@ -115,7 +131,18 @@
 
           # Prevents accidental linking to /nix/store items.
           LD_LIBRARY_PATH = "";
+
+          # Wrapping 'cargo' in a function to prevent easy-to-make mistakes.
           shellHook = ''
+            cargo() {
+              if [[ "$1" == "run" ]]; then
+                echo "bevy-flake: Switch to dev shell to run: 'nix develop'"
+                return 1
+              elif [[ "$1" == "build" ]]; then
+                echo "bevy-flake: Aliasing 'build' to 'zigbuild'"
+                command cargo zigbuild "''${@:2}"
+              else command cargo "$@"; fi
+            }
             export RUSTFLAGS=${anonymizeBuild}
           '';
         };
