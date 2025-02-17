@@ -11,7 +11,7 @@
       pkgs = import nixpkgs { inherit system overlays; };
       lib = pkgs.lib;
 
-      rustToolchain = pkgs.rust-bin.stable.latest.default.override {
+      rustToolchain = pkgs.rust-bin.nightly.latest.default.override {
         extensions = [ "rust-src" "rust-analyzer" ];
         targets = [
           "aarch64-apple-darwin"
