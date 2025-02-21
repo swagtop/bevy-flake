@@ -30,9 +30,8 @@
       # ... and the sha-256 hash of said tarball. Just the hash, no 'sha-'.
       macSdkHash = "";
 
-      devShellPackages = with pkgs; [
+      devShellPackages = [
         rustToolchain
-        mold
       ];
 
       buildShellPackages = with pkgs; [
@@ -70,7 +69,7 @@
         vulkan-loader
       ]
       ++ xorgPackages
-      # ++ waylandPackages # <--- Comment out if you're having Wayland issues.
+      ++ waylandPackages # <--- Comment out if you're having Wayland issues.
       );
 
       # Make '/path/to/lib:/path/to/another/lib' string from runtimePackages.
@@ -101,7 +100,6 @@
               command cargo "$@"
             }
             export RUSTFLAGS="-C link-args=-Wl,-rpath,${rpathLib}"
-            export RUSTFLAGS="-C link-arg=-fuse-ld=mold $RUSTFLAGS"
           '';
         };
 
