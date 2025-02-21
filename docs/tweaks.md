@@ -82,6 +82,7 @@ Bevy will fall back to x11 if the system its running on doesn't support
 Walyand, if using the `bevy/wayland` feature.*
 
 ## Removing `cargo build --target` and `cargo run` restrictions
-You should not be doing this. When running these in the wrong shell, cargo will
-completely restart the compilation of your program from scratch.
+You should not be doing this. When running these in the wrong shell, the build
+will inevitably fail, and cargo will completely restart the compilation of your
+program from scratch.
 Running these in the wrong shell by accident will waste you a lot of time.

@@ -18,10 +18,16 @@ nix-prefetch-url "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz"
 Then, enter the URL and hash into the `macSdk*` section of the flake:
 
 ```nix
-# To compile to Apple targets, provide a link to a MacOSX*.sdk.tar.xz:
-macSdkUrl = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
-# ... and the sha-256 hash of said tarball. Just the hash, no 'sha-'.
-macSdkHash = "3846886941d2d3d79b2505 !! EXAMPLE HASH !! 627cf65f692934b19b916c";
+{
+  ...
+
+  # To compile to Apple targets, provide a link to a MacOSX*.sdk.tar.xz:
+  macSdkUrl = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
+  # ... and the sha-256 hash of said tarball. Just the hash, no 'sha-'.
+  macSdkHash = "3846886941d2d3d79b2505 !! EXAMPLE HASH !! 627cf65f692934b19b916c";
+
+  ...
+}
 ```
 
 ... or, to avoid re-downloading it every time your /nix/store is garbage
@@ -29,7 +35,7 @@ collected, download the tarball, and reference it on your local system:
 
 ```nix
 macSdkUrl = "file:///home/user/Downloads/MacOSX(Version).tar.xz";
-#                   ^ Notice the extra forward-slash.
+                  # ^ Notice the extra forward-slash.
 ```
 
 If you no longer have any issues when entering the `build` shell, you should
