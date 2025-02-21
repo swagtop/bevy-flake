@@ -51,29 +51,23 @@ cargo zigbuild --target wasm32-unknown-unknown --release
 ## How does it work?
 
 **bevy-flake** provides two different shells, `default` and `build`.
+They have separate sections they compile to, in `/targets`.
 
-The `default` shell is allowed to use `cargo run`, and `cargo build`, but never
-specify a target with `--target`.
+- The `default` shell is allowed to use `cargo run`, and `cargo build`,
+  but never specify a target with `--target`.
 
-The `build` shell is allowed to use the `cargo build` with the `--target` flag,
-but never without it, and never `cargo run`.
+- The `build` shell can use `cargo zigbuild` with the `--target`
+  flag, but never without it, and never `cargo run`.
 
 ```
-default                                    build
-   │                                         │
-   │                                         │
-   │     ╔═══════════/target/══════════╗     │
-   ├─────── debug/                     ║     │
-   └─────── release/                   ║     │
-         ║  x86_64-unknown-linux-gnu/ ───────┤
-         ║  x86_64-pc-windows-gnu/ ──────────┤
-         ║  aarch64-apple-darwin/ ───────────┘
-         ╚═════════════════════════════╝
+                         default                                    build
+                            │                                         │
+                            │                                         │
+                            │     ╔═══════════/target/══════════╗     │
+                            ├─────── debug/                     ║     │
+                            └─────── release/                   ║     │
+                                  ║  x86_64-unknown-linux-gnu/ ───────┤
+                                  ║  x86_64-pc-windows-gnu/ ──────────┤
+                                  ║  aarch64-apple-darwin/ ───────────┘
+                                  ╚═════════════════════════════╝
 ```
-
-This results in the two shells interacting with each others targets, and
-therefore we don't have to worry about them flushing eachothers compilation
-cache, when they meet different environment variables.
-
-By switching out the Rust linker with `cargo-zigbuild`, we also gain the
-ability to cross-compile to Windows and MacOS targets.

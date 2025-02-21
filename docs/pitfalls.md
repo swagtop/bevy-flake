@@ -75,4 +75,4 @@ Caused by:
   Unable to find libclang: "couldn't find any valid shared libraries matching: ['libclang.so', 'libclang-*.so', 'libclang.so.*', 'libclang-*.so.*'], set the `LIBCLANG_PATH` environment variable to a path where one of these files can be found (invalid: [])"
 ```
 You are trying to compile to MacOS without adding a link to the MacOS SDK.
-Check out the [MacOS section.](docs/macos.md)
+Check out the [MacOS section.](macos.md)
