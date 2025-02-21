@@ -14,12 +14,11 @@
       rustToolchain = pkgs.rust-bin.nightly.latest.default.override {
         extensions = [ "rust-src" "rust-analyzer" ];
         targets = [
-          "aarch64-apple-darwin"
-          "x86_64-apple-darwin"
+          "aarch64-apple-darwin" "x86_64-apple-darwin"
 
           "x86_64-unknown-linux-gnu"
 
-          "x86_64-pc-windows-gnu"
+          "x86_64-pc-windows-gnu" "x86_64-pc-windows-gnullvm"
 
           "wasm32-unknown-unknown"
         ];
@@ -54,7 +53,6 @@
 
       compileTimePackages = (with pkgs; [
         alsa-lib-with-plugins
-        lld
         pkg-config
         udev
       ]
@@ -73,7 +71,7 @@
       );
 
       # Make '/path/to/lib:/path/to/another/lib' string from runtimePackages.
-      rpathLib = "${lib.makeLibraryPath runtimePackages}";
+      rpathLibrary = "${lib.makeLibraryPath runtimePackages}";
 
       # Removes your username from the final binary, changes it to 'user'.
       removeUsername = "--remap-path-prefix=/home/$USER=/home/user";
@@ -99,7 +97,7 @@
               done
               command cargo "$@"
             }
-            export RUSTFLAGS="-C link-args=-Wl,-rpath,${rpathLib}"
+            export RUSTFLAGS="-C link-args=-Wl,-rpath,${rpathLibrary}"
           '';
         };
 
@@ -150,7 +148,7 @@
                 echo "bevy-flake: Cannot compile in build shell without target"
                 return 1
               elif [ "$1" = 'build' ]; then
-                echo "bevy-flake: Aliasing 'build' to 'zigbuild'"
+                echo "bevy-flake: Aliasing 'build' to 'zigbuild'" >&2 
                 command cargo zigbuild "''${@:2}"
               else command cargo "$@"; fi
             }

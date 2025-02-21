@@ -3,8 +3,8 @@
 ## Cargo / Rust
 
 ### Adding targets
-Instead of using `cargo target add`, add targets to the `targets` section of
-the `rustToolchain` section:
+Instead of using `rustup target add`, add your targets to the `targets` section
+of the `rustToolchain` section:
 ```nix
 rustToolchain = pkgs.rust-bin.stable.latest.nightly.override {
   extensions = [ "rust-src" "rust-analyzer" ];
@@ -24,7 +24,7 @@ rustToolchain = pkgs.rust-bin.stable.latest.nightly.override {
 ```
 The ones already there have been tested, and are known to work.
 
-### Chaning toolchain version
+### Changing toolchain version
 You can change the version of the version of the Rust toolchain by editing the
 `rustToolchain` section:
 
@@ -35,7 +35,7 @@ rustToolchain.beta."2021-01-01".default     # Specific date for beta
 rustToolchain.nightly."2020-12-31".default  # ... or nightly
 ```
 
-More info can be found on the [rust-overlay GitHub page.][rust-overlay]
+More info can be found on the [rust-overlay repository.][rust-overlay]
 
 [rust-overlay]: https://github.com/oxalica/rust-overlay
 
@@ -53,7 +53,7 @@ Then add this to your `RUSTFLAGS`, such that they look like this in your
 `shellHook`:
 
 ```sh
-export RUSTFLAGS="-C link-args=-Wl,-rpath,${rpathLib}"
+export RUSTFLAGS="-C link-args=-Wl,-rpath,${rpathLibrary}"
 export RUSTFLAGS="-C link-arg=-fuse-ld=mold $RUSTFLAGS"
 ```
 *Do not add this to the build shell, we are already using the Zig linker as an

@@ -1,4 +1,5 @@
-# Common issues
+# Pitfalls
+
 ## Failed to build event loop
 ```
 Failed to build event loop: Os(OsError { line: 787, file: "/home/user/.cargo/registry/src/index.crates.io-6f17d22bba15001f/winit-0.30.8/src/platform_impl/linux/mod.rs", error: XNotSupported(LibraryOpenError(OpenError { kind: Library, detail: "opening library failed (libX11.so.6: cannot open shared object file: No such file or directory); opening library failed (libX11.so: cannot open shared object file: No such file or directory)" })) })
@@ -14,13 +15,12 @@ called `Result::unwrap()` on an `Err` value: BadDisplay
 ```
 You're having Wayland issues. Do one of the following:
 1. [Set up graphics drivers properly.][graphics] If the drivers for your
-specific GPU are borked (... [*cough*][390] ...), this might not be possible.
+specific GPU are borked, this might not be possible.
 2. Remove the Bevy Wayland feature from your `Cargo.toml`, then re-add it to
 the build command when compiling in the build shell with:
 `--features bevy/wayland`
 
 [graphics]: https://wiki.nixos.org/wiki/Graphics
-[390]: https://wiki.archlinux.org/title/AMDGPU#R9_390_series_poor_performance_and/or_instability
 
 ## Invalid surface
 ```
@@ -33,7 +33,7 @@ Caused by:
 ```
 You're having Wayland issues. Do one of the following:
 1. [Set up graphics drivers properly.][graphics]
-2. Comment out `++ waylandPackages` in the `runtimeLib` section.
+2. Comment out `++ waylandPackages` in the `runtimePackages` section.
 
 ## \`x86_64-w64-mingw32-gcc` not found
 ```
@@ -75,13 +75,4 @@ Caused by:
   Unable to find libclang: "couldn't find any valid shared libraries matching: ['libclang.so', 'libclang-*.so', 'libclang.so.*', 'libclang-*.so.*'], set the `LIBCLANG_PATH` environment variable to a path where one of these files can be found (invalid: [])"
 ```
 You are trying to compile to MacOS without adding a link to the MacOS SDK.
-You should add it to `flake.nix`, such that `appleSdkUrl` and `appleSdkHash`
-are defined like so:
-```
-# To compile to Apple targets, provide a link to a MacOSX*.sdk.tar.xz:
-appleSdkUrl = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
-# ... and the sha-256 hash of said tarball. Just the hash, no 'sha-'.
-appleSdkHash = "3846886941d2d3d79b2505 !! EXAMPLE HASH !! 627cf65f692934b19b916c";
-```
-The hash of the tarball can be found running `sha256 MacOSX(Version).tar.xz`,
-but is usually provided by the user hosting it.
+Check out the [MacOS section.](docs/macos.md)
