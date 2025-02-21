@@ -25,16 +25,14 @@
         ];
       };
 
-      # To compile to Apple targets, provide a link to a MacOSX*.sdk.tar.xz:
-      appleSdkUrl = "";
+      # To compile to MacOS, provide a URL to a MacOSX*.sdk.tar.xz:
+      macSdkUrl = "";
       # ... and the sha-256 hash of said tarball. Just the hash, no 'sha-'.
-      appleSdkHash = "";
+      macSdkHash = "";
 
-      # Removes your username from the final binary, changes it to 'user'.
-      anonymizeBuild = "--remap-path-prefix=/home/$USER=/home/user";
-
-      devShellPackages = [
+      devShellPackages = with pkgs; [
         rustToolchain
+        mold
       ];
 
       buildShellPackages = with pkgs; [
@@ -72,11 +70,14 @@
         vulkan-loader
       ]
       ++ xorgPackages
-      ++ waylandPackages # <--- Comment out if you're having Wayland issues.
+      # ++ waylandPackages # <--- Comment out if you're having Wayland issues.
       );
 
       # Make '/path/to/lib:/path/to/another/lib' string from runtimePackages.
-      rpath = "${lib.makeLibraryPath runtimePackages}";
+      rpathLib = "${lib.makeLibraryPath runtimePackages}";
+
+      # Removes your username from the final binary, changes it to 'user'.
+      removeUsername = "--remap-path-prefix=/home/$USER=/home/user";
     in {
       devShells = {
         default = pkgs.mkShell {
@@ -88,15 +89,19 @@
 
           # Wrapping 'cargo' in a function to prevent easy-to-make mistakes.
           shellHook = ''
-            cargo() {
-              if [[ "$1" = @("build"|"zigbuild"|"xwin") ]]; then
-                printf "bevy-flake: Switch to build shell to build: "
-                echo "'nix develop .#build'"
-                return 1
-              else command cargo "$@"; fi
+            cargo () {
+              for arg in "$@"; do
+                if [ "$arg" = '--target' ]; then
+                  printf "bevy-flake: "
+                  printf "Switch to build shell to compile for target: "
+                  echo "'nix develop .#build'"
+                  return 1
+                fi
+              done
+              command cargo "$@"
             }
-            export RUSTFLAGS="${anonymizeBuild}"
-            export RUSTFLAGS="-C link-args=-Wl,-rpath,${rpath} $RUSTFLAGS"
+            export RUSTFLAGS="-C link-args=-Wl,-rpath,${rpathLib}"
+            export RUSTFLAGS="-C link-arg=-fuse-ld=mold $RUSTFLAGS"
           '';
         };
 
@@ -107,43 +112,51 @@
           nativeBuildInputs = compileTimePackages;
 
           # Try to fetch appleSdk, if URL and hash is provided.
-          appleSdk = if appleSdkUrl != "" && appleSdkHash != "" then 
-            builtins.fetchTarball { url = appleSdkUrl; sha256 = appleSdkHash; }
+          macSdk = if macSdkUrl != "" && macSdkHash != "" then 
+            builtins.fetchTarball { url = macSdkUrl; sha256 = macSdkHash; }
             else null;
 
           # Add appleSdk to env, if available.
-          env = if appleSdk != null then rec {
-            frameworks = "${appleSdk}/System/Library/Frameworks";
+          env = if macSdk != null then rec {
+            frameworks = "${macSdk}/System/Library/Frameworks";
 
-            SDKROOT = appleSdk;
+            SDKROOT = macSdk;
             COREAUDIO_SDK_PATH = "${frameworks}/CoreAudio.framework/Headers";
             LIBCLANG_PATH = "${pkgs.libclang.lib}/lib";
 
             BINDGEN_EXTRA_CLANG_ARGS = (
-              "--sysroot=${appleSdk}"
+              "--sysroot=${macSdk}"
             + " -F ${frameworks}"
-            + " -I${appleSdk}/usr/include"
+            + " -I${macSdk}/usr/include"
             );
           } else {};
 
           # Stops blake3 from acting up.
           CARGO_FEATURE_PURE = "1";
 
-          # Prevents accidental linking to /nix/store items.
+          # Resets LD_LIBRARY_PATH, should it have been set elsewhere.
           LD_LIBRARY_PATH = "";
 
           # Wrapping 'cargo' in a function to prevent easy-to-make mistakes.
           shellHook = ''
-            cargo() {
-              if [[ "$1" == "run" ]]; then
+            cargo () {
+              for arg in "$@"; do
+                if [ "$arg" = '--target' ]; then
+                  COMPILING_TO_TARGET=1
+                fi
+              done
+              if [ "$1" = 'run' ]; then
                 echo "bevy-flake: Switch to dev shell to run: 'nix develop'"
                 return 1
-              elif [[ "$1" == "build" ]]; then
+              elif [ "$COMPILING_TO_TARGET" != '1' ]; then
+                echo "bevy-flake: Cannot compile in build shell without target"
+                return 1
+              elif [ "$1" = 'build' ]; then
                 echo "bevy-flake: Aliasing 'build' to 'zigbuild'"
                 command cargo zigbuild "''${@:2}"
               else command cargo "$@"; fi
             }
-            export RUSTFLAGS=${anonymizeBuild}
+            export RUSTFLAGS=${removeUsername}
           '';
         };
       };

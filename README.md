@@ -7,8 +7,8 @@ for painless Bevy development and cross-compilation on NixOS.
 This flake is meant to help new NixOS users hit the ground running,
 and get started quickly, with as little hassle as possible.
 
-*This is accomplished using [rust-overlay][overlay] for the rust toolchain,
-and [cargo-zigbuild][zigbuild] for cross-compilation with the Zig linker.*
+*Using [rust-overlay][overlay] for the rust toolchain,
+and [cargo-zigbuild][zigbuild] for cross-compilation.*
 
 [overlay]: https://github.com/oxalica/rust-overlay/
 [zigbuild]: https://github.com/rust-cross/cargo-zigbuild
@@ -21,7 +21,7 @@ wget https://github.com/swagtop/bevy-flake/raw/refs/heads/main/flake.nix
 git add flake.nix
 ```
 
-Compile and run Bevy project for local machine:
+Compile and run Bevy project on your NixOS machine:
 ```
 nix develop
 cargo run
@@ -36,6 +36,6 @@ cargo zigbuild --target aarch64-apple-darwin --release # Needs SDK!
 cargo zigbuild --target wasm32-unknown-unknown --release
 ```
 
+- [Tweaks](docs/tweaks.md)
 - [Detailed setup](docs/detailed_setup.md)
-- [Editing flake](docs/editing_flake.md)
 - [Common issues](docs/common_issues.md)
