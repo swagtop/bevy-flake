@@ -51,7 +51,7 @@ cargo zigbuild --target wasm32-unknown-unknown --release
 ## How does it work?
 
 **bevy-flake** provides two different shells, `default` and `build`.
-They have separate sections they compile to, in `/targets`.
+They have separate sections they compile to, in the `/target/` directory.
 
 - The `default` shell is allowed to use `cargo run`, and `cargo build`,
   but never specify a target with `--target`.
@@ -60,14 +60,14 @@ They have separate sections they compile to, in `/targets`.
   flag, but never without it, and never `cargo run`.
 
 ```
-                         default                                    build
-                            │                                         │
-                            │                                         │
-                            │     ╔═══════════/target/══════════╗     │
-                            ├─────── debug/                     ║     │
-                            └─────── release/                   ║     │
-                                  ║  x86_64-unknown-linux-gnu/ ───────┤
-                                  ║  x86_64-pc-windows-gnu/ ──────────┤
-                                  ║  aarch64-apple-darwin/ ───────────┘
-                                  ╚═════════════════════════════╝
+                        default                                    build
+                           │                                         │
+                           │                                         │
+                           │     ╔═══════════/target/══════════╗     │
+                           ├─────── debug/                     ║     │
+                           └─────── release/                   ║     │
+                                 ║  x86_64-unknown-linux-gnu/ ───────┤
+                                 ║  x86_64-pc-windows-gnu/ ──────────┤
+                                 ║  aarch64-apple-darwin/ ───────────┘
+                                 ╚═════════════════════════════╝
 ```
