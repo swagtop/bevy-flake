@@ -35,7 +35,7 @@ rustToolchain.beta."2021-01-01".default     # Specific date for beta
 rustToolchain.nightly."2020-12-31".default  # ... or nightly
 ```
 
-More info can be found on the [rust-overlay github page.][rust-overlay]
+More info can be found on the [rust-overlay GitHub page.][rust-overlay]
 
 [rust-overlay]: https://github.com/oxalica/rust-overlay
 
@@ -63,7 +63,7 @@ alternative linker there.*
 
 If you're having Wayland issues, Wayland can simply be turned
 off in the development shell, by commenting out the list concatnation of
-`waylandPackages`, in the runtimePackages section:
+`waylandPackages`, in the `runtimePackages` section:
 ```nix
 runtimePackages = (with pkgs; [
   alsa-lib-with-plugins
@@ -77,7 +77,7 @@ runtimePackages = (with pkgs; [
 );
 ```
 
-*Do not remove the waylandPackages from `compileTimePackages`.
+*Do not remove the `waylandPackages` from `compileTimePackages`.
 Bevy will fall back to x11 if the system its running on doesn't support
 Walyand, if using the `bevy/wayland` feature.*
 
