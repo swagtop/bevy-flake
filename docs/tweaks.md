@@ -1,6 +1,6 @@
 # Tweaks
 
-## Cargo
+## Cargo / Rust
 
 ### Adding targets
 Instead of using `cargo target add`, add targets to the `targets` section of
@@ -24,8 +24,9 @@ rustToolchain = pkgs.rust-bin.stable.latest.nightly.override {
 ```
 The ones already there have been tested, and are known to work.
 
-### Chaning version
-You can change the version of the version of the Rust toolchain by editing the rustToolchain section:
+### Chaning toolchain version
+You can change the version of the version of the Rust toolchain by editing the
+`rustToolchain` section:
 
 ```nix
 rustToolchain.stable.latest.default         # Latest stable
@@ -36,9 +37,9 @@ rustToolchain.nightly."2020-12-31".default  # ... or nightly
 
 More info can be found on the [rust-overlay github page.][rust-overlay]
 
-[rust-overlay][https://github.com/oxalica/rust-overlay]
+[rust-overlay]: https://github.com/oxalica/rust-overlay
 
-### Using the mold Linker
+### Using the mold linker
 
 Add mold to the `devShellPackages` list:
 ```nix
@@ -55,8 +56,8 @@ Then add this to your `RUSTFLAGS`, such that they look like this in your
 export RUSTFLAGS="-C link-args=-Wl,-rpath,${rpathLib}"
 export RUSTFLAGS="-C link-arg=-fuse-ld=mold $RUSTFLAGS"
 ```
-Don't add this to the build shell, we are already using the Zig linker as an
-alternative linker there.
+*Do not add this to the build shell, we are already using the Zig linker as an
+alternative linker there.*
 
 ## Wayland issues
 
@@ -75,14 +76,12 @@ runtimePackages = (with pkgs; [
 # ++ waylandPackages # <--- Comment out if you're having Wayland issues.
 );
 ```
-This will still allow you to use the Bevy Wayland feature for when
-cross-compiling to generic Linux systems.
 
-**Do not remove the waylandPackages from `compileTimePackages`.
+*Do not remove the waylandPackages from `compileTimePackages`.
 Bevy will fall back to x11 if the system its running on doesn't support
-Walyandm, if using the `bevy/wayland` feature.**
+Walyand, if using the `bevy/wayland` feature.*
 
-## Removing `cargo build --target` and `cargo run` in wrong shell restrictions
+## Removing `cargo build --target` and `cargo run` restrictions
 You should not be doing this. When running these in the wrong shell, cargo will
 completely restart the compilation of your program from scratch.
 Running these in the wrong shell by accident will waste you a lot of time.
