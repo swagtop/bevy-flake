@@ -141,16 +141,25 @@
                   COMPILING_TO_TARGET=1
                 fi
               done
-              if [ "$1" = 'run' ]; then
-                echo "bevy-flake: Switch to dev shell to run: 'nix develop'"
-                return 1
-              elif [ "$COMPILING_TO_TARGET" != '1' ]; then
-                echo "bevy-flake: Cannot compile in build shell without target"
-                return 1
-              elif [ "$1" = 'build' ]; then
-                echo "bevy-flake: Aliasing 'build' to 'zigbuild'" >&2 
-                command cargo zigbuild "''${@:2}"
-              else command cargo "$@"; fi
+              case $1 in
+                run)
+                  echo "bevy-flake: Switch to dev shell to run: 'nix develop'"
+                  return 1;;
+                build)
+                  echo "bevy-flake: Aliasing 'build' to 'zigbuild'" >&2 
+                  set -- "zigbuild" "''${@:2}";&
+                xwin);&
+                zigbuild)
+                  if [ "$COMPILING_TO_TARGET" != '1' ]; then
+                    printf "bevy-flake: "
+                    echo "Cannot compile in build shell without target"
+                    return 1
+                  else
+                    command cargo "$@"
+                  fi;;
+                *)
+                  command cargo "$@";;
+              esac
             }
             export RUSTFLAGS=${removeUsername}
           '';
