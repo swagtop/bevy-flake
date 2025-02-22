@@ -26,12 +26,6 @@ Compile and run Bevy project on your NixOS machine:
 nix develop
 cargo run
 ```
-... or:
-```sh
-nix develop
-cargo build
-/path/to/project/targets/debug/executable
-```
 
 Cross compile for Linux, Windows, MacOS and WASM:
 ```sh

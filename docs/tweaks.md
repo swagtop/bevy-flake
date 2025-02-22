@@ -78,8 +78,9 @@ runtimePackages = (with pkgs; [
 ```
 
 *Do not remove the `waylandPackages` from `compileTimePackages`.
-Bevy will fall back to x11 if the system its running on doesn't support
-Walyand, if using the `bevy/wayland` feature.*
+Bevy builds with the `bevy/wayland` feature will fall back to x11 if the system
+its running on doesn't support Wayland. Your build will have greater
+compatibility like this.*
 
 ## Removing `cargo build --target` and `cargo run` restrictions
 You should not be doing this. When running these in the wrong shell, the build
