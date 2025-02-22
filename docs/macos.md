@@ -8,11 +8,11 @@ somewhere on the internet.
 
 [osxcross]: https://github.com/tpoechtrager/osxcross
 
-When acquired, you should first get the hash of the tarball, with
-`nix-prefetch-url`:
+When acquired, you should first get the hash of the tarball, by running
+`nix-prefetch-url` in your shell:
 
 ```sh
-nix-prefetch-url "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz"
+nix-prefetch-url 'https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz'
 ```
 
 Then, enter the URL and hash into the `macSdk*` section of the flake:
@@ -45,11 +45,11 @@ now be able to compile to MacOS targets like so:
 cargo zigbuild --target x86_64-apple-darwin
 ```
 
-## Why not include the SDK in my Git repository?
+## Should I add the SDK to my Git repository?
 
 The SDK tarball can take up a lot of space, and will increase the time spent
-entering the `build` shell. It is also legally dubious if distributing the SDK
-is allowed or not.
+entering the `build` shell. Distributing the SDK itself is also legally
+dubious.
 
-Regardless, I've found it to be faster when done this way, and users who don't
-care about MacOS as a target, need not change or look into anything.
+Regardless, I've found it to be faster when referenced this way, and makes it
+convenient to opt-in or out of using the MacOS target.

@@ -48,13 +48,11 @@ cargo zigbuild --target wasm32-unknown-unknown --release
 
 ---
 
-## How does it work?
-
-**bevy-flake** provides two different shells, `default` and `build`.
+**bevy-flake** provides two shells: `default` and `build`.
 They have separate sections they compile to in the `/target/` directory, and
-different environmental variables for their specific use-case.
+different environmental variables and packages for their specific use-case.
 
-- The `default` shell is allowed to use `cargo run`, and `cargo build`,
+- The `default` shell can use `cargo run`, and `cargo build`,
   but never specify a target with `--target`.
 
 - The `build` shell can use `cargo zigbuild` with the `--target`
@@ -72,3 +70,5 @@ different environmental variables for their specific use-case.
                                 ║  aarch64-apple-darwin/ ───────────┘
                                 ╚═════════════════════════════╝
 ```
+
+- [Details](docs/details.md)

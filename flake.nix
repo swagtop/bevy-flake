@@ -67,7 +67,7 @@
         vulkan-loader
       ]
       ++ xorgPackages
-      ++ waylandPackages # <--- Comment out if you're having Wayland issues.
+      # ++ waylandPackages # <--- Comment out if you're having Wayland issues.
       );
 
       # Make '/path/to/lib:/path/to/another/lib' string from runtimePackages.
@@ -97,7 +97,7 @@
               done
               command cargo "$@"
             }
-            export RUSTFLAGS="-C link-args=-Wl,-rpath,${rpathLibrary}"
+            export LD_LIBRARY_PATH="${rpathLibrary}"
           '';
         };
 
