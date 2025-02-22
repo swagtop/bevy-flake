@@ -67,7 +67,7 @@
         vulkan-loader
       ]
       ++ xorgPackages
-      # ++ waylandPackages # <--- Comment out if you're having Wayland issues.
+      ++ waylandPackages # <--- Comment out if you're having Wayland issues.
       );
 
       # Make '/path/to/lib:/path/to/another/lib' string from runtimePackages.
