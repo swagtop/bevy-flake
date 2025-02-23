@@ -58,9 +58,9 @@ binary even if you're no longer in the `develop` shell, so long as those
 dependencies are still in your `/nix/store`.
 
 More packages can be added to the `develop` shell, by adding them to the
-`devShellPackages` list. This is also where you can add `mold` as a linker, to
-minimize time spent staring at the compilation progress bar while developing.
-[More on that here.](tweaks.md#using-the-mold-linker)
+`developShellPackages` list. This is also where you can add `mold` as a linker,
+to minimize time spent staring at the compilation progress bar while
+developing. [More on that here.](tweaks.md#using-the-mold-linker)
 
 ### The `build` shell
 

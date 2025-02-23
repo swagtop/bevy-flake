@@ -30,7 +30,7 @@
       # ... and the sha-256 hash of said tarball. Just the hash, no 'sha-'.
       macSdkHash = "";
 
-      devShellPackages = [
+      developShellPackages = [
         rustToolchain
       ];
 
@@ -82,7 +82,7 @@
         develop = pkgs.mkShell {
           name = "bevy-develop";
 
-          packages = devShellPackages;
+          packages = developShellPackages;
           nativeBuildInputs = compileTimePackages;
           buildInputs = runtimePackages;
 

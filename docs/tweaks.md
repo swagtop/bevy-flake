@@ -41,9 +41,9 @@ More info can be found on the [rust-overlay repository.][rust-overlay]
 
 ### Using the mold linker
 
-Add mold to the `devShellPackages` list:
+Add mold to the `developShellPackages` list:
 ```nix
-devShellPackages = with pkgs; [
+developShellPackages = with pkgs; [
   rustToolchain
   mold
 ];
