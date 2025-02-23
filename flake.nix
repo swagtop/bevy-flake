@@ -1,4 +1,5 @@
 {
+  description = "A NixOS development flake for Bevy development.";
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
     rust-overlay.url = "github:oxalica/rust-overlay";
@@ -75,10 +76,11 @@
 
       # Removes your username from the final binary, changes it to 'user'.
       removeUsername = "--remap-path-prefix=/home/$USER=/home/user";
-    in {
+    in rec {
       devShells = {
-        default = pkgs.mkShell {
-          name = "bevy";
+        default = devShells.develop;
+        develop = pkgs.mkShell {
+          name = "bevy-develop";
 
           packages = devShellPackages;
           nativeBuildInputs = compileTimePackages;
@@ -90,7 +92,7 @@
               for arg in "$@"; do
                 if [ "$arg" = '--target' ]; then
                   printf "bevy-flake: "
-                  printf "Switch to build shell to compile for target: "
+                  printf "Switch to the build shell to compile for target: "
                   echo "'nix develop .#build'"
                   return 1
                 fi
@@ -143,7 +145,8 @@
               done
               case $1 in
                 run)
-                  echo "bevy-flake: Switch to dev shell to run: 'nix develop'"
+                  printf "bevy-flake: Switch to the develop shell to run: "
+                  evho "'nix develop'"
                   return 1;;
                 build)
                   echo "bevy-flake: Aliasing 'build' to 'zigbuild'" >&2 
@@ -152,7 +155,7 @@
                 zigbuild)
                   if [ "$COMPILING_TO_TARGET" != '1' ]; then
                     printf "bevy-flake: "
-                    echo "Cannot compile in build shell without target"
+                    echo "Cannot compile in the build shell without target"
                     return 1
                   else
                     command cargo "$@"

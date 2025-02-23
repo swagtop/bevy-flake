@@ -16,7 +16,7 @@ use something like [Naersk.][naersk]*
 
 ## Inner workings of the shells
 
-### The `default` shell
+### The `develop` shell
 
 Bevy gains access to the correct libraries, through the `rpath` rust-flag:
 ```nix
@@ -38,7 +38,8 @@ let
   ...
 in {
   devShells = {
-    default = pkgs.mkShell {
+    ...
+    develop = pkgs.mkShell {
       ...
       shellHook = ''
         ...
@@ -53,10 +54,10 @@ in {
 
 Other shells do this through `LD_LIBRARY_PATH`, but this requires you to set it
 every time you want to run the binary. Setting it with `rpath` lets you run the
-binary even if you're no longer in the `default` shell, as long as those
-dependencies are in your `/nix/store`.
+binary even if you're no longer in the `develop` shell, so long as those
+dependencies are still in your `/nix/store`.
 
-More packages can be added to the `default` shell, by adding them to the
+More packages can be added to the `develop` shell, by adding them to the
 `devShellPackages` list. This is also where you can add `mold` as a linker, to
 minimize time spent staring at the compilation progress bar while developing.
 [More on that here.](tweaks.md#using-the-mold-linker)

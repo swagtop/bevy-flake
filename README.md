@@ -42,18 +42,18 @@ cargo zigbuild --target wasm32-unknown-unknown --release
 
 ---
 
-**bevy-flake** provides two shells: `default` and `build`.
+**bevy-flake** provides two shells: `develop` and `build`.
 They have separate sections they compile to in the `/target/` directory, and
 different environmental variables and packages for their specific use-case.
 
-- The `default` shell can use `cargo run`, and `cargo build`,
+- The `develop` shell can use `cargo run`, and `cargo build`,
   but never specify a target with `--target`.
 
 - The `build` shell can use `cargo zigbuild` with the `--target`
   flag, but never without it, and never `cargo run`.
 
 ```
-                       default                                    build
+                       develop                                    build
                           │                                         │
                           │                                         │
                           │     ╔═══════════/target/══════════╗     │
@@ -65,7 +65,7 @@ different environmental variables and packages for their specific use-case.
                                 ╚═════════════════════════════╝
 ```
 
-The builds made by `default` will run on your specific NixOS machine, and the
+The builds made by `develop` will run on your specific NixOS machine, and the
 builds made by `build` will run on the target operating system.
 
 - [Details](docs/details.md)
