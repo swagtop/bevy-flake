@@ -65,4 +65,7 @@ different environmental variables and packages for their specific use-case.
                                 ╚═════════════════════════════╝
 ```
 
+The builds made by `default` will run on your specific NixOS machine, and the
+builds made by `build` will run on the target operating system.
+
 - [Details](docs/details.md)

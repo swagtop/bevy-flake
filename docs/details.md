@@ -2,12 +2,15 @@
 
 ## Who is this for?
 
-Developers who just want to develop Bevy on their NixOS system, while also
-having the ability to distribute their games to other operating systems,
-without needing to rely on GitHub Actions, or the like.
+This flake is for developers who just want to develop Bevy on their NixOS
+system, while also having the ability to distribute their games to other
+operating systems, without needing to rely on GitHub Actions, or the like.
 
-This flake is not made for packaging your game for Nix. For that you should use
-something like [Naersk.][naersk]
+It is designed to be as close to a drop-in solution as possible, such that
+users can easily integrate it into their existing workflow.
+
+*This flake is not made for packaging your game for Nix. For that you should
+use something like [Naersk.][naersk]*
 
 [naersk]: https://github.com/nix-community/naersk
 
@@ -42,6 +45,7 @@ in {
         export RUSTFLAGS="-C link-args=-Wl,-rpath,${rpathLibrary}"
       '';
     }
+    ...
   }
   ...
 }
@@ -49,7 +53,8 @@ in {
 
 Other shells do this through `LD_LIBRARY_PATH`, but this requires you to set it
 every time you want to run the binary. Setting it with `rpath` lets you run the
-binary even if you're no longer in the `default` shell.
+binary even if you're no longer in the `default` shell, as long as those
+dependencies are in your `/nix/store`.
 
 More packages can be added to the `default` shell, by adding them to the
 `devShellPackages` list. This is also where you can add `mold` as a linker, to
