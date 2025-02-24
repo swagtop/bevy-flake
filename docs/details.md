@@ -70,7 +70,7 @@ kinds of `pkgsCross` libraries in your Nix shell. That is, unless you use
 
 Turns out that the Zig linker can do this stuff out-of-the-box. It also
 avoids the issue of Linux builds hardlinking the ELF interpreter to somewhere
-in `/nix/store`, avoiding having to patch Linux binaries to work in other
+in `/nix/store`, avoiding having to patch Linux binaries for to work in other
 Linux distributions.
 
 The `build` shell will let users compile to MacOS systems, if they provide a

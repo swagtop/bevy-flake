@@ -146,17 +146,18 @@
               case $1 in
                 run)
                   printf "bevy-flake: Switch to the develop shell to run: "
-                  evho "'nix develop'"
+                  echo "'nix develop'"
                   return 1;;
                 build|zigbuild|xwin)
-                  if [ "$COMPILING_TO_TARGET" != '1' ]; then
+                  if [ "$COMPILING_TO_TARGET" != 1 ]; then
                     printf "bevy-flake: "
-                    echo "Cannot compile in the build shell without target"
+                    echo "Cannot compile in the build shell without a target"
                     return 1
                   fi
                   if [ "$1" = 'build' ]; then
                     echo "bevy-flake: Aliasing 'build' to 'zigbuild'" >&2 
-                    set -- "zigbuild" "''${@:2}"
+                    shift
+                    set -- "zigbuild" "$@"
                   fi;;
               esac
               command cargo "$@"
