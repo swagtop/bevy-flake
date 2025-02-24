@@ -148,21 +148,18 @@
                   printf "bevy-flake: Switch to the develop shell to run: "
                   evho "'nix develop'"
                   return 1;;
-                build)
-                  echo "bevy-flake: Aliasing 'build' to 'zigbuild'" >&2 
-                  set -- "zigbuild" "''${@:2}";&
-                xwin);&
-                zigbuild)
+                build|zigbuild|xwin)
                   if [ "$COMPILING_TO_TARGET" != '1' ]; then
                     printf "bevy-flake: "
                     echo "Cannot compile in the build shell without target"
                     return 1
-                  else
-                    command cargo "$@"
+                  fi
+                  if [ "$1" = 'build' ]; then
+                    echo "bevy-flake: Aliasing 'build' to 'zigbuild'" >&2 
+                    set -- "zigbuild" "''${@:2}"
                   fi;;
-                *)
-                  command cargo "$@";;
               esac
+              command cargo "$@"
             }
             export RUSTFLAGS=${removeUsername}
           '';
