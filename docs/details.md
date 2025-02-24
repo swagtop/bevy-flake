@@ -34,7 +34,7 @@ let
   );
 
   # Make '/path/to/lib:/path/to/another/lib' string from runtimePackages.
-  rpathLibrary = "${lib.makeLibraryPath runtimePackages}";
+  runtimeLibraryPath = "${lib.makeLibraryPath runtimePackages}";
   ...
 in {
   devShells = {
@@ -43,7 +43,7 @@ in {
       ...
       shellHook = ''
         ...
-        export RUSTFLAGS="-C link-args=-Wl,-rpath,${rpathLibrary}"
+        export RUSTFLAGS="-C link-args=-Wl,-rpath,${runtimeLibraryPath}"
       '';
     }
     ...

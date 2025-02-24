@@ -53,7 +53,7 @@ Then add this to your `RUSTFLAGS`, such that they look like this in your
 `shellHook`:
 
 ```sh
-export RUSTFLAGS="-C link-args=-Wl,-rpath,${rpathLibrary}"
+export RUSTFLAGS="-C link-args=-Wl,-rpath,${runtimeLibraryPath}"
 export RUSTFLAGS="-C link-arg=-fuse-ld=mold $RUSTFLAGS"
 ```
 *Do not add this to the build shell, we are already using the Zig linker as an

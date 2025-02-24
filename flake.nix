@@ -72,7 +72,7 @@
       );
 
       # Make '/path/to/lib:/path/to/another/lib' string from runtimePackages.
-      rpathLibrary = "${lib.makeLibraryPath runtimePackages}";
+      runtimeLibraryPath = "${lib.makeLibraryPath runtimePackages}";
 
       # Removes your username from the final binary, changes it to 'user'.
       removeUsername = "--remap-path-prefix=/home/$USER=/home/user";
@@ -99,7 +99,7 @@
               done
               command cargo "$@"
             }
-          export RUSTFLAGS="-C link-args=-Wl,-rpath,${rpathLibrary}"
+          export RUSTFLAGS="-C link-args=-Wl,-rpath,${runtimeLibraryPath}"
           '';
         };
 
