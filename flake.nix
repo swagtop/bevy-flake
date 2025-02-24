@@ -140,7 +140,7 @@
             cargo () {
               for arg in "$@"; do
                 if [ "$arg" = '--target' ]; then
-                  COMPILING_TO_TARGET=1
+                  COMPILING_TO_TARGET=0
                 fi
               done
               case $1 in
@@ -149,7 +149,7 @@
                   echo "'nix develop'"
                   return 1;;
                 build|zigbuild|xwin)
-                  if [ "$COMPILING_TO_TARGET" != 1 ]; then
+                  if [ "$COMPILING_TO_TARGET" != 0 ]; then
                     printf "bevy-flake: "
                     echo "Cannot compile in the build shell without a target"
                     return 1
