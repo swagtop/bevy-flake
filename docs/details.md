@@ -68,6 +68,11 @@ Compiling Bevy to other systems with `cargo build`, requires you to have all
 kinds of `pkgsCross` libraries in your Nix shell. That is, unless you use
 `cargo-zigbuild`.
 
-Turns out that the `Zig` linker can do this stuff out-of-the-box. It also
+Turns out that the Zig linker can do this stuff out-of-the-box. It also
 avoids the issue of Linux builds hardlinking the ELF interpreter to somewhere
-in `/nix/store`.
+in `/nix/store`, avoiding having to patch Linux binaries to work in other
+Linux distributions.
+
+The `build` shell will let users compile to MacOS systems, if they provide a
+URL and hash to a tarball, containing the MacOS SDK.
+[More on that here.](macos.md)
