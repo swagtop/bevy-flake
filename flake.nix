@@ -99,7 +99,7 @@
               done
               command cargo "$@"
             }
-            export LD_LIBRARY_PATH="${rpathLibrary}"
+          export RUSTFLAGS="-C link-args=-Wl,-rpath,${rpathLibrary}"
           '';
         };
 
