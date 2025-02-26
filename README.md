@@ -47,16 +47,16 @@ environment variable appropreate for the situation, and using `cargo-zigbuild`
 to cross compile.
 
 ```
-                          ╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╼ cargo ╾╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
-                          ╎                                         ╎
-            (localFlags)  ╎                                         ╎  (crossFlags)
-                          ╎     ╔═══════════target/═══════════╗     ╎
-                          ├╌╌╌╌╌╌╌╴debug/                     ║     ╎
-                          ╰╌╌╌╌╌╌╌╴release/                   ║     ╎
-                                ║  x86_64-unknown-linux-gnu/╶╌╌╌╌╌╌╌┤
-                                ║  x86_64-pc-windows-gnu/╶╌╌╌╌╌╌╌╌╌╌┤
-                                ║  aarch64-apple-darwin/╶╌╌╌╌╌╌╌╌╌╌╌╯
-                                ╚═════════════════════════════╝
+                          ╭────────────────╴ cargo ╶────────────────╮
+                          │                                         │
+            (localFlags)  │                                         │  (crossFlags)
+                          │     ┏━━━━━━━━━━╸target/╺━━━━━━━━━━┓     │
+                          ├──────► debug/                     ┃     │
+                          ╰──────► release/                   ┃     │
+                                ┃  x86_64-unknown-linux-gnu/ ◂──────┤
+                                ┃  x86_64-pc-windows-gnu/  ◂────────┤
+                                ┃  aarch64-apple-darwin/ ◂──────────╯
+                                ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 ```
 
 - [Details](docs/details.md)
