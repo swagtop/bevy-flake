@@ -7,8 +7,8 @@
 ```
 Failed to build event loop: Os(OsError { line: 787, file: "/home/user/.cargo/registry/src/index.crates.io-6f17d22bba15001f/winit-0.30.8/src/platform_impl/linux/mod.rs", error: XNotSupported(LibraryOpenError(OpenError { kind: Library, detail: "opening library failed (libX11.so.6: cannot open shared object file: No such file or directory); opening library failed (libX11.so: cannot open shared object file: No such file or directory)" })) })
 ```
-You're attempting to `cargo run` in the build shell.
-Enter the development shell by running `nix develop`.
+You are trying to `cargo run`, without the `rpath` flag in `localFlags`.
+Re-add it, and try again.
 
 ### BadDisplay
 
@@ -48,9 +48,7 @@ error: linker `x86_64-w64-mingw32-gcc` not found
 ```
 
 You are trying to compile to Windows using `cargo build`. You should:
-1. Double check that you are in the build shell with `echo $name`, the output
-should be `bevy-build-env`. If not, enter the build shell by running
-`nix develop .#build`.
+1. Refrain from using the `--no-wrapper` flag here.
 2. Use `cargo zigbuild` instead of `cargo build`.
 
 ### failed to run custom build command for \`blake3`
@@ -58,10 +56,8 @@ should be `bevy-build-env`. If not, enter the build shell by running
 ```
   error occurred in cc-rs: Command LC_ALL="C" "gcc" "-O3" "-ffunction-sections" "-fdata-sections" "-fPIC" "-gdwarf-2" "-fno-omit-frame-pointer" "-arch" "arm64" "-mmacosx-version-min=11.0" "-Wall" "-Wextra" "-std=c11" "-o" "/home/user/Documents/git/bevy-project/target/aarch64-apple-darwin/debug/build/blake3-7165bcba79fb06bd/out/a1edd97dd51cd48d-blake3_neon.o" "-c" "c/blake3_neon.c" with args gcc did not execute successfully (status code exit status: 1).
 ```
-You are trying to compile to MacOS using `cargo build`. You should:
-1. Double check that you are in the build shell with `echo $name`, the output
-should be `bevy-build-env`. If not, enter the build shell by running
-`nix develop .#build`.
+You are trying to compile to MacOS using `cargo-zigbuild`. You should:
+1. Refrain from using the `--no-wrapper` flag here.
 2. Use `cargo zigbuild` instead of `cargo build`.
 
 ### Unable to find libclang

@@ -6,7 +6,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
   };
 
-  outputs = { self, flake-utils, rust-overlay, nixpkgs }:
+  outputs = { self, flake-utils, rust-overlay, nixpkgs, ... }@inputs:
     flake-utils.lib.eachDefaultSystem (system: let
       overlays = [ (import rust-overlay) ];
       pkgs = import nixpkgs { inherit system overlays; };
@@ -25,19 +25,19 @@
         ];
       };
 
-      # To compile to MacOS, provide a URL to a MacOSX*.sdk.tar.xz:
-      macSdkUrl = "";
-      # ... and the sha-256 hash of said tarball. Just the hash, no 'sha-'.
-      macSdkHash = "";
-
-      developShellPackages = [
-        rustToolchain
-      ];
-
-      buildShellPackages = with pkgs; [
+      shellPackages = with pkgs; [
         cargo-zigbuild
         clang
         rustToolchain
+      ];
+
+      localFlags = lib.concatStringsSep " " [
+        "-C link-args=-Wl,-rpath,${lib.makeLibraryPath runtimePackages}"
+      ];
+
+      crossFlags = lib.concatStringsSep " " [
+        # "-Zlocation-detail=none"
+        # "-Zfmt-debug=none"
       ];
 
       xorgPackages = with pkgs; [
@@ -57,7 +57,7 @@
         pkg-config
         udev
       ]
-      ++ waylandPackages # <--- Keep, even if you're having Wayland issues.
+      ++ waylandPackages # Keep this uncommented.
       );
 
       runtimePackages = (with pkgs; [
@@ -70,62 +70,26 @@
       ++ xorgPackages
       ++ waylandPackages # <--- Comment out if you're having Wayland issues.
       );
-
-      # Make '/path/to/lib:/path/to/another/lib' string from runtimePackages.
-      runtimeLibraryPath = "${lib.makeLibraryPath runtimePackages}";
-
-      # Removes your username from the final binary, changes it to 'user'.
-      removeUsername = "--remap-path-prefix=/home/$USER=/home/user";
-    in rec {
+    in {
       devShells = {
-        default = devShells.develop;
-        develop = pkgs.mkShell {
-          name = "bevy-develop";
+        default = pkgs.mkShell rec {
+          name = "bevy-flake";
 
-          packages = developShellPackages;
-          nativeBuildInputs = compileTimePackages;
-          buildInputs = runtimePackages;
-
-          # Wrapping 'cargo' in a function to prevent easy-to-make mistakes.
-          shellHook = ''
-            cargo () {
-              for arg in "$@"; do
-                if [ "$arg" = '--target' ]; then
-                  printf "bevy-flake: "
-                  printf "Switch to the build shell to compile for target: "
-                  echo "'nix develop .#build'"
-                  return 1
-                fi
-              done
-              command cargo "$@"
-            }
-          export RUSTFLAGS="-C link-args=-Wl,-rpath,${runtimeLibraryPath}"
-          '';
-        };
-
-        build = pkgs.mkShell rec {
-          name = "bevy-build";
-
-          packages = buildShellPackages;
+          packages = [ cargoWrapper ] ++ shellPackages;
           nativeBuildInputs = compileTimePackages;
 
-          # Try to fetch appleSdk, if URL and hash is provided.
-          macSdk = if macSdkUrl != "" && macSdkHash != "" then 
-            builtins.fetchTarball { url = macSdkUrl; sha256 = macSdkHash; }
-            else null;
+          # Add macSdk to env, if available.
+          env = if inputs ? macSdk then rec {
+            frameworks = "${inputs.macSdk}/System/Library/Frameworks";
 
-          # Add appleSdk to env, if available.
-          env = if macSdk != null then rec {
-            frameworks = "${macSdk}/System/Library/Frameworks";
-
-            SDKROOT = macSdk;
+            SDKROOT = "${inputs.macSdk}";
             COREAUDIO_SDK_PATH = "${frameworks}/CoreAudio.framework/Headers";
             LIBCLANG_PATH = "${pkgs.libclang.lib}/lib";
 
             BINDGEN_EXTRA_CLANG_ARGS = (
-              "--sysroot=${macSdk}"
+              "--sysroot=${inputs.macSdk}"
             + " -F ${frameworks}"
-            + " -I${macSdk}/usr/include"
+            + " -I${inputs.macSdk}/usr/include"
             );
           } else {};
 
@@ -136,33 +100,41 @@
           LD_LIBRARY_PATH = "";
 
           # Wrapping 'cargo' in a function to prevent easy-to-make mistakes.
-          shellHook = ''
-            cargo () {
-              for arg in "$@"; do
-                if [ "$arg" = '--target' ]; then
-                  COMPILING_TO_TARGET=0
-                fi
-              done
-              case $1 in
-                run)
-                  printf "bevy-flake: Switch to the develop shell to run: "
-                  echo "'nix develop'"
-                  return 1;;
-                build|zigbuild|xwin)
-                  if [ "$COMPILING_TO_TARGET" != 0 ]; then
-                    printf "bevy-flake: "
-                    echo "Cannot compile in the build shell without a target"
-                    return 1
-                  fi
-                  if [ "$1" = 'build' ]; then
-                    echo "bevy-flake: Aliasing 'build' to 'zigbuild'" >&2 
-                    shift
-                    set -- "zigbuild" "$@"
-                  fi;;
+          cargoWrapper = pkgs.writeShellScriptBin "cargo" ''
+            #!/bin/sh
+            for arg in "$@"; do
+              case $arg in
+                "--target")
+                  TARGETING=Other;;
+                "--no-wrapper")
+                  # Remove '-no-wrapper' from prompt.
+                  set -- $(printf '%s\n' "$@" | grep -vx -- '--no-wrapper')
+                  # Run 'cargo' with no checks.
+                  ${rustToolchain}/bin/cargo "$@"
+                  exit $?;;
               esac
-              command cargo "$@"
-            }
-            export RUSTFLAGS=${removeUsername}
+            done
+            case $TARGETING in
+              "") # Local
+                if [ "$1" = 'zigbuild' -o "$1" = 'xwin' ]; then
+                  echo "bevy-flake: Cannot use 'cargo $1' without a '--target'"
+                  exit 1
+                elif [ "$1" = 'run' -o "$1" = 'build' ]; then
+                  CONTEXT="${localFlags}"
+                fi;;
+              "Other")
+                if [ "$1" = 'run' ]; then
+                  echo "bevy-flake: Cannot use 'cargo run' with a '--target'"
+                  exit 1
+                elif [ "$1" = 'build' ]; then
+                  echo "bevy-flake: Aliasing 'build' to 'zigbuild'" >&2 
+                  shift
+                  set -- "zigbuild" "$@"
+                fi
+                CONTEXT="${crossFlags} --remap-path-prefix=$HOME=/bevy";;
+            esac
+            RUSTFLAGS="$CONTEXT $RUSTFLAGS" ${rustToolchain}/bin/cargo "$@"
+            exit $?
           '';
         };
       };

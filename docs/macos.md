@@ -8,41 +8,29 @@ somewhere on the internet.
 
 [osxcross]: https://github.com/tpoechtrager/osxcross
 
-When acquired, you should first get the hash of the tarball, by running
-`nix-prefetch-url` in your shell:
-
-```sh
-nix-prefetch-url 'https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz'
-```
-
-Then, enter the URL and hash into the `macSdk*` section of the flake:
-
+When acquired, add it to the flake inputs as macSdk like so:
 ```nix
+  
 {
-  ...
-
-  # To compile to Apple targets, provide a link to a MacOSX*.sdk.tar.xz:
-  macSdkUrl = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
-  # ... and the sha-256 hash of said tarball. Just the hash, no 'sha-'.
-  macSdkHash = "3846886941d2d3d79b2505 !! EXAMPLE HASH !! 627cf65f692934b19b916c";
-
-  ...
-}
+  description = "A NixOS development flake for Bevy development.";
+  inputs = {
+    flake-utils.url = "github:numtide/flake-utils";
+    rust-overlay.url = "github:oxalica/rust-overlay";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    macSdk = {
+      url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
+      flake = false;
+    };
+  };
+...
 ```
 
 ... or, to avoid re-downloading it every time your /nix/store is garbage
 collected, download the tarball, and reference it on your local system:
 
 ```nix
-macSdkUrl = "file:///home/user/Downloads/MacOSX(Version).tar.xz";
+      url = "file:///home/user/Downloads/MacOSX(Version).tar.xz";
                   # ^ Notice the extra forward-slash.
-```
-
-If you no longer have any issues when entering the `build` shell, you should
-now be able to compile to MacOS targets like so:
-
-```sh
-cargo zigbuild --target x86_64-apple-darwin
 ```
 
 ## Should I add the SDK to my Git repository?

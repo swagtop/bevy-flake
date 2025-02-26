@@ -43,20 +43,23 @@ More info can be found on the [rust-overlay repository.][rust-overlay]
 
 Add mold to the `developShellPackages` list:
 ```nix
-developShellPackages = with pkgs; [
+shellPackages = with pkgs; [
+  cargo-zigbuild
+  clang
   rustToolchain
-  mold
+  mold # <-
 ];
 ```
 
-Then add this to your `RUSTFLAGS`, such that they look like this in your
-`shellHook`:
+Then add this to the list of your local `RUSTFLAGS`:
 
 ```sh
-export RUSTFLAGS="-C link-args=-Wl,-rpath,${runtimeLibraryPath}"
-export RUSTFLAGS="-C link-arg=-fuse-ld=mold $RUSTFLAGS"
+localFlags = lib.concatStringsSep " " [
+  "-C link-args=-Wl,-rpath,${lib.makeLibraryPath runtimePackages}"
+  "-C link-arg=-fuse-ld=mold" # <-
+];
 ```
-*Do not add this to the build shell, we are already using the Zig linker as an
+*Do not add this to crossFlags, we are already using the Zig linker as an
 alternative linker there.*
 
 ## Wayland issues
@@ -77,13 +80,6 @@ runtimePackages = (with pkgs; [
 );
 ```
 
-*Do not remove the `waylandPackages` from `compileTimePackages`.
-Bevy builds with the `bevy/wayland` feature will fall back to x11 if the system
-its running on doesn't support Wayland. Your build will have greater
-compatibility like this.*
-
 ## Removing `cargo build --target` and `cargo run` restrictions
-You should not be doing this. When running these in the wrong shell, the build
-will inevitably fail, and cargo will completely restart the compilation of your
-program from scratch.
-Running these in the wrong shell by accident will waste you a lot of time.
+Just use the `--no-wrapper` flag when running `cargo`, and you will essentially
+be running it without any restrictions placed by `bevy-flake`.

@@ -29,11 +29,11 @@ cargo run
 
 Cross compile for Linux, Windows, MacOS and WASM:
 ```sh
-nix develop .#build
-cargo zigbuild --target x86_64-unknown-linux-gnu.2.36 --release --features bevy/wayland
-cargo zigbuild --target x86_64-pc-windows-gnu --release
-cargo zigbuild --target aarch64-apple-darwin --release # Needs SDK!
-cargo zigbuild --target wasm32-unknown-unknown --release
+nix develop
+cargo build --target x86_64-unknown-linux-gnu.2.36 --release
+cargo build --target x86_64-pc-windows-gnu --release
+cargo build --target aarch64-apple-darwin --release # Needs SDK!
+cargo build --target wasm32-unknown-unknown --release
 ```
 
 - [Tweaks](docs/tweaks.md)
@@ -42,30 +42,21 @@ cargo zigbuild --target wasm32-unknown-unknown --release
 
 ---
 
-**bevy-flake** provides two shells: `develop` and `build`.
-They have separate sections they compile to in the `/target/` directory, and
-different environmental variables and packages for their specific use-case.
-
-- The `develop` shell can use `cargo run`, and `cargo build`,
-  but never specify a target with `--target`.
-
-- The `build` shell can use `cargo zigbuild` with the `--target`
-  flag, but never without it, and never `cargo run`.
+**bevy-flake** wraps `cargo` in a shell script, setting the `RUSTFLAGS`
+environment variable appropreate for the situation, and using `cargo-zigbuild`
+to cross compile.
 
 ```
-                       develop                                    build
-                          │                                         │
-                          │                                         │
-                          │     ╔═══════════/target/══════════╗     │
-                          ├─────── debug/                     ║     │
-                          └─────── release/                   ║     │
-                                ║  x86_64-unknown-linux-gnu/ ───────┤
-                                ║  x86_64-pc-windows-gnu/ ──────────┤
-                                ║  aarch64-apple-darwin/ ───────────┘
+                          ╭╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╼ cargo ╾╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╮
+                          ╎                                         ╎
+            (localFlags)  ╎                                         ╎  (crossFlags)
+                          ╎     ╔═══════════target/═══════════╗     ╎
+                          ├╌╌╌╌╌╌╌╴debug/                     ║     ╎
+                          ╰╌╌╌╌╌╌╌╴release/                   ║     ╎
+                                ║  x86_64-unknown-linux-gnu/╶╌╌╌╌╌╌╌┤
+                                ║  x86_64-pc-windows-gnu/╶╌╌╌╌╌╌╌╌╌╌┤
+                                ║  aarch64-apple-darwin/╶╌╌╌╌╌╌╌╌╌╌╌╯
                                 ╚═════════════════════════════╝
 ```
-
-The builds made by `develop` will run on your specific NixOS machine, and the
-builds made by `build` will run on the target operating system.
 
 - [Details](docs/details.md)
