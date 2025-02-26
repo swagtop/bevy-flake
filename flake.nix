@@ -95,7 +95,7 @@
             for arg in "$@"; do
               case $arg in
                 "--target")
-                  TARGETING=Other;;
+                  TARGETING=Cross;;
                 "--no-wrapper")
                   # Remove '-no-wrapper' from prompt.
                   set -- $(printf '%s\n' "$@" | grep -vx -- '--no-wrapper')
@@ -112,7 +112,7 @@
                 elif [ "$1" = 'run' -o "$1" = 'build' ]; then
                   CONTEXT="${localFlags}"
                 fi;;
-              "Other")
+              "Cross")
                 if [ "$1" = 'run' ]; then
                   echo "bevy-flake: Cannot use 'cargo run' with a '--target'"
                   exit 1

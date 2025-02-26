@@ -1,4 +1,4 @@
-<div align="center"> <img src="bevy-flake.svg" alt="bevy-flake" width="200"/> </div>
+<div align="center"> <img src="bevy-flake.svg" width="200"/> </div>
 
 # bevy-flake
 
@@ -14,25 +14,28 @@ and [cargo-zigbuild][zigbuild] for cross-compilation.*
 [zigbuild]: https://github.com/rust-cross/cargo-zigbuild
 
 ## Quick setup
+
 Fetch `flake.nix` into your project root directory, and add it to the git index:
+
 ```sh
 cd /path/to/project
 wget https://github.com/swagtop/bevy-flake/raw/refs/heads/main/flake.nix
 git add flake.nix
 ```
 
-Compile and run Bevy project on your NixOS machine:
-```sh
-nix develop
-cargo run
-```
+Enter the development shell, and then run or compile your Bevy program:
 
-Cross compile for Linux, Windows, MacOS and WASM:
 ```sh
 nix develop
+
+# Your NixOS system
+cargo build
+cargo run
+
+# Other systems
 cargo build --target x86_64-unknown-linux-gnu.2.36 --release
 cargo build --target x86_64-pc-windows-gnu --release
-cargo build --target aarch64-apple-darwin --release # Needs SDK!
+cargo build --target aarch64-apple-darwin --release # Read docs/macos.md!
 cargo build --target wasm32-unknown-unknown --release
 ```
 
@@ -50,7 +53,7 @@ to cross compile.
                           ╭────────────────╴ cargo ╶────────────────╮
                           │                                         │
             (localFlags)  │                                         │  (crossFlags)
-                          │     ┏━━━━━━━━━━╸target/╺━━━━━━━━━━┓     │
+                          │     ┏━━━━━━━━━━━target/━━━━━━━━━━━┓     │
                           ├──────► debug/                     ┃     │
                           ╰──────► release/                   ┃     │
                                 ┃  x86_64-unknown-linux-gnu/ ◄──────┤
