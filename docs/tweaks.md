@@ -11,11 +11,9 @@ rustToolchain = pkgs.rust-bin.stable.latest.nightly.override {
     targets = [
       "aarch64-apple-darwin"
       "x86_64-apple-darwin"
-
       "x86_64-unknown-linux-gnu"
-
       "x86_64-pc-windows-gnu"
-
+      "x86_64-pc-windows-gnullvm"
       "wasm32-unknown-unknown"
           
       # Add extra targets here!
@@ -74,9 +72,12 @@ runtimePackages = (with pkgs; [
   libxkbcommon
   udev
   vulkan-loader
+  xorg.libX11
+  xorg.libXcursor
+  xorg.libXi
+  xorg.libXrandr
 ]
-++ xorgPackages
-# ++ waylandPackages # <--- Comment out if you're having Wayland issues.
+# ++ [ wayland ] # <--- Comment out if you're having Wayland issues. 
 );
 ```
 
