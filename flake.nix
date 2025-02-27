@@ -15,13 +15,15 @@
       rustToolchain = pkgs.rust-bin.nightly.latest.default.override {
         extensions = [ "rust-src" "rust-analyzer" ];
         targets = [
-          "aarch64-apple-darwin"
-          "x86_64-apple-darwin"
           "x86_64-unknown-linux-gnu"
           "x86_64-pc-windows-gnu"
           "x86_64-pc-windows-gnullvm"
           "x86_64-pc-windows-msvc"
           "wasm32-unknown-unknown"
+        # Add MacOS targets, if SDK is available.
+        ] ++ lib.optionals (inputs ? mac-sdk) [
+          "aarch64-apple-darwin"
+          "x86_64-apple-darwin"
         ];
       };
 
@@ -70,26 +72,27 @@
           packages = [ cargoWrapper ] ++ shellPackages;
           nativeBuildInputs = compileTimePackages;
 
-          # Add macSdk to env, if available.
-          env = if inputs ? macSdk then rec {
-            frameworks = "${inputs.macSdk}/System/Library/Frameworks";
+          env = {
+            # Stops blake3 from acting up.
+            CARGO_FEATURE_PURE = "1";
 
-            SDKROOT = "${inputs.macSdk}";
+            # Resets LD_LIBRARY_PATH, should it have been set elsewhere.
+            LD_LIBRARY_PATH = "";
+
+          # Set up MacOS compilation environment, if SDK is available.
+          } // lib.optionalAttrs (inputs ? mac-sdk) rec {
+            frameworks = "${inputs.mac-sdk}/System/Library/Frameworks";
+
+            SDKROOT = "${inputs.mac-sdk}";
             COREAUDIO_SDK_PATH = "${frameworks}/CoreAudio.framework/Headers";
             LIBCLANG_PATH = "${pkgs.libclang.lib}/lib";
 
             BINDGEN_EXTRA_CLANG_ARGS = lib.concatStringsSep " " [
-              "--sysroot=${inputs.macSdk}"
+              "--sysroot=${inputs.mac-sdk}"
               "-F ${frameworks}"
-              "-I${inputs.macSdk}/usr/include"
+              "-I${inputs.mac-sdk}/usr/include"
             ];
-          } else {};
-
-          # Stops blake3 from acting up.
-          CARGO_FEATURE_PURE = "1";
-
-          # Resets LD_LIBRARY_PATH, should it have been set elsewhere.
-          LD_LIBRARY_PATH = "";
+          };
 
           # Wrapping 'cargo' in a function to prevent easy-to-make mistakes.
           cargoWrapper = pkgs.writeShellScriptBin "cargo" ''

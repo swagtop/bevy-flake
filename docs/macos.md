@@ -8,18 +8,17 @@ somewhere on the internet.
 
 [osxcross]: https://github.com/tpoechtrager/osxcross
 
-When acquired, add it to the flake inputs as macSdk like so:
+When acquired, add it to the flake inputs as mac-sdk like so:
 ```nix
   
 {
   description = "A NixOS development flake for Bevy development.";
   inputs = {
-    flake-utils.url = "github:numtide/flake-utils";
     rust-overlay.url = "github:oxalica/rust-overlay";
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    macSdk = {
-      url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
+    mac-sdk = {
       flake = false;
+      url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
     };
   };
 ...
@@ -29,8 +28,15 @@ When acquired, add it to the flake inputs as macSdk like so:
 collected, download the tarball, and reference it on your local system:
 
 ```nix
+{
+  inputs = {
+    ...
+    mac-sdk = {
+      flake = false;
       url = "file:///home/user/Downloads/MacOSX(Version).tar.xz";
-                  # ^ Notice the extra forward-slash.
+    };            # ^ Notice the extra forward-slash.
+  };
+}
 ```
 
 ## Should I add the SDK to my Git repository?
