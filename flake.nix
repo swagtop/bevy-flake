@@ -1,13 +1,13 @@
 {
   description = "A NixOS development flake for Bevy development.";
   inputs = {
-    flake-utils.url = "github:numtide/flake-utils";
     rust-overlay.url = "github:oxalica/rust-overlay";
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
   };
 
-  outputs = { self, flake-utils, rust-overlay, nixpkgs, ... }@inputs:
-    flake-utils.lib.eachDefaultSystem (system: let
+  outputs = { self, rust-overlay, nixpkgs, ... }@inputs:
+    let
+      system = "x86_64-linux";
       overlays = [ (import rust-overlay) ];
       pkgs = import nixpkgs { inherit system overlays; };
       lib = pkgs.lib;
@@ -20,12 +20,14 @@
           "x86_64-unknown-linux-gnu"
           "x86_64-pc-windows-gnu"
           "x86_64-pc-windows-gnullvm"
+          "x86_64-pc-windows-msvc"
           "wasm32-unknown-unknown"
         ];
       };
 
       shellPackages = with pkgs; [
         cargo-zigbuild
+        cargo-xwin
         clang
         rustToolchain
       ];
@@ -61,7 +63,7 @@
       ++ [ wayland ] # <--- Comment out if you're having Wayland issues. 
       );
     in {
-      devShells = {
+      devShells.${system} = {
         default = pkgs.mkShell rec {
           name = "bevy-flake";
 
@@ -83,6 +85,7 @@
             );
           } else {};
 
+
           # Stops blake3 from acting up.
           CARGO_FEATURE_PURE = "1";
 
@@ -91,11 +94,12 @@
 
           # Wrapping 'cargo' in a function to prevent easy-to-make mistakes.
           cargoWrapper = pkgs.writeShellScriptBin "cargo" ''
-            #!/bin/sh
             for arg in "$@"; do
               case $arg in
-                "--target")
-                  TARGETING=Cross;;
+                *-linux-gnu|*-windows-gnu*|*-apple-darwin)
+                  SWAP_TO=zigbuild;;
+                *-windows-msvc)
+                  SWAP_TO=xwin;;
                 "--no-wrapper")
                   # Remove '-no-wrapper' from prompt.
                   set -- $(printf '%s\n' "$@" | grep -vx -- '--no-wrapper')
@@ -104,30 +108,36 @@
                   exit $?;;
               esac
             done
-            case $TARGETING in
-              "") # Local
+            if [ -n "$SWAP_TO_LINKER" -a "$1" = 'run' ]; then
+              echo "bevy-flake: Cannot use 'cargo run' with a '--target'"
+              exit 1
+            fi
+            case $SWAP_TO in
+              "") # No external linker
                 if [ "$1" = 'zigbuild' -o "$1" = 'xwin' ]; then
                   echo "bevy-flake: Cannot use 'cargo $1' without a '--target'"
                   exit 1
                 elif [ "$1" = 'run' -o "$1" = 'build' ]; then
                   CONTEXT="${localFlags}"
                 fi;;
-              "Cross")
-                if [ "$1" = 'run' ]; then
-                  echo "bevy-flake: Cannot use 'cargo run' with a '--target'"
-                  exit 1
-                elif [ "$1" = 'build' ]; then
+              zigbuild)
+                if [ "$1" = 'build' ]; then
                   echo "bevy-flake: Aliasing 'build' to 'zigbuild'" >&2 
                   shift
                   set -- "zigbuild" "$@"
                 fi
-                CONTEXT="${crossFlags} --remap-path-prefix=$HOME=/bevy";;
+                CONTEXT="${crossFlags}";;
+              xwin)
+                if [ "$1" = 'build' ]; then
+                  echo "bevy-flake: Aliasing 'build' to 'xwin build'" >&2 
+                  set -- "xwin" "$@"
+                fi
+                CONTEXT="${crossFlags}";;
             esac
             RUSTFLAGS="$CONTEXT $RUSTFLAGS" ${rustToolchain}/bin/cargo "$@"
             exit $?
           '';
         };
       };
-    }
-  );
+    };
 }
