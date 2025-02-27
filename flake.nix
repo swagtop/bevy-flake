@@ -15,22 +15,28 @@
       rustToolchain = pkgs.rust-bin.nightly.latest.default.override {
         extensions = [ "rust-src" "rust-analyzer" ];
         targets = [
+          # WASM targets.
+          "wasm32-unknown-unknown"
+        ] ++ [
+          # Linux targets.
           "x86_64-unknown-linux-gnu"
+        ] ++ [
+          # Windows targets.
+          "aarch64-pc-windows-gnullvm"
+          "aarch64-pc-windows-msvc"
           "x86_64-pc-windows-gnu"
           "x86_64-pc-windows-gnullvm"
           "x86_64-pc-windows-msvc"
-          "wasm32-unknown-unknown"
-        # Add MacOS targets, if SDK is available.
         ] ++ lib.optionals (inputs ? mac-sdk) [
+          # MacOS targets (...if SDK is available).
           "aarch64-apple-darwin"
           "x86_64-apple-darwin"
         ];
       };
 
       shellPackages = with pkgs; [
-        cargo-zigbuild
         cargo-xwin
-        clang
+        cargo-zigbuild
         rustToolchain
       ];
 
@@ -45,9 +51,11 @@
 
       compileTimePackages = with pkgs; [
         alsa-lib-with-plugins
+        clang
+        libxkbcommon
+        llvm
         pkg-config
         udev
-        libxkbcommon
         wayland
       ];
 
@@ -65,81 +73,80 @@
       ++ [ wayland ] # <--- Comment out if you're having Wayland issues. 
       );
     in {
-      devShells.${system} = {
-        default = pkgs.mkShell rec {
-          name = "bevy-flake";
+      devShells.${system}.default = pkgs.mkShell rec {
+        name = "bevy-flake";
 
-          packages = [ cargoWrapper ] ++ shellPackages;
-          nativeBuildInputs = compileTimePackages;
+        packages = [ cargoWrapper ] ++ shellPackages;
+        nativeBuildInputs = compileTimePackages;
 
-          env = {
-            # Stops blake3 from acting up.
-            CARGO_FEATURE_PURE = "1";
+        env = {
+          # Stops blake3 from acting up.
+          CARGO_FEATURE_PURE = "1";
 
-            # Resets LD_LIBRARY_PATH, should it have been set elsewhere.
-            LD_LIBRARY_PATH = "";
+        # Set up MacOS compilation environment, if SDK is available.
+        } // lib.optionalAttrs (inputs ? mac-sdk) rec {
+          frameworks = "${inputs.mac-sdk}/System/Library/Frameworks";
 
-          # Set up MacOS compilation environment, if SDK is available.
-          } // lib.optionalAttrs (inputs ? mac-sdk) rec {
-            frameworks = "${inputs.mac-sdk}/System/Library/Frameworks";
+          SDKROOT = "${inputs.mac-sdk}";
+          COREAUDIO_SDK_PATH = "${frameworks}/CoreAudio.framework/Headers";
+          LIBCLANG_PATH = "${pkgs.libclang.lib}/lib";
 
-            SDKROOT = "${inputs.mac-sdk}";
-            COREAUDIO_SDK_PATH = "${frameworks}/CoreAudio.framework/Headers";
-            LIBCLANG_PATH = "${pkgs.libclang.lib}/lib";
-
-            BINDGEN_EXTRA_CLANG_ARGS = lib.concatStringsSep " " [
-              "--sysroot=${inputs.mac-sdk}"
-              "-F ${frameworks}"
-              "-I${inputs.mac-sdk}/usr/include"
-            ];
-          };
-
-          # Wrapping 'cargo' in a function to prevent easy-to-make mistakes.
-          cargoWrapper = pkgs.writeShellScriptBin "cargo" ''
-            for arg in "$@"; do
-              case $arg in
-                *-linux-gnu|*-windows-gnu*|*-apple-darwin)
-                  SWAP_TO=zigbuild;;
-                *-windows-msvc)
-                  SWAP_TO=xwin;;
-                "--no-wrapper")
-                  # Remove '-no-wrapper' from prompt.
-                  set -- $(printf '%s\n' "$@" | grep -vx -- '--no-wrapper')
-                  # Run 'cargo' with no checks.
-                  ${rustToolchain}/bin/cargo "$@"
-                  exit $?;;
-              esac
-            done
-            if [ -n "$SWAP_TO_LINKER" -a "$1" = 'run' ]; then
-              echo "bevy-flake: Cannot use 'cargo run' with a '--target'"
-              exit 1
-            fi
-            case $SWAP_TO in
-              "") # No external linker
-                if [ "$1" = 'zigbuild' -o "$1" = 'xwin' ]; then
-                  echo "bevy-flake: Cannot use 'cargo $1' without a '--target'"
-                  exit 1
-                elif [ "$1" = 'run' -o "$1" = 'build' ]; then
-                  CONTEXT="${localFlags}"
-                fi;;
-              zigbuild)
-                if [ "$1" = 'build' ]; then
-                  echo "bevy-flake: Aliasing 'build' to 'zigbuild'" >&2 
-                  shift
-                  set -- "zigbuild" "$@"
-                fi
-                CONTEXT="${crossFlags}";;
-              xwin)
-                if [ "$1" = 'build' ]; then
-                  echo "bevy-flake: Aliasing 'build' to 'xwin build'" >&2 
-                  set -- "xwin" "$@"
-                fi
-                CONTEXT="${crossFlags}";;
-            esac
-            RUSTFLAGS="$CONTEXT $RUSTFLAGS" ${rustToolchain}/bin/cargo "$@"
-            exit $?
-          '';
+          BINDGEN_EXTRA_CLANG_ARGS = lib.concatStringsSep " " [
+            "--sysroot=${inputs.mac-sdk}"
+            "-F ${frameworks}"
+            "-I${inputs.mac-sdk}/usr/include"
+          ];
         };
+
+        # Wrapping 'cargo' in a function to prevent easy-to-make mistakes.
+        cargoWrapper = pkgs.writeShellScriptBin "cargo" ''
+          for arg in "$@"; do
+            case $arg in
+              x86_64-unknown-linux-gnu|*-windows-gnu*|*-apple-darwin)
+                PROFILE=zigbuild;;
+              *-windows-msvc)
+                PROFILE=xwin;;
+              wasm32-unknown-unknown)
+                PROFILE=wasm;;
+              "--no-wrapper")
+                # Remove '-no-wrapper' from prompt.
+                set -- $(printf '%s\n' "$@" | grep -vx -- '--no-wrapper')
+                # Run 'cargo' with no checks.
+                ${rustToolchain}/bin/cargo "$@"
+                exit $?;;
+            esac
+          done
+          if [ -n "$SWAP_TO_LINKER" -a "$1" = 'run' ]; then
+            echo "bevy-flake: Cannot use 'cargo run' with a '--target'"
+            exit 1
+          fi
+          case $PROFILE in
+            "") # Target is NixOS if $PROFILE is unset.
+              if [ "$1" = 'zigbuild' -o "$1" = 'xwin' ]; then
+                echo "bevy-flake: Cannot use 'cargo $1' without a '--target'"
+                exit 1
+              elif [ "$1" = 'run' -o "$1" = 'build' ]; then
+                PROFILE_FLAGS="${localFlags}"
+              fi;;
+            zigbuild)
+              if [ "$1" = 'build' ]; then
+                echo "bevy-flake: Aliasing 'build' to 'zigbuild'" >&2 
+                shift
+                set -- "zigbuild" "$@"
+              fi
+              PROFILE_FLAGS="${crossFlags}";;
+            xwin)
+              if [ "$1" = 'build' ]; then
+                echo "bevy-flake: Aliasing 'build' to 'xwin build'" >&2 
+                set -- "xwin" "$@"
+              fi
+              PROFILE_FLAGS="${crossFlags}";;
+            wasm)
+              PROFILE_FLAGS="${crossFlags}";;
+          esac
+          RUSTFLAGS="$PROFILE_FLAGS $RUSTFLAGS" ${rustToolchain}/bin/cargo "$@"
+          exit $?
+        '';
       };
-    };
+  };
 }
