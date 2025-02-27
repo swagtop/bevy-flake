@@ -78,13 +78,12 @@
             COREAUDIO_SDK_PATH = "${frameworks}/CoreAudio.framework/Headers";
             LIBCLANG_PATH = "${pkgs.libclang.lib}/lib";
 
-            BINDGEN_EXTRA_CLANG_ARGS = (
+            BINDGEN_EXTRA_CLANG_ARGS = lib.concatStringsSep " " [
               "--sysroot=${inputs.macSdk}"
-            + " -F ${frameworks}"
-            + " -I${inputs.macSdk}/usr/include"
-            );
+              "-F ${frameworks}"
+              "-I${inputs.macSdk}/usr/include"
+            ];
           } else {};
-
 
           # Stops blake3 from acting up.
           CARGO_FEATURE_PURE = "1";

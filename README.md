@@ -8,10 +8,11 @@ This flake is meant to help new NixOS users hit the ground running,
 and get started quickly, with as little hassle as possible.
 
 *Using [rust-overlay][overlay] for the rust toolchain,
-and [cargo-zigbuild][zigbuild] for cross-compilation.*
+and [cargo-zigbuild][zigbuild], [cargo-xwin](xwin) for cross-compilation.*
 
 [overlay]: https://github.com/oxalica/rust-overlay/
 [zigbuild]: https://github.com/rust-cross/cargo-zigbuild
+[xwin]: https://github.com/rust-cross/cargo-xwin
 
 ## Quick setup
 
@@ -34,7 +35,7 @@ cargo run
 
 # Other systems
 cargo build --target x86_64-unknown-linux-gnu.2.36 --release
-cargo build --target x86_64-pc-windows-gnu --release
+cargo build --target x86_64-pc-windows-msvc --release
 cargo build --target aarch64-apple-darwin --release # Read docs/macos.md!
 cargo build --target wasm32-unknown-unknown --release
 ```
@@ -53,13 +54,13 @@ to cross compile.
                           ╭────────────────╴ cargo ╶────────────────╮
                           │                                         │
             (localFlags)  │                                         │  (crossFlags)
-                          │     ┏━━━━━━━━━━━target/━━━━━━━━━━━┓     │
-                          ├──────► debug/                     ┃     │
-                          ╰──────► release/                   ┃     │
-                                ┃  x86_64-unknown-linux-gnu/ ◄──────┤
-                                ┃  x86_64-pc-windows-gnu/  ◄────────┤
-                                ┃  aarch64-apple-darwin/ ◄──────────╯
-                                ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+                          │     ╔═══════════target/═══════════╗     │
+                          ├──────► debug/                     ║     │
+                          ╰──────► release/                   ║     │
+                                ║  x86_64-unknown-linux-gnu/ ◄──────┤
+                                ║  x86_64-pc-windows-msvc/ ◄────────┤
+                                ║  aarch64-apple-darwin/ ◄──────────╯
+                                ╚═════════════════════════════╝
 ```
 
 - [Details](docs/details.md)

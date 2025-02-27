@@ -14,6 +14,7 @@ rustToolchain = pkgs.rust-bin.stable.latest.nightly.override {
       "x86_64-unknown-linux-gnu"
       "x86_64-pc-windows-gnu"
       "x86_64-pc-windows-gnullvm"
+      "x86_64-pc-windows-msvc"
       "wasm32-unknown-unknown"
           
       # Add extra targets here!
@@ -43,6 +44,7 @@ Add mold to the `developShellPackages` list:
 ```nix
 shellPackages = with pkgs; [
   cargo-zigbuild
+  cargo-xwin
   clang
   rustToolchain
   mold # <-

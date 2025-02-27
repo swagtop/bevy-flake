@@ -21,7 +21,7 @@ You're having Wayland issues. Do one of the following:
 1. [Set up graphics drivers properly.][graphics] If the drivers for your
 specific GPU are borked, this might not be possible.
 2. Remove the Bevy Wayland feature from your `Cargo.toml`, then re-add it to
-the build command when compiling in the build shell with:
+the build command when compiling:
 `--features bevy/wayland`
 
 [graphics]: https://wiki.nixos.org/wiki/Graphics
