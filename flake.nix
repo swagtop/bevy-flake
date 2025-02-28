@@ -47,12 +47,13 @@
           libxkbcommon
           udev
           vulkan-loader
-          wayland # <--- Comment out if you're having Wayland issues. 
           xorg.libX11
           xorg.libXcursor
           xorg.libXi
           xorg.libXrandr
-        ])}"
+        ]
+        ++ lib.optionals (!(builtins.getEnv "NO_WAYLAND" == "1")) [ wayland ]
+        )}"
       ];
 
       crossFlags = lib.concatStringsSep " " [
@@ -75,6 +76,7 @@
 
         packages = [ cargoWrapper ] ++ shellPackages;
         nativeBuildInputs = compileTimePackages;
+        flags = localFlags;
 
         env = {
           # Stops blake3 from acting up.
