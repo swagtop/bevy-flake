@@ -47,13 +47,12 @@
           libxkbcommon
           udev
           vulkan-loader
+          wayland # <--- Comment out if you're having Wayland issues. 
           xorg.libX11
           xorg.libXcursor
           xorg.libXi
           xorg.libXrandr
-        ]
-        ++ [ wayland ] # <--- Comment out if you're having Wayland issues. 
-        )}"
+        ])}"
       ];
 
       crossFlags = lib.concatStringsSep " " [
@@ -100,6 +99,7 @@
         cargoWrapper = pkgs.writeShellScriptBin "cargo" ''
           for arg in "$@"; do
             case $arg in
+
               x86_64-unknown-linux-gnu|*-windows-gnu*|*-apple-darwin)
                 if [ "$1" = 'build' ]; then
                   echo "bevy-flake: Aliasing 'build' to 'zigbuild'" >&2 
@@ -118,16 +118,17 @@
               wasm32-unknown-unknown)
                 PROFILE=cross;;
 
-              "--no-wrapper")
+              --no-wrapper)
                 # Remove '-no-wrapper' from prompt.
                 set -- $(printf '%s\n' "$@" | grep -vx -- '--no-wrapper')
                 # Run 'cargo' with no checks.
                 ${rustToolchain}/bin/cargo "$@"
-                exit $?
-                ;;
+                exit $?;;
+
             esac
           done
           case $PROFILE in
+
             "") # Target is NixOS if $PROFILE is unset.
               if [ "$1" = 'zigbuild' -o "$1" = 'xwin' ]; then
                 echo "bevy-flake: Cannot use 'cargo $1' without a '--target'"
@@ -135,12 +136,14 @@
               elif [ "$1" = 'run' -o "$1" = 'build' ]; then
                 PROFILE_FLAGS="${localFlags}"
               fi;;
+
             cross)
               if [ "$1" = 'run' ]; then
                 echo "bevy-flake: Cannot use 'cargo run' with a '--target'"
                 exit 1
               fi
               PROFILE_FLAGS="${crossFlags}";;
+
           esac
           RUSTFLAGS="$PROFILE_FLAGS $RUSTFLAGS" ${rustToolchain}/bin/cargo "$@"
           exit $?
