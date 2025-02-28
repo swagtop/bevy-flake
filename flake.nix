@@ -41,7 +41,19 @@
       ];
 
       localFlags = lib.concatStringsSep " " [
-        "-C link-args=-Wl,-rpath,${lib.makeLibraryPath runtimePackages}"
+        "-C link-args=-Wl,-rpath,${lib.makeLibraryPath (with pkgs; [
+          alsa-lib-with-plugins
+          libGL
+          libxkbcommon
+          udev
+          vulkan-loader
+          xorg.libX11
+          xorg.libXcursor
+          xorg.libXi
+          xorg.libXrandr
+        ]
+        ++ [ wayland ] # <--- Comment out if you're having Wayland issues. 
+        )}"
       ];
 
       crossFlags = lib.concatStringsSep " " [
@@ -58,20 +70,6 @@
         udev
         wayland
       ];
-
-      runtimePackages = (with pkgs; [
-        alsa-lib-with-plugins
-        libGL
-        libxkbcommon
-        udev
-        vulkan-loader
-        xorg.libX11
-        xorg.libXcursor
-        xorg.libXi
-        xorg.libXrandr
-      ]
-      ++ [ wayland ] # <--- Comment out if you're having Wayland issues. 
-      );
     in {
       devShells.${system}.default = pkgs.mkShell rec {
         name = "bevy-flake";
@@ -103,23 +101,32 @@
           for arg in "$@"; do
             case $arg in
               x86_64-unknown-linux-gnu|*-windows-gnu*|*-apple-darwin)
-                PROFILE=zigbuild;;
+                if [ "$1" = 'build' ]; then
+                  echo "bevy-flake: Aliasing 'build' to 'zigbuild'" >&2 
+                  shift
+                  set -- "zigbuild" "$@"
+                fi
+                PROFILE=cross;;
+
               *-windows-msvc)
-                PROFILE=xwin;;
+                if [ "$1" = 'build' ]; then
+                  echo "bevy-flake: Aliasing 'build' to 'xwin build'" >&2 
+                  set -- "xwin" "$@"
+                fi
+                PROFILE=cross;;
+
               wasm32-unknown-unknown)
-                PROFILE=wasm;;
+                PROFILE=cross;;
+
               "--no-wrapper")
                 # Remove '-no-wrapper' from prompt.
                 set -- $(printf '%s\n' "$@" | grep -vx -- '--no-wrapper')
                 # Run 'cargo' with no checks.
                 ${rustToolchain}/bin/cargo "$@"
-                exit $?;;
+                exit $?
+                ;;
             esac
           done
-          if [ -n "$SWAP_TO_LINKER" -a "$1" = 'run' ]; then
-            echo "bevy-flake: Cannot use 'cargo run' with a '--target'"
-            exit 1
-          fi
           case $PROFILE in
             "") # Target is NixOS if $PROFILE is unset.
               if [ "$1" = 'zigbuild' -o "$1" = 'xwin' ]; then
@@ -128,20 +135,11 @@
               elif [ "$1" = 'run' -o "$1" = 'build' ]; then
                 PROFILE_FLAGS="${localFlags}"
               fi;;
-            zigbuild)
-              if [ "$1" = 'build' ]; then
-                echo "bevy-flake: Aliasing 'build' to 'zigbuild'" >&2 
-                shift
-                set -- "zigbuild" "$@"
+            cross)
+              if [ "$1" = 'run' ]; then
+                echo "bevy-flake: Cannot use 'cargo run' with a '--target'"
+                exit 1
               fi
-              PROFILE_FLAGS="${crossFlags}";;
-            xwin)
-              if [ "$1" = 'build' ]; then
-                echo "bevy-flake: Aliasing 'build' to 'xwin build'" >&2 
-                set -- "xwin" "$@"
-              fi
-              PROFILE_FLAGS="${crossFlags}";;
-            wasm)
               PROFILE_FLAGS="${crossFlags}";;
           esac
           RUSTFLAGS="$PROFILE_FLAGS $RUSTFLAGS" ${rustToolchain}/bin/cargo "$@"
