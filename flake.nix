@@ -1,15 +1,20 @@
 {
   description = "A NixOS development flake for Bevy development.";
   inputs = {
-    rust-overlay.url = "github:oxalica/rust-overlay";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = { self, rust-overlay, nixpkgs, ... }@inputs:
     let
       system = "x86_64-linux";
-      overlays = [ (import rust-overlay) ];
-      pkgs = import nixpkgs { inherit system overlays; };
+      pkgs = import nixpkgs {
+        inherit system;
+        overlays = [ (import rust-overlay) ];
+      };
       lib = pkgs.lib;
 
       rustToolchain = pkgs.rust-bin.nightly.latest.default.override {
