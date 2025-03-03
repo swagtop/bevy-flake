@@ -20,8 +20,8 @@ When acquired, add it to the flake inputs as mac-sdk like so:
       inputs.nixpkgs.follows = "nixpkgs";
     };
     mac-sdk = {
-      flake = false;
       url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
+      flake = false;
     };
   };
 ...
@@ -34,9 +34,10 @@ When acquired, add it to the flake inputs as mac-sdk like so:
   inputs = {
     ...
     mac-sdk = {
-      flake = false;
       url = "file:///home/user/Downloads/MacOSX(Version).tar.xz";
-    };            # ^ Notice the extra forward-slash.
+                  # ^ Notice the extra forward-slash.
+      flake = false;
+    };
   };
   ...
 }
