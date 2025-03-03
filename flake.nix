@@ -2,7 +2,7 @@
   description = "A NixOS development flake for Bevy development.";
   inputs = {
     rust-overlay.url = "github:oxalica/rust-overlay";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
   outputs = { self, rust-overlay, nixpkgs, ... }@inputs:
