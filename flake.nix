@@ -81,7 +81,6 @@
 
         packages = [ cargoWrapper ] ++ shellPackages;
         nativeBuildInputs = compileTimePackages;
-        flags = localFlags;
 
         env = {
           # Stops blake3 from acting up.
