@@ -34,7 +34,7 @@ cargo build
 cargo run
 
 # Other systems
-cargo build --target x86_64-unknown-linux-gnu.2.36 --release
+cargo build --target x86_64-unknown-linux-gnu --release
 cargo build --target x86_64-pc-windows-msvc --release
 cargo build --target aarch64-apple-darwin --release # Read docs/macos.md!
 cargo build --target wasm32-unknown-unknown --release
@@ -47,8 +47,8 @@ cargo build --target wasm32-unknown-unknown --release
 ---
 
 **bevy-flake** wraps `cargo` in a shell script, setting the `RUSTFLAGS`
-environment variable appropreate for the situation, and using `cargo-zigbuild`
-to cross compile.
+environment variable appropreate for the situation, and using `cargo-zigbuild`,
+`cargo-xwin` to cross compile.
 
 ```
                           ╭────────────────╴ cargo ╶────────────────╮
