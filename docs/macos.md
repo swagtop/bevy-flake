@@ -14,8 +14,11 @@ When acquired, add it to the flake inputs as mac-sdk like so:
 {
   description = "A NixOS development flake for Bevy development.";
   inputs = {
-    rust-overlay.url = "github:oxalica/rust-overlay";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     mac-sdk = {
       flake = false;
       url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
@@ -24,8 +27,7 @@ When acquired, add it to the flake inputs as mac-sdk like so:
 ...
 ```
 
-... or, to avoid re-downloading it every time your /nix/store is garbage
-collected, download the tarball, and reference it on your local system:
+... or, download the tarball and reference it on your local system:
 
 ```nix
 {
