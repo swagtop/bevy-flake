@@ -36,14 +36,6 @@ collected, download the tarball, and reference it on your local system:
       url = "file:///home/user/Downloads/MacOSX(Version).tar.xz";
     };            # ^ Notice the extra forward-slash.
   };
+  ...
 }
 ```
-
-## Should I add the SDK to my Git repository?
-
-The SDK tarball can take up a lot of space, and will increase the time spent
-entering the `build` shell. Distributing the SDK itself is also legally
-dubious.
-
-Regardless, I've found it to be faster when referenced this way, and makes it
-convenient to opt-in or out of using the MacOS target.

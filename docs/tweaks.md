@@ -2,27 +2,6 @@
 
 ## Cargo / Rust
 
-### Adding targets
-Instead of using `rustup target add`, add your targets to the `targets` section
-of the `rustToolchain` section:
-```nix
-rustToolchain = pkgs.rust-bin.stable.latest.nightly.override {
-  extensions = [ "rust-src" "rust-analyzer" ];
-    targets = [
-      "aarch64-apple-darwin"
-      "x86_64-apple-darwin"
-      "x86_64-unknown-linux-gnu"
-      "x86_64-pc-windows-gnu"
-      "x86_64-pc-windows-gnullvm"
-      "x86_64-pc-windows-msvc"
-      "wasm32-unknown-unknown"
-          
-      # Add extra targets here!
-    ];
-  };
-```
-The ones already there have been tested, and are known to work.
-
 ### Changing toolchain version
 You can change the version of the version of the Rust toolchain by editing the
 `rustToolchain` section:
@@ -45,7 +24,6 @@ Add mold to the `developShellPackages` list:
 shellPackages = with pkgs; [
   cargo-zigbuild
   cargo-xwin
-  clang
   rustToolchain
   mold # <-
 ];
@@ -55,33 +33,37 @@ Then add this to the list of your local `RUSTFLAGS`:
 
 ```sh
 localFlags = lib.concatStringsSep " " [
-  "-C link-args=-Wl,-rpath,${lib.makeLibraryPath runtimePackages}"
   "-C link-arg=-fuse-ld=mold" # <-
+  "-C link-args=-Wl,-rpath,${ ... }"
 ];
 ```
-*Do not add this to crossFlags, we are already using the Zig linker as an
-alternative linker there.*
+*Do not add this to crossFlags, the wrapper will handle everything there.*
 
 ## Wayland issues
 
 If you're having Wayland issues, Wayland can simply be turned
 off in the development shell, by commenting out the list concatnation of
-`waylandPackages`, in the `runtimePackages` section:
+`[ wayland ]`, in the `localFlags` rpath section:
 ```nix
-runtimePackages = (with pkgs; [
-  alsa-lib-with-plugins
-  libGL
-  libxkbcommon
-  udev
-  vulkan-loader
-  xorg.libX11
-  xorg.libXcursor
-  xorg.libXi
-  xorg.libXrandr
-]
-# ++ [ wayland ] # <--- Comment out if you're having Wayland issues. 
-);
+localFlags = lib.concatStringsSep " " [
+  "-C link-args=-Wl,-rpath,${lib.makeLibraryPath (with pkgs; [
+    alsa-lib-with-plugins
+    libGL
+    libxkbcommon
+    udev
+    vulkan-loader
+    xorg.libX11
+    xorg.libXcursor
+    xorg.libXi
+    xorg.libXrandr
+  ]
+  # ++ lib.optionals (!(builtins.getEnv "NO_WAYLAND" == "1")) [ wayland ] # <-
+  )}"
+];
 ```
+
+Alternatively you can run `NO_WAYLAND=1 nix develop --impure` to remove it
+temporarily without editing the flake.
 
 ## Removing `cargo build --target` and `cargo run` restrictions
 Just use the `--no-wrapper` flag when running `cargo`, and you will essentially
