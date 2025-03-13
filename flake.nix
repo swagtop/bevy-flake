@@ -24,6 +24,7 @@
           "wasm32-unknown-unknown"
         ] ++ [
           # Linux targets.
+          "aarch64-unknown-linux-gnu"
           "x86_64-unknown-linux-gnu"
         ] ++ [
           # Windows targets.
@@ -74,86 +75,107 @@
         pkg-config
         udev
         wayland
-      ];
-    in {
-      devShells.${system}.default = pkgs.mkShell rec {
-        name = "bevy-flake";
+      ]
+      ++ (with pkgsCross.mingwW64; [
+        # Windows packages.
+        stdenv.cc
+        windows.mingw_w64_pthreads
+      ])
+      ;
+      
+      # Wrapping 'cargo' in a function to prevent easy-to-make mistakes.
+      cargoWrapper = pkgs.writeShellScriptBin "cargo" ''
+        for arg in "$@"; do
+          case $arg in
 
-        packages = [ cargoWrapper ] ++ shellPackages;
-        nativeBuildInputs = compileTimePackages;
+            # Targets using `cargo-zigbuild`
+            *-unknown-linux-gnu|*-windows-gnullvm|*-apple-darwin)
+              if [ "$1" = 'build' ]; then
+                echo "bevy-flake: Aliasing 'build' to 'zigbuild'" >&2 
+                shift
+                set -- "zigbuild" "$@"
 
-        env = {
-          # Stops blake3 from acting up.
-          CARGO_FEATURE_PURE = "1";
-
-        # Set up MacOS compilation environment, if SDK is available.
-        } // lib.optionalAttrs (inputs ? mac-sdk) rec {
-          frameworks = "${inputs.mac-sdk}/System/Library/Frameworks";
-
-          SDKROOT = "${inputs.mac-sdk}";
-          COREAUDIO_SDK_PATH = "${frameworks}/CoreAudio.framework/Headers";
-          LIBCLANG_PATH = "${pkgs.libclang.lib}/lib";
-
-          BINDGEN_EXTRA_CLANG_ARGS = lib.concatStringsSep " " [
-            "--sysroot=${inputs.mac-sdk}"
-            "-F ${frameworks}"
-            "-I${inputs.mac-sdk}/usr/include"
-          ];
-        };
-
-        # Wrapping 'cargo' in a function to prevent easy-to-make mistakes.
-        cargoWrapper = pkgs.writeShellScriptBin "cargo" ''
-          for arg in "$@"; do
-            case $arg in
-
-              x86_64-unknown-linux-gnu|*-windows-gnu*|*-apple-darwin)
-                if [ "$1" = 'build' ]; then
-                  echo "bevy-flake: Aliasing 'build' to 'zigbuild'" >&2 
-                  shift
-                  set -- "zigbuild" "$@"
-                fi
-                PROFILE=cross;;
-
-              *-windows-msvc)
-                if [ "$1" = 'build' ]; then
-                  echo "bevy-flake: Aliasing 'build' to 'xwin build'" >&2 
-                  set -- "xwin" "$@"
-                fi
-                PROFILE=cross;;
-
-              wasm32-unknown-unknown)
-                PROFILE=cross;;
-
-              --no-wrapper)
-                # Remove '-no-wrapper' from prompt.
-                set -- $(printf '%s\n' "$@" | grep -vx -- '--no-wrapper')
-                # Run 'cargo' with no checks.
-                ${rustToolchain}/bin/cargo "$@"
-                exit $?;;
-
-            esac
-          done
-          case $PROFILE in
-
-            "") # Target is NixOS if $PROFILE is unset.
-              if [ "$1" = 'zigbuild' -o "$1" = 'xwin' ]; then
-                echo "bevy-flake: Cannot use 'cargo $1' without a '--target'"
-                exit 1
-              elif [ "$1" = 'run' -o "$1" = 'build' ]; then
-                PROFILE_FLAGS="${localFlags}"
-              fi;;
-
-            cross)
-              if [ "$1" = 'run' ]; then
-                echo "bevy-flake: Cannot use 'cargo run' with a '--target'"
-                exit 1
               fi
-              PROFILE_FLAGS="${crossFlags}";;
+              PROFILE=cross;;
+
+            # Targets using `cargo-xbuild`
+            *-windows-msvc)
+              if [ "$1" = 'build' ]; then
+                echo "bevy-flake: Aliasing 'build' to 'xwin build'" >&2 
+                set -- "xwin" "$@"
+              fi
+              PROFILE=cross;;
+
+            # Targets just using cargo.
+            *-windows-gnu|wasm32-unknown-unknown)
+              PROFILE=cross;;
+
+            --no-wrapper)
+              # Remove '-no-wrapper' from prompt.
+              set -- $(printf '%s\n' "$@" | grep -vx -- '--no-wrapper')
+              # Run 'cargo' with no checks.
+              ${rustToolchain}/bin/cargo "$@"
+              exit $?;;
 
           esac
-          RUSTFLAGS="$PROFILE_FLAGS $RUSTFLAGS" ${rustToolchain}/bin/cargo "$@"
-          exit $?
-        '';
+        done
+        case $PROFILE in
+
+          "") # Target is NixOS if $PROFILE is unset.
+            if [ "$1" = 'zigbuild' -o "$1" = 'xwin' ]; then
+              echo "bevy-flake: Cannot use 'cargo $1' without a '--target'"
+              exit 1
+            elif [ "$1" = 'run' -o "$1" = 'build' ]; then
+              PROFILE_FLAGS="${localFlags}"
+            fi;;
+
+          cross)
+            if [ "$1" = 'run' ]; then
+              echo "bevy-flake: Cannot use 'cargo run' with a '--target'"
+              exit 1
+            fi
+            PROFILE_FLAGS="${crossFlags}";;
+
+        esac
+        RUSTFLAGS="$PROFILE_FLAGS $RUSTFLAGS" ${rustToolchain}/bin/cargo "$@"
+        exit $?
+      '';
+    in {
+      devShells.${system} = {
+        default = pkgs.mkShell {
+          name = "bevy-flake";
+
+          packages = [ cargoWrapper ] ++ shellPackages;
+          nativeBuildInputs = compileTimePackages;
+
+          env = {
+            # Stops blake3 from acting up.
+            CARGO_FEATURE_PURE = "1";
+
+          # Set up MacOS compilation environment, if SDK is available.
+          } // lib.optionalAttrs (inputs ? mac-sdk) rec {
+            frameworks = "${inputs.mac-sdk}/System/Library/Frameworks";
+
+            SDKROOT = "${inputs.mac-sdk}";
+            COREAUDIO_SDK_PATH = "${frameworks}/CoreAudio.framework/Headers";
+            LIBCLANG_PATH = "${pkgs.libclang.lib}/lib";
+
+            BINDGEN_EXTRA_CLANG_ARGS = lib.concatStringsSep " " [
+              "--sysroot=${inputs.mac-sdk}"
+              "-F ${frameworks}"
+              "-I${inputs.mac-sdk}/usr/include"
+            ];
+          };
+        };
+        aarch64-linux = pkgs.mkShell {
+          name = "bevy-flake-aarch64-linux";
+
+          packages = [ cargoWrapper ] ++ shellPackages;
+          nativeBuildInputs = with pkgs.pkgsCross.aarch64-multiplatform; [
+            alsa-lib
+            udev
+          ] ++ compileTimePackages;
+        };
       };
   };
 }
