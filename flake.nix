@@ -160,8 +160,8 @@
             # Stops blake3 from acting up.
             CARGO_FEATURE_PURE = "1";
 
-          # Set up MacOS compilation environment, if SDK is available.
           } // lib.optionalAttrs (inputs ? mac-sdk) rec {
+            # Set up MacOS compilation environment, if SDK is available.
             frameworks = "${inputs.mac-sdk}/System/Library/Frameworks";
 
             SDKROOT = "${inputs.mac-sdk}";
