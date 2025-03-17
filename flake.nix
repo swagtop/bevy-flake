@@ -149,31 +149,29 @@
         exit $?
       '';
     in {
-      devShells.${system} = {
-        default = pkgs.mkShell {
-          name = "bevy-flake";
+      devShells.${system}.default = pkgs.mkShell {
+        name = "bevy-flake";
 
-          packages = [ cargoWrapper ] ++ shellPackages;
-          nativeBuildInputs = compileTimePackages;
+        packages = [ cargoWrapper ] ++ shellPackages;
+        nativeBuildInputs = compileTimePackages;
 
-          env = {
-            # Stops blake3 from acting up.
-            CARGO_FEATURE_PURE = "1";
+        env = {
+          # Stops blake3 from acting up.
+          CARGO_FEATURE_PURE = "1";
 
-          } // lib.optionalAttrs (inputs ? mac-sdk) rec {
-            # Set up MacOS compilation environment, if SDK is available.
-            frameworks = "${inputs.mac-sdk}/System/Library/Frameworks";
+        } // lib.optionalAttrs (inputs ? mac-sdk) rec {
+          # Set up MacOS compilation environment, if SDK is available.
+          frameworks = "${inputs.mac-sdk}/System/Library/Frameworks";
 
-            SDKROOT = "${inputs.mac-sdk}";
-            COREAUDIO_SDK_PATH = "${frameworks}/CoreAudio.framework/Headers";
-            LIBCLANG_PATH = "${pkgs.libclang.lib}/lib";
+          SDKROOT = "${inputs.mac-sdk}";
+          COREAUDIO_SDK_PATH = "${frameworks}/CoreAudio.framework/Headers";
+          LIBCLANG_PATH = "${pkgs.libclang.lib}/lib";
 
-            BINDGEN_EXTRA_CLANG_ARGS = lib.concatStringsSep " " [
-              "--sysroot=${inputs.mac-sdk}"
-              "-F ${frameworks}"
-              "-I${inputs.mac-sdk}/usr/include"
-            ];
-          };
+          BINDGEN_EXTRA_CLANG_ARGS = lib.concatStringsSep " " [
+            "--sysroot=${inputs.mac-sdk}"
+            "-F ${frameworks}"
+            "-I${inputs.mac-sdk}/usr/include"
+          ];
         };
       };
   };
