@@ -1,9 +1,9 @@
 # Cross-compiling for MacOS
 
-## Adding the MacOS SDK to the `build` shell
+## Adding the MacOS SDK to inputs
 
-First, you will have to acquire said SDK. This is either done by packaging it
-yourself with [osxcross][osxcross], or finding it pre-packaged in a tarball
+Get your hands on a SDK packaged into a tarball. This is either done by
+packaging it yourself with [osxcross][osxcross], or finding it pre-packaged
 somewhere on the internet.
 
 [osxcross]: https://github.com/tpoechtrager/osxcross
