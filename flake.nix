@@ -83,7 +83,8 @@
       ])
       );
 
-      aarch64Packages = with pkgs.pkgsCross.aarch64-multiplatform; [
+      # Packages specifically for compiling to aarch64-unknown-linux-gnu.
+      aarch64 = with pkgs.pkgsCross.aarch64-multiplatform; [
         alsa-lib.dev
         udev.dev
       ];
@@ -101,7 +102,7 @@
                 set -- "zigbuild" "$@"
               fi
               if [ "$arg" = 'aarch64-unknown-linux-gnu' ]; then
-                PKG_CONFIG_PATH=${lib.makeSearchPath "lib/pkgconfig" aarch64Packages}
+                PKG_CONFIG_PATH=${lib.makeSearchPath "lib/pkgconfig" aarch64}
               fi
               PROFILE=cross;;
 
