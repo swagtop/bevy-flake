@@ -67,13 +67,13 @@
         # "-Zfmt-debug=none"
       ];
 
-      compileTimePackages = with pkgs; [
-        alsa-lib-with-plugins
+      compileTimePackages = (with pkgs; [
+        alsa-lib.dev
         clang
         libxkbcommon
         llvm
         pkg-config
-        udev
+        udev.dev
         wayland
       ]
       ++ (with pkgsCross.mingwW64; [
@@ -81,8 +81,13 @@
         stdenv.cc
         windows.mingw_w64_pthreads
       ])
-      ;
-      
+      );
+
+      aarch64Packages = with pkgs.pkgsCross.aarch64-multiplatform; [
+        alsa-lib.dev
+        udev.dev
+      ];
+
       # Wrapping 'cargo' in a function to prevent easy-to-make mistakes.
       cargoWrapper = pkgs.writeShellScriptBin "cargo" ''
         for arg in "$@"; do
@@ -94,7 +99,9 @@
                 echo "bevy-flake: Aliasing 'build' to 'zigbuild'" >&2 
                 shift
                 set -- "zigbuild" "$@"
-
+              fi
+              if [ "$arg" = 'aarch64-unknown-linux-gnu' ]; then
+                PKG_CONFIG_PATH=${lib.makeSearchPath "lib/pkgconfig" aarch64Packages}
               fi
               PROFILE=cross;;
 
@@ -166,15 +173,6 @@
               "-I${inputs.mac-sdk}/usr/include"
             ];
           };
-        };
-        aarch64-linux = pkgs.mkShell {
-          name = "bevy-flake-aarch64-linux";
-
-          packages = [ cargoWrapper ] ++ shellPackages;
-          nativeBuildInputs = with pkgs.pkgsCross.aarch64-multiplatform; [
-            alsa-lib
-            udev
-          ] ++ compileTimePackages;
         };
       };
   };
