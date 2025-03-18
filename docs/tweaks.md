@@ -19,7 +19,7 @@ More info can be found on the [rust-overlay repository.][rust-overlay]
 
 ### Using the mold linker
 
-Add mold to the `developShellPackages` list:
+Add mold to the `shellPackages` list:
 ```nix
 shellPackages = with pkgs; [
   cargo-zigbuild
