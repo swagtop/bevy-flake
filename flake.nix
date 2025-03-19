@@ -120,7 +120,7 @@
 
           --no-wrapper)
             # Remove '-no-wrapper' from prompt.
-            set -- $(printf '%s\n' "$@" | grep -vx -- '--no-wrapper')
+            set -- "$(printf '%s\n' "$@" | grep -vx -- '--no-wrapper')"
             # Run 'cargo' with no checks.
             ${rustToolchain}/bin/cargo "$@"
             exit $?;;
@@ -130,10 +130,10 @@
       case $PROFILE in
 
         "") # Target is NixOS if $PROFILE is unset.
-          if [ "$1" = 'zigbuild' -o "$1" = 'xwin' ]; then
+          if [ "$1" = 'zigbuild' ] || [ "$1" = 'xwin' ]; then
             echo "bevy-flake: Cannot use 'cargo $1' without a '--target'"
             exit 1
-          elif [ "$1" = 'run' -o "$1" = 'build' ]; then
+          elif [ "$1" = 'run' ] || [ "$1" = 'build' ]; then
             PROFILE_FLAGS="${localFlags}"
           fi;;
 
