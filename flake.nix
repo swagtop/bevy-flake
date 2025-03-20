@@ -106,7 +106,7 @@
             fi
             PROFILE=cross;;
 
-          # Targets using `cargo-xbuild`
+          # Targets using `cargo-xwin`
           *-windows-msvc)
             if [ "$1" = 'build' ]; then
               echo "bevy-flake: Aliasing 'build' to 'xwin build'" >&2 
@@ -115,7 +115,7 @@
             PROFILE=cross;;
 
           # Targets just using cargo.
-          *-windows-gnu|wasm32-unknown-unknown)
+          x86_64-pc-windows-gnu|wasm32-unknown-unknown)
             PROFILE=cross;;
 
           --no-wrapper)
