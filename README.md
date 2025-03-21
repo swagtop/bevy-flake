@@ -47,7 +47,7 @@ cargo build --target wasm32-unknown-unknown --release
 ---
 
 **bevy-flake** wraps `cargo` in a shell script, setting the `RUSTFLAGS`
-environment variable appropreate for the situation, and using `cargo-zigbuild`,
+environment variable appropriate for the situation, and using `cargo-zigbuild`,
 `cargo-xwin` to cross compile.
 
 ```

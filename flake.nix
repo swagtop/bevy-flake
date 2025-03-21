@@ -104,7 +104,7 @@
             if [ "$arg" = 'aarch64-unknown-linux-gnu' ]; then
               PKG_CONFIG_PATH=${lib.makeSearchPath "lib/pkgconfig" aarch64}
             fi
-            PROFILE=cross;;
+            BEVY_FLAKE_PROFILE=cross;;
 
           # Targets using `cargo-xwin`
           *-windows-msvc)
@@ -112,11 +112,11 @@
               echo "bevy-flake: Aliasing 'build' to 'xwin build'" >&2 
               set -- "xwin" "$@"
             fi
-            PROFILE=cross;;
+            BEVY_FLAKE_PROFILE=cross;;
 
           # Targets just using cargo.
           x86_64-pc-windows-gnu|wasm32-unknown-unknown)
-            PROFILE=cross;;
+            BEVY_FLAKE_PROFILE=cross;;
 
           --no-wrapper)
             # Remove '-no-wrapper' from prompt.
@@ -127,14 +127,14 @@
 
         esac
       done
-      case $PROFILE in
+      case $BEVY_FLAKE_PROFILE in
 
         "") # Target is NixOS if $PROFILE is unset.
           if [ "$1" = 'zigbuild' ] || [ "$1" = 'xwin' ]; then
             echo "bevy-flake: Cannot use 'cargo $1' without a '--target'"
             exit 1
           elif [ "$1" = 'run' ] || [ "$1" = 'build' ]; then
-            PROFILE_FLAGS="${localFlags}"
+            BEVY_FLAKE_FLAGS="${localFlags}"
           fi;;
 
         cross)
@@ -142,10 +142,10 @@
             echo "bevy-flake: Cannot use 'cargo run' with a '--target'"
             exit 1
           fi
-          PROFILE_FLAGS="${crossFlags}";;
+          BEVY_FLAKE_FLAGS="${crossFlags}";;
 
       esac
-      RUSTFLAGS="$PROFILE_FLAGS $RUSTFLAGS" ${rustToolchain}/bin/cargo "$@"
+      RUSTFLAGS="$BEVY_FLAKE_FLAGS $RUSTFLAGS" ${rustToolchain}/bin/cargo "$@"
       exit $?
     '';
   in {
