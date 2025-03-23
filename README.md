@@ -50,16 +50,16 @@ cargo build --target wasm32-unknown-unknown
 `RUSTFLAGS` for the context you are compiling in, swaps out the linker and
 provides the needed libraries for the target system.
 ```
-                          ╭────────────────╴ cargo ╶────────────────╮
-                          │                                         │
-            (localFlags)  │                                         │  (crossFlags)
-                          │     ╔═══════════target/═══════════╗     │
-                          ├──────► debug/                     ║     │
-                          ╰──────► release/                   ║     │
-                                ║  x86_64-unknown-linux-gnu/ ◄──────┤
-                                ║  x86_64-pc-windows-msvc/ ◄────────┤
-                                ║  aarch64-apple-darwin/ ◄──────────╯
-                                ╚═════════════════════════════╝
+                                ╭────────────────╴ cargo ╶────────────────╮
+                                │                                         │
+                  (localFlags)  │                                         │  (crossFlags)
+                                │     ╔═══════════target/═══════════╗     │
+                                ├──────► debug/                     ║     │
+                                ╰──────► release/                   ║     │
+                                      ║  x86_64-unknown-linux-gnu/ ◄──────┤
+                                      ║  x86_64-pc-windows-msvc/ ◄────────┤
+                                      ║  aarch64-apple-darwin/ ◄──────────╯
+                                      ╚═════════════════════════════╝
 ```
 
 - [Details](docs/details.md)
