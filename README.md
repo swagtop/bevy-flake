@@ -57,14 +57,14 @@ cargo build --target wasm32-unknown-unknown
 - Provides the correct libraries needed for the target system.
 ```
                                ╭────────────────╴ cargo ╶────────────────╮
-    Local NixOS System:        │                                         │    Other Systems:
+    Local NixOS System:        │                                         │   Other Systems:
                                │                                         │
-    - RUSTFLAGS = localFlags   │     ╔═══════════target/═══════════╗     │    - RUSTFLAGS = crossFlags
-    - Runtime packages         ├──────► debug/                     ║     │    - cargoWrapper provides
-      provided with rpath      ╰──────► release/                   ║     │      appropriate libraries
-    - cargo builds for               ║  x86_64-unknown-linux-gnu/ ◄──────┤    - cargo, cargo-zigbuild,
-      local system and runs          ║  x86_64-pc-windows-msvc/ ◄────────┤      cargo-xwin builds
-                                     ║  aarch64-apple-darwin/ ◄──────────╯      for other systems
+    - RUSTFLAGS = localFlags   │     ╔═══════════target/═══════════╗     │   - RUSTFLAGS = crossFlags
+    - Runtime packages         ├──────► debug/                     ║     │   - cargoWrapper provides
+      provided with rpath      ╰──────► release/                   ║     │     appropriate libraries
+    - cargo builds for               ║  x86_64-unknown-linux-gnu/ ◄──────┤   - cargo, cargo-zigbuild,
+      local system and runs          ║  x86_64-pc-windows-msvc/ ◄────────┤     cargo-xwin builds
+                                     ║  aarch64-apple-darwin/ ◄──────────╯     for other systems
                                      ╚═════════════════════════════╝
 ```
 - [Details](docs/details.md)
