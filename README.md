@@ -7,14 +7,13 @@ for painless Bevy development and cross-compilation on NixOS.
 This flake is meant to help new NixOS users hit the ground running,
 and get started quickly, with as little hassle as possible.
 
-Try it first:
-
 ```sh
 nix develop github:swagtop/bevy-flake
 ```
 
 *Using [rust-overlay][overlay] for the rust toolchain,
-and [cargo-zigbuild][zigbuild], [cargo-xwin](xwin) to assist cross-compilation.*
+and [cargo-zigbuild][zigbuild], [cargo-xwin](xwin) to assist in
+cross-compilation.*
 
 [overlay]: https://github.com/oxalica/rust-overlay/
 [zigbuild]: https://github.com/rust-cross/cargo-zigbuild
@@ -58,13 +57,13 @@ cargo build --target wasm32-unknown-unknown
 - Provides the correct libraries needed for the target system.
 ```
                                 ╭────────────────╴ cargo ╶────────────────╮
-                                │                                         │
-                  (localFlags)  │                                         │  (crossFlags)
-                                │     ╔═══════════target/═══════════╗     │
-                                ├──────► debug/                     ║     │
-                                ╰──────► release/                   ║     │
-                                      ║  x86_64-unknown-linux-gnu/ ◄──────┤
-                                      ║  x86_64-pc-windows-msvc/ ◄────────┤
+   Local NixOS System:          │                                         │   Other Systems:
+                                │                                         │   
+   1. RUSTFLAGS = localFlags    │     ╔═══════════target/═══════════╗     │   1. RUSTFLAGS = crossFlags
+   2. RUSTFLAGS contain rpath   ├──────► debug/                     ║     │   2. cargo-zigbuild assists with
+                                ╰──────► release/                   ║     │      Linux, Windows (GNULLVM), MacOS
+                                      ║  x86_64-unknown-linux-gnu/ ◄──────┤   3. cargo-xwin assists with Windows (MSVC)
+                                      ║  x86_64-pc-windows-msvc/ ◄────────┤   4. cargoWrapper provides aarch64-linux libraries
                                       ║  aarch64-apple-darwin/ ◄──────────╯
                                       ╚═════════════════════════════╝
 ```
