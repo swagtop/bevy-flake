@@ -58,20 +58,18 @@ cargo build --target wasm32-unknown-unknown
 ```
     Local NixOS System:
 
-    - RUSTFLAGS = localFlags    
-    - Runtime packages         ╭────────────────╴ cargo ╶────────────────╮
-      provided with rpath      │                                         │
-    - cargo compiles and runs  │                                         │
-                               │     ╔═══════════target/═══════════╗     │
-    Other Systems:             ├──────► debug/                     ║     │
-                               ╰──────► release/                   ║     │      
-    - RUSTFLAGS = crossFlags         ║  x86_64-unknown-linux-gnu/ ◄──────┤ 
-    - cargo-zigbuild cross-compiles  ║  x86_64-pc-windows-msvc/ ◄────────┤ 
-      Linux, Windows (GNULLVM), Mac  ║  aarch64-apple-darwin/ ◄──────────╯ 
-    - cargo-xwin cross-compiles      ╚═════════════════════════════╝ 
-      Windows (MSVC)
-    - cargo cross-compiles
-      WASM, Windows (GNU)
+    - RUSTFLAGS = localFlags  ╭────────────────╴ cargo ╶────────────────╮
+    - Runtime packages        │                                         │
+      provided with rpath     │                                         │
+    - cargo builds and runs   │     ╔═══════════target/═══════════╗     │
+                              ├──────► debug/                     ║     │
+    Other Systems:            ╰──────► release/                   ║     │
+                                    ║  x86_64-unknown-linux-gnu/ ◄──────┤
+    - RUSTFLAGS = crossFlags        ║  x86_64-pc-windows-msvc/ ◄────────┤
+    - cargo, cargo-zigbuild,        ║  aarch64-apple-darwin/ ◄──────────╯
+      cargo-xwin build for          ╚═════════════════════════════╝
+      WASM, Linux, Mac,
+      Windows (GNU, GNULLVM, MSVC)
 ```
 
 - [Details](docs/details.md)
