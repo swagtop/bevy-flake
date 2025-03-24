@@ -56,27 +56,27 @@ cargo build --target wasm32-unknown-unknown
 - Swaps out the linker for the specific target you are compiling for.
 - Provides the correct libraries needed for the target system.
 ```
-                ╭────────────────╴ cargo
-                │                                         Local NixOS System: 
-                │
-                │     ╔═══════════target/═══════════╗     - RUSTFLAGS = localFlags
-                ├──────► debug/                     ║     - Runtime packages 
-                ╰──────► release/                   ║       provided with rpath 
-                      ║  x86_64-unknown-linux-gnu/  ║     - cargo builds for 
-                      ║  x86_64-pc-windows-msvc/    ║       local system and runs
-                      ║  aarch64-apple-darwin/      ║
-                      ╚═════════════════════════════╝
- 
- 
-                                                             cargo ╶────────────────╮
-                   Other Systems:                                                   │
-                                                                                    │
-                   - RUSTFLAGS = crossFlags     ╔═══════════target/═══════════╗     │
-                   - cargoWrapper provides      ║  debug/                     ║     │
-                     appropriate libraries      ║  release/                   ║     │
-                   - cargo, cargo-zigbuild,     ║  x86_64-unknown-linux-gnu/ ◄──────┤
-                     cargo-xwin builds          ║  x86_64-pc-windows-msvc/ ◄────────┤
-                                                ║  aarch64-apple-darwin/ ◄──────────╯
-                                                ╚═════════════════════════════╝
+                 ╭────────────────╴ cargo
+                 │                                         Local NixOS System: 
+                 │
+                 │     ╔═══════════target/═══════════╗     - RUSTFLAGS = localFlags
+                 ├──────► debug/                     ║     - Runtime packages 
+                 ╰──────► release/                   ║       provided with rpath 
+                       ║  x86_64-unknown-linux-gnu/  ║     - cargo builds for 
+                       ║  x86_64-pc-windows-msvc/    ║       local system and runs
+                       ║  aarch64-apple-darwin/      ║
+                       ╚═════════════════════════════╝
+
+
+                                                              cargo ╶────────────────╮
+                    Other Systems:                                                   │
+                                                                                     │
+                    - RUSTFLAGS = crossFlags     ╔═══════════target/═══════════╗     │
+                    - cargoWrapper provides      ║  debug/                     ║     │
+                      appropriate libraries      ║  release/                   ║     │
+                    - cargo, cargo-zigbuild,     ║  x86_64-unknown-linux-gnu/ ◄──────┤
+                      cargo-xwin builds          ║  x86_64-pc-windows-msvc/ ◄────────┤
+                                                 ║  aarch64-apple-darwin/ ◄──────────╯
+                                                 ╚═════════════════════════════╝
 ```
 - [Details](docs/details.md)
