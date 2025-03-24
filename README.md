@@ -56,16 +56,22 @@ cargo build --target wasm32-unknown-unknown
 - Swaps out the linker for the specific target you are compiling for.
 - Provides the correct libraries needed for the target system.
 ```
-                                ╭────────────────╴ cargo ╶────────────────╮
-   Local NixOS System:          │                                         │   Other Systems:
-                                │                                         │   
-   1. RUSTFLAGS = localFlags    │     ╔═══════════target/═══════════╗     │   1. RUSTFLAGS = crossFlags
-   2. RUSTFLAGS contain rpath   ├──────► debug/                     ║     │   2. cargo-zigbuild assists with
-                                ╰──────► release/                   ║     │      Linux, Windows (GNULLVM), MacOS
-                                      ║  x86_64-unknown-linux-gnu/ ◄──────┤   3. cargo-xwin assists with Windows (MSVC)
-                                      ║  x86_64-pc-windows-msvc/ ◄────────┤   4. cargoWrapper provides aarch64-linux libraries
-                                      ║  aarch64-apple-darwin/ ◄──────────╯
-                                      ╚═════════════════════════════╝
+    Local NixOS System:
+
+    - RUSTFLAGS = localFlags    
+    - Runtime packages         ╭────────────────╴ cargo ╶────────────────╮
+      provided with rpath      │                                         │
+    - cargo compiles and runs  │                                         │
+                               │     ╔═══════════target/═══════════╗     │
+    Other Systems:             ├──────► debug/                     ║     │
+                               ╰──────► release/                   ║     │      
+    - RUSTFLAGS = crossFlags         ║  x86_64-unknown-linux-gnu/ ◄──────┤ 
+    - cargo-zigbuild cross-compiles  ║  x86_64-pc-windows-msvc/ ◄────────┤ 
+      Linux, Windows (GNULLVM), Mac  ║  aarch64-apple-darwin/ ◄──────────╯ 
+    - cargo-xwin cross-compiles      ╚═════════════════════════════╝ 
+      Windows (MSVC)
+    - cargo cross-compiles
+      WASM, Windows (GNU)
 ```
 
 - [Details](docs/details.md)
