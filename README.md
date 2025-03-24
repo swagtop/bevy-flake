@@ -56,15 +56,15 @@ cargo build --target wasm32-unknown-unknown
 - Swaps out the linker for the specific target you are compiling for.
 - Provides the correct libraries needed for the target system.
 ```
-                              ╭────────────────╴ cargo ╶────────────────╮  
-                              │                                         │  
-    Local NixOS System:       │                                         │  Other Systems: 
-                              │     ╔═══════════target/═══════════╗     │                                                                        
-    - RUSTFLAGS = localFlags  ├──────► debug/                     ║     │  - RUSTFLAGS = crossFlags
-    - Runtime packages        ╰──────► release/                   ║     │  - cargo, cargo-zigbuild,
-      provided with rpath           ║  x86_64-unknown-linux-gnu/ ◄──────┤    cargo-xwin builds
-    - cargo builds for              ║  x86_64-pc-windows-msvc/ ◄────────┤    for other systems
-      local system and runs         ║  aarch64-apple-darwin/ ◄──────────╯
-                                    ╚═════════════════════════════╝
+                               ╭────────────────╴ cargo ╶────────────────╮
+                               │                                         │
+    Local NixOS System:        │                                         │   Other Systems:
+                               │     ╔═══════════target/═══════════╗     │ 
+    - RUSTFLAGS = localFlags   ├──────► debug/                     ║     │   - RUSTFLAGS = crossFlags
+    - Runtime packages         ╰──────► release/                   ║     │   - cargoWrapper provides libraries
+      provided with rpath            ║  x86_64-unknown-linux-gnu/ ◄──────┤   - cargo, cargo-zigbuild,
+    - cargo builds for               ║  x86_64-pc-windows-msvc/ ◄────────┤     cargo-xwin builds
+      local system and runs          ║  aarch64-apple-darwin/ ◄──────────╯     for other systems
+                                     ╚═════════════════════════════╝
 ```
 - [Details](docs/details.md)
