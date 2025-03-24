@@ -7,8 +7,10 @@ for painless Bevy development and cross-compilation on NixOS.
 This flake is meant to help new NixOS users hit the ground running,
 and get started quickly, with as little hassle as possible.
 
+Try it first without any setup: `nix develop github:swagtop/bevy-flake`
+
 *Using [rust-overlay][overlay] for the rust toolchain,
-and [cargo-zigbuild][zigbuild], [cargo-xwin](xwin) for cross-compilation.*
+and [cargo-zigbuild][zigbuild], [cargo-xwin](xwin) to assist cross-compilation.*
 
 [overlay]: https://github.com/oxalica/rust-overlay/
 [zigbuild]: https://github.com/rust-cross/cargo-zigbuild
@@ -46,9 +48,10 @@ cargo build --target wasm32-unknown-unknown
 
 ---
 
-**bevy-flake** wraps `cargo` in a shell script that sets the appropriate
-`RUSTFLAGS` for the context you are compiling in, swaps out the linker and
-provides the needed libraries for the target system.
+**bevy-flake** wraps `cargo` in a shell script that:
+  * sets the appropriate `RUSTFLAGS` for the context you are compiling in.
+  * swaps out the linker for the specific target you are compiling for.
+  * provides the correct libraries needed for the target system.
 ```
                                 ╭────────────────╴ cargo ╶────────────────╮
                                 │                                         │
