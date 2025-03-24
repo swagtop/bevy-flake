@@ -56,20 +56,15 @@ cargo build --target wasm32-unknown-unknown
 - Swaps out the linker for the specific target you are compiling for.
 - Provides the correct libraries needed for the target system.
 ```
-    Local NixOS System:
-
-    - RUSTFLAGS = localFlags  ╭────────────────╴ cargo ╶────────────────╮
-    - Runtime packages        │                                         │
-      provided with rpath     │                                         │
-    - cargo builds and runs   │     ╔═══════════target/═══════════╗     │
-                              ├──────► debug/                     ║     │
-    Other Systems:            ╰──────► release/                   ║     │
-                                    ║  x86_64-unknown-linux-gnu/ ◄──────┤
-    - RUSTFLAGS = crossFlags        ║  x86_64-pc-windows-msvc/ ◄────────┤
-    - cargo, cargo-zigbuild,        ║  aarch64-apple-darwin/ ◄──────────╯
-      cargo-xwin build for          ╚═════════════════════════════╝
-      WASM, Linux, Mac,
-      Windows (GNU, GNULLVM, MSVC)
+                              ╭────────────────╴ cargo ╶────────────────╮  
+                              │                                         │  
+    Local NixOS System:       │                                         │  Other Systems: 
+                              │     ╔═══════════target/═══════════╗     │                                                                        
+    - RUSTFLAGS = localFlags  ├──────► debug/                     ║     │  - RUSTFLAGS = crossFlags
+    - Runtime packages        ╰──────► release/                   ║     │  - cargo, cargo-zigbuild,
+      provided with rpath           ║  x86_64-unknown-linux-gnu/ ◄──────┤    cargo-xwin builds
+    - cargo builds for              ║  x86_64-pc-windows-msvc/ ◄────────┤    for other systems
+      local system and runs         ║  aarch64-apple-darwin/ ◄──────────╯
+                                    ╚═════════════════════════════╝
 ```
-
 - [Details](docs/details.md)
