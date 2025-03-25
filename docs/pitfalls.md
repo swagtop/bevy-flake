@@ -80,8 +80,3 @@ Caused by:
 
 You are trying to compile to MacOS without adding a link to the MacOS SDK.
 Check out the [MacOS section.](macos.md)
-
-## Mimalloc
-
-Mimalloc works for all targets included in the flake, except for
-`x86_64-pc-windows-msvc`. Use the `-gnu` or `-gnullvm` target instead.
