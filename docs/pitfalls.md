@@ -84,4 +84,4 @@ Check out the [MacOS section.](macos.md)
 ## Mimalloc
 
 Mimalloc works for all targets included in the flake, except for
-`x86_64-pc-windows-gnu`. Use the `-gnullvm` or `-msvc` target instead.
+`x86_64-pc-windows-msvc`. Use the `-gnu` or `-gnullvm` target instead.
