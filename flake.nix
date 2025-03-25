@@ -83,7 +83,7 @@
       udev.dev
     ];
 
-    # Wrapping 'cargo' in a function to prevent easy-to-make mistakes.
+    # Wrapping 'cargo', to adapt the environment to context of compilation.
     cargo-wrapper = pkgs.writeShellScriptBin "cargo" ''
       ${if (inputs ? mac-sdk) then
       let
