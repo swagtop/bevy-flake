@@ -17,7 +17,7 @@
     };
     lib = pkgs.lib;
 
-    rustToolchain = pkgs.rust-bin.nightly.latest.default.override {
+    rust-toolchain = pkgs.rust-bin.nightly.latest.default.override {
       extensions = [ "rust-src" "rust-analyzer" ];
       targets = [
         # WASM targets.
@@ -43,7 +43,7 @@
     shellPackages = with pkgs; [
       cargo-xwin
       cargo-zigbuild
-      rustToolchain
+      rust-toolchain
     ];
 
     localFlags = lib.concatStringsSep " " [
@@ -84,7 +84,22 @@
     ];
 
     # Wrapping 'cargo' in a function to prevent easy-to-make mistakes.
-    cargoWrapper = pkgs.writeShellScriptBin "cargo" ''
+    cargo-wrapper = pkgs.writeShellScriptBin "cargo" ''
+      ${if (inputs ? mac-sdk) then
+      let
+        frameworks = "${inputs.mac-sdk}/System/Library/Frameworks";
+      in ''
+        export SDKROOT="${inputs.mac-sdk}"
+        export COREAUDIO_SDK_PATH="${frameworks}/CoreAudio.framework/Headers"
+        export LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
+
+        export BINDGEN_EXTRA_CLANG_ARGS="${lib.concatStringsSep " " [
+          "--sysroot=${inputs.mac-sdk}"
+          "-F ${frameworks}"
+          "-I${inputs.mac-sdk}/usr/include"
+        ]}"
+      '' else ""}
+      export CARGO_FEATURE_PURE=1 # Stops 'blake3' from messing up.
       for arg in "$@"; do
         case $arg in
 
@@ -100,7 +115,6 @@
             elif [ "$arg" = 'x86_64-pc-windows-gnu' ]; then
               PATH="${pkgs.pkgsCross.mingwW64.stdenv.cc}/bin:$PATH"
             fi
-
             BEVY_FLAKE_PROFILE=cross;;
 
           # Targets using `cargo-xwin`
@@ -108,6 +122,9 @@
             if [ "$1" = 'build' ]; then
               echo "bevy-flake: Aliasing 'build' to 'xwin build'" >&2 
               set -- "xwin" "$@"
+            fi
+            if [ "$arg" = 'x86_64-pc-windows-msvc' ]; then
+              RUSTFLAGS="-L ${pkgs.pkgsCross.mingwW64.windows.mingw_w64}/lib $RUSTFLAGS"
             fi
             BEVY_FLAKE_PROFILE=cross;;
 
@@ -117,9 +134,9 @@
 
           --no-wrapper)
             # Remove '-no-wrapper' from prompt.
-            set -- "$(printf '%s\n' "$@" | grep -vx -- '--no-wrapper')"
+            set -- $(printf '%s\n' "$@" | grep -vx -- '--no-wrapper')
             # Run 'cargo' with no checks.
-            ${rustToolchain}/bin/cargo "$@"
+            ${rust-toolchain}/bin/cargo "$@"
             exit $?;;
 
         esac
@@ -142,34 +159,16 @@
           BEVY_FLAKE_FLAGS="${crossFlags}";;
 
       esac
-      RUSTFLAGS="$BEVY_FLAKE_FLAGS $RUSTFLAGS" ${rustToolchain}/bin/cargo "$@"
+      RUSTFLAGS="$BEVY_FLAKE_FLAGS $RUSTFLAGS" ${rust-toolchain}/bin/cargo "$@"
       exit $?
     '';
   in {
+    packages.${system}.cargo-wrapper = cargo-wrapper;
     devShells.${system}.default = pkgs.mkShell {
       name = "bevy-flake";
 
-      packages = [ cargoWrapper ] ++ shellPackages;
+      packages = [ cargo-wrapper ] ++ shellPackages;
       nativeBuildInputs = compileTimePackages;
-
-      env = {
-        # Stops blake3 from acting up.
-        CARGO_FEATURE_PURE = "1";
-
-      } // lib.optionalAttrs (inputs ? mac-sdk) rec {
-        # Set up MacOS compilation environment, if SDK is available.
-        frameworks = "${inputs.mac-sdk}/System/Library/Frameworks";
-
-        SDKROOT = "${inputs.mac-sdk}";
-        COREAUDIO_SDK_PATH = "${frameworks}/CoreAudio.framework/Headers";
-        LIBCLANG_PATH = "${pkgs.libclang.lib}/lib";
-
-        BINDGEN_EXTRA_CLANG_ARGS = lib.concatStringsSep " " [
-          "--sysroot=${inputs.mac-sdk}"
-          "-F ${frameworks}"
-          "-I${inputs.mac-sdk}/usr/include"
-        ];
-      };
     };
   };
 }
