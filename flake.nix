@@ -17,7 +17,7 @@
     };
     lib = pkgs.lib;
 
-    rust-toolchain = pkgs.rust-bin.nightly.latest.default.override {
+    rust-toolchain = pkgs.rust-bin.nightly."2025-03-02".default.override {
       extensions = [ "rust-src" "rust-analyzer" ];
       targets = [
         # WASM targets.
