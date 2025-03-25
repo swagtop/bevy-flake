@@ -163,7 +163,6 @@
       exit $?
     '';
   in {
-    packages.${system}.cargo-wrapper = cargo-wrapper;
     devShells.${system}.default = pkgs.mkShell {
       name = "bevy-flake";
 
