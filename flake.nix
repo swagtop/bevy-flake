@@ -67,7 +67,7 @@
       # "-Zfmt-debug=none"
     ];
 
-    compileTimePackages = (with pkgs; [
+    compileTimePackages = with pkgs; [
       alsa-lib.dev
       clang
       libxkbcommon
@@ -75,13 +75,7 @@
       pkg-config
       udev.dev
       wayland
-    ]
-    ++ (with pkgsCross.mingwW64; [
-      # Windows packages.
-      stdenv.cc
-      windows.mingw_w64_pthreads
-    ])
-    );
+    ];
 
     # Packages specifically for compiling to aarch64-unknown-linux-gnu.
     aarch64 = with pkgs.pkgsCross.aarch64-multiplatform; [
@@ -95,15 +89,18 @@
         case $arg in
 
           # Targets using `cargo-zigbuild`
-          *-unknown-linux-gnu|*-windows-gnullvm|*-apple-darwin)
+          *-unknown-linux-gnu|*-windows-gnu*|*-apple-darwin)
             if [ "$1" = 'build' ]; then
               echo "bevy-flake: Aliasing 'build' to 'zigbuild'" >&2 
               shift
               set -- "zigbuild" "$@"
             fi
             if [ "$arg" = 'aarch64-unknown-linux-gnu' ]; then
-              PKG_CONFIG_PATH=${lib.makeSearchPath "lib/pkgconfig" aarch64}
+              PKG_CONFIG_PATH="${lib.makeSearchPath "lib/pkgconfig" aarch64}"
+            elif [ "$arg" = 'x86_64-pc-windows-gnu' ]; then
+              PATH="${pkgs.pkgsCross.mingwW64.stdenv.cc}/bin:$PATH"
             fi
+
             BEVY_FLAKE_PROFILE=cross;;
 
           # Targets using `cargo-xwin`
@@ -115,7 +112,7 @@
             BEVY_FLAKE_PROFILE=cross;;
 
           # Targets just using cargo.
-          x86_64-pc-windows-gnu|wasm32-unknown-unknown)
+          wasm32-unknown-unknown)
             BEVY_FLAKE_PROFILE=cross;;
 
           --no-wrapper)
