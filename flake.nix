@@ -84,25 +84,30 @@
       udev.dev
     ];
 
-    # Wrapping 'cargo', to adapt the environment to context of compilation.
-    cargo-wrapper = pkgs.writeShellScriptBin "cargo" ''${
-      # Set up MacOS cross-compilation environment if SDK is in inputs.
-      if (inputs ? mac-sdk) then
-        let
-          frameworks = "${inputs.mac-sdk}/System/Library/Frameworks";
-        in ''
-          export SDKROOT="${inputs.mac-sdk}"
-          export COREAUDIO_SDK_PATH="${frameworks}/CoreAudio.framework/Headers"
-          export LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
+    # Envoronment variables for the MacOS targets.
+    macCrossCompilationEnvironment =
+    let
+      frameworks = "${inputs.mac-sdk}/System/Library/Frameworks";
+    in ''
+      export SDKROOT="${inputs.mac-sdk}"
+      export COREAUDIO_SDK_PATH="${frameworks}/CoreAudio.framework/Headers"
+      export LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
 
-          export BINDGEN_EXTRA_CLANG_ARGS="${lib.concatStringsSep " " [
-            "--sysroot=${inputs.mac-sdk}"
-            "-F ${frameworks}"
-            "-I${inputs.mac-sdk}/usr/include"
-          ]}"
-      '' else ""
-      }
-      export CARGO_FEATURE_PURE=1 # Stops 'blake3' from messing up.
+      export BINDGEN_EXTRA_CLANG_ARGS="${lib.concatStringsSep " " [
+        "--sysroot=${inputs.mac-sdk}"
+        "-F ${frameworks}"
+        "-I${inputs.mac-sdk}/usr/include"
+      ]}"
+    '';
+
+    # Wrapping 'cargo', to adapt the environment to context of compilation.
+    cargo-wrapper = pkgs.writeShellScriptBin "cargo" ''
+      # Set up MacOS cross-compilation environment if SDK is in inputs.
+      ${if (inputs ? mac-sdk) then macCrossCompilationEnvironment else ""}
+
+      # Stops 'blake3' from messing up.
+      export CARGO_FEATURE_PURE=1 
+
       for arg in "$@"; do
         case $arg in
 
