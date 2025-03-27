@@ -65,6 +65,7 @@
     crossFlags = lib.concatStringsSep " " [
       # "-Zlocation-detail=none"
       # "-Zfmt-debug=none"
+      # "--remap-path-prefix=\${HOME}=/build"
     ];
 
     compileTimePackages = with pkgs; [
