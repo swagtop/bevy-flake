@@ -84,21 +84,23 @@
     ];
 
     # Wrapping 'cargo', to adapt the environment to context of compilation.
-    cargo-wrapper = pkgs.writeShellScriptBin "cargo" ''
-      ${if (inputs ? mac-sdk) then
-      let
-        frameworks = "${inputs.mac-sdk}/System/Library/Frameworks";
-      in ''
-        export SDKROOT="${inputs.mac-sdk}"
-        export COREAUDIO_SDK_PATH="${frameworks}/CoreAudio.framework/Headers"
-        export LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
+    cargo-wrapper = pkgs.writeShellScriptBin "cargo" ''${
+      # Set up MacOS cross-compilation environment if SDK is in inputs.
+      if (inputs ? mac-sdk) then
+        let
+          frameworks = "${inputs.mac-sdk}/System/Library/Frameworks";
+        in ''
+          export SDKROOT="${inputs.mac-sdk}"
+          export COREAUDIO_SDK_PATH="${frameworks}/CoreAudio.framework/Headers"
+          export LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
 
-        export BINDGEN_EXTRA_CLANG_ARGS="${lib.concatStringsSep " " [
-          "--sysroot=${inputs.mac-sdk}"
-          "-F ${frameworks}"
-          "-I${inputs.mac-sdk}/usr/include"
-        ]}"
-      '' else ""}
+          export BINDGEN_EXTRA_CLANG_ARGS="${lib.concatStringsSep " " [
+            "--sysroot=${inputs.mac-sdk}"
+            "-F ${frameworks}"
+            "-I${inputs.mac-sdk}/usr/include"
+          ]}"
+      '' else ""
+      }
       export CARGO_FEATURE_PURE=1 # Stops 'blake3' from messing up.
       for arg in "$@"; do
         case $arg in
@@ -136,8 +138,7 @@
             # Remove '-no-wrapper' from prompt.
             set -- $(printf '%s\n' "$@" | grep -vx -- '--no-wrapper')
             # Run 'cargo' with no checks.
-            ${rust-toolchain}/bin/cargo "$@"
-            exit $?;;
+            exec ${rust-toolchain}/bin/cargo "$@";;
 
         esac
       done
@@ -159,8 +160,7 @@
           BEVY_FLAKE_FLAGS="${crossFlags}";;
 
       esac
-      RUSTFLAGS="$BEVY_FLAKE_FLAGS $RUSTFLAGS" ${rust-toolchain}/bin/cargo "$@"
-      exit $?
+      RUSTFLAGS="$BEVY_FLAKE_FLAGS $RUSTFLAGS" exec ${rust-toolchain}/bin/cargo "$@"
     '';
   in {
     devShells.${system}.default = pkgs.mkShell {
