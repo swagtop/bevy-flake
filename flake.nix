@@ -115,7 +115,7 @@
 
         # If run with --target, save the arg number of the arch specified.
         if [ "$arg" = '--target' ]; then
-          TARGET_ARCH_ARG_COUNT=$((ARG_COUNT + 1))
+          eval "BEVY_FLAKE_TARGET_ARCH=\$$((ARG_COUNT + 1))"
 
         elif [ "$arg" = '--no-wrapper' ]; then
           # Remove '-no-wrapper' from prompt.
@@ -125,15 +125,26 @@
         fi
       done
 
-      # Change environment based on target, if one is supplied.
-      if [ "$TARGET_ARCH_ARG_COUNT" != "" ]; then
-        eval "TARGET_ARCH=\$$TARGET_ARCH_ARG_COUNT"
-        case $TARGET_ARCH in
+      if [ "$BEVY_FLAKE_TARGET_ARCH" = "" ]; then
+        # If no target is supplied, add 'localFlags' to RUSTFLAGS.
+        case $1 in
+
+          zigbuild|xwin)
+            echo "bevy-flake: Cannot use 'cargo $1' without a '--target'"
+            exit 1;;
+
+          run|build)
+            RUSTFLAGS="${localFlags} $RUSTFLAGS";;
+
+        esac
+      else
+        # If target is supplied, adapt environment based on target arch.
+        case $BEVY_FLAKE_TARGET_ARCH in
 
           # Targets using `cargo-zigbuild`
-          *-unknown-linux-gnu|*pc--windows-gnu*|*-apple-darwin|wasm32-*)
+          *-unknown-linux-gnu|*pc-windows-gnu*|*-apple-darwin|wasm32-*)
             if [ "$1" = 'build' ]; then
-              echo "bevy-flake: Aliasing 'build' to 'zigbuild'" >&2 
+              echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
               shift
               set -- "zigbuild" "$@"
             fi
@@ -146,7 +157,7 @@
           # Targets using `cargo-xwin`
           *-pc-windows-msvc)
             if [ "$1" = 'build' ]; then
-              echo "bevy-flake: Aliasing 'build' to 'xwin build'" >&2 
+              echo "bevy-flake: Aliasing 'build' to 'xwin build'" 1>&2 
               set -- "xwin" "$@"
             fi
             if [ "$arg" = 'x86_64-pc-windows-msvc' ]; then
@@ -155,25 +166,17 @@
 
         esac
 
-        # Prevent that 'cargo run' from running with a target.
+        # Prevent that 'cargo run' being input with a target.
         if [ "$1" = 'run' ]; then
           echo "bevy-flake: Cannot use 'cargo run' with a '--target'"
           exit 1
         fi
 
-        # Add 'crossFlags' to environment
+        # When using target, add'crossFlags' to RUSTFLAGS
         RUSTFLAGS="${crossFlags} $RUSTFLAGS"
-
-      # If no target is supplied, add 'localFlags' to environment.
-      else
-        if [ "$1" = 'zigbuild' ] || [ "$1" = 'xwin' ]; then
-          echo "bevy-flake: Cannot use 'cargo $1' without a '--target'"
-          exit 1
-        elif [ "$1" = 'run' ] || [ "$1" = 'build' ]; then
-          RUSTFLAGS="${localFlags} $RUSTFLAGS"
-        fi
       fi
 
+      # Run cargo with relevant RUSTFLAGS.
       RUSTFLAGS=$RUSTFLAGS exec ${rust-toolchain}/bin/cargo "$@"
     '';
   in {
