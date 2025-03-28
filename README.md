@@ -66,7 +66,6 @@ cargo build --target wasm32-unknown-unknown
                                                                                      │
                                                                                      │
                                                                                      │
-                                                                                     │
                     Other Systems:               ╔═══════════target/═══════════╗     │
                                                  ║  debug/                     ║     │
                     - RUSTFLAGS = crossFlags     ║  release/                   ║     │
