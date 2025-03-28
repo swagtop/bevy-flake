@@ -100,12 +100,6 @@
 
     # Wrapping 'cargo', to adapt the environment to context of compilation.
     cargo-wrapper = pkgs.writeShellScriptBin "cargo" ''
-      # Set up MacOS cross-compilation environment if SDK is in inputs.
-      ${if (inputs ? mac-sdk) then macCrossCompilationEnvironment else ""}
-
-      # Stops 'blake3' from messing up.
-      export CARGO_FEATURE_PURE=1 
-
       # Check if cargo is being run with '--target', or '--no-wrapper'.
       ARG_COUNT=0
       for arg in "$@"; do
@@ -122,6 +116,12 @@
           exec ${rust-toolchain}/bin/cargo "$@"
         fi
       done
+
+      # Stops 'blake3' from messing up.
+      export CARGO_FEATURE_PURE=1 
+
+      # Set up MacOS cross-compilation environment if SDK is in inputs.
+      ${if (inputs ? mac-sdk) then macCrossCompilationEnvironment else ""}
 
       if [ "$BEVY_FLAKE_TARGET_ARCH" = "" ]; then
         # If no target is supplied, add 'localFlags' to RUSTFLAGS.
