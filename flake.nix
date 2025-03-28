@@ -108,11 +108,30 @@
       # Stops 'blake3' from messing up.
       export CARGO_FEATURE_PURE=1 
 
+      # Check if cargo is being run with '--target', or '--no-wrapper'.
+      ARG_COUNT=0
       for arg in "$@"; do
-        case $arg in
+        ARG_COUNT=$(expr "$ARG_COUNT" + 1)
+
+        # If run with --target, save the arg number of the arch specified.
+        if [ "$arg" = '--target' ]; then
+          TARGET_ARCH_ARG_COUNT=$(expr "$ARG_COUNT" + 1)
+
+        elif [ "$arg" = '--no-wrapper' ]; then
+          # Remove '-no-wrapper' from prompt.
+          set -- $(printf '%s\n' "$@" | grep -vx -- '--no-wrapper')
+          # Run 'cargo' with no checks.
+          exec ${rust-toolchain}/bin/cargo "$@"
+        fi
+      done
+
+      # Change environment based on target, if one is supplied.
+      if [ "$TARGET_ARCH_ARG_COUNT" != "" ]; then
+        TARGET_ARCH=''${!TARGET_ARCH_ARG_COUNT}
+        case $TARGET_ARCH in
 
           # Targets using `cargo-zigbuild`
-          *-unknown-linux-gnu|*-windows-gnu*|*-apple-darwin)
+          *-unknown-linux-gnu|*pc--windows-gnu*|*-apple-darwin|wasm32-*)
             if [ "$1" = 'build' ]; then
               echo "bevy-flake: Aliasing 'build' to 'zigbuild'" >&2 
               shift
@@ -122,51 +141,40 @@
               PKG_CONFIG_PATH="${lib.makeSearchPath "lib/pkgconfig" aarch64}"
             elif [ "$arg" = 'x86_64-pc-windows-gnu' ]; then
               PATH="${pkgs.pkgsCross.mingwW64.stdenv.cc}/bin:$PATH"
-            fi
-            BEVY_FLAKE_PROFILE=cross;;
+            fi;;
 
           # Targets using `cargo-xwin`
-          *-windows-msvc)
+          *-pc-windows-msvc)
             if [ "$1" = 'build' ]; then
               echo "bevy-flake: Aliasing 'build' to 'xwin build'" >&2 
               set -- "xwin" "$@"
             fi
             if [ "$arg" = 'x86_64-pc-windows-msvc' ]; then
               RUSTFLAGS="-L ${pkgs.pkgsCross.mingwW64.windows.mingw_w64}/lib $RUSTFLAGS"
-            fi
-            BEVY_FLAKE_PROFILE=cross;;
-
-          # Targets just using cargo.
-          wasm32-unknown-unknown)
-            BEVY_FLAKE_PROFILE=cross;;
-
-          --no-wrapper)
-            # Remove '-no-wrapper' from prompt.
-            set -- $(printf '%s\n' "$@" | grep -vx -- '--no-wrapper')
-            # Run 'cargo' with no checks.
-            exec ${rust-toolchain}/bin/cargo "$@";;
+            fi;;
 
         esac
-      done
-      case $BEVY_FLAKE_PROFILE in
 
-        "") # Target is NixOS if $PROFILE is unset.
-          if [ "$1" = 'zigbuild' ] || [ "$1" = 'xwin' ]; then
-            echo "bevy-flake: Cannot use 'cargo $1' without a '--target'"
-            exit 1
-          elif [ "$1" = 'run' ] || [ "$1" = 'build' ]; then
-            BEVY_FLAKE_FLAGS="${localFlags}"
-          fi;;
+        # Prevent that 'cargo run' from running with a target.
+        if [ "$1" = 'run' ]; then
+          echo "bevy-flake: Cannot use 'cargo run' with a '--target'"
+          exit 1
+        fi
 
-        cross)
-          if [ "$1" = 'run' ]; then
-            echo "bevy-flake: Cannot use 'cargo run' with a '--target'"
-            exit 1
-          fi
-          BEVY_FLAKE_FLAGS="${crossFlags}";;
+        # Add 'crossFlags' to environment
+        RUSTFLAGS="${crossFlags} $RUSTFLAGS"
 
-      esac
-      RUSTFLAGS="$BEVY_FLAKE_FLAGS $RUSTFLAGS" exec ${rust-toolchain}/bin/cargo "$@"
+      # If no target is supplied, add 'localFlags' to environment.
+      else
+        if [ "$1" = 'zigbuild' ] || [ "$1" = 'xwin' ]; then
+          echo "bevy-flake: Cannot use 'cargo $1' without a '--target'"
+          exit 1
+        elif [ "$1" = 'run' ] || [ "$1" = 'build' ]; then
+          RUSTFLAGS="${localFlags} $RUSTFLAGS"
+        fi
+      fi
+
+      RUSTFLAGS=$RUSTFLAGS exec ${rust-toolchain}/bin/cargo "$@"
     '';
   in {
     devShells.${system}.default = pkgs.mkShell {
