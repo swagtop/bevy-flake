@@ -11,10 +11,8 @@
   outputs = { self, rust-overlay, nixpkgs, ... }@inputs:
   let
     system = "x86_64-linux";
-    pkgs = import nixpkgs {
-      inherit system;
-      overlays = [ (import rust-overlay) ];
-    };
+    overlays = [ (import rust-overlay) ];
+    pkgs = import nixpkgs { inherit system overlays; };
     lib = pkgs.lib;
 
     rust-toolchain = pkgs.rust-bin.nightly."2025-03-02".default.override {
@@ -138,7 +136,7 @@
 
         esac
       else
-        # If target is supplied, adapt environment based on target arch.
+        # If target is supplied, adapt environment to target arch.
         case $BEVY_FLAKE_TARGET_ARCH in
 
           # Targets using `cargo-zigbuild`
@@ -166,13 +164,13 @@
 
         esac
 
-        # Prevent that 'cargo run' being input with a target.
+        # Prevents 'cargo run' from being input with a target.
         if [ "$1" = 'run' ]; then
           echo "bevy-flake: Cannot use 'cargo run' with a '--target'"
           exit 1
         fi
 
-        # When using target, add'crossFlags' to RUSTFLAGS
+        # When using target, add 'crossFlags' to RUSTFLAGS
         RUSTFLAGS="${crossFlags} $RUSTFLAGS"
       fi
 
