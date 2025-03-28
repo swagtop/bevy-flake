@@ -84,7 +84,7 @@
       udev.dev
     ];
 
-    # Envoronment variables for the MacOS targets.
+    # Environment variables for the MacOS targets.
     macCrossCompilationEnvironment =
     let
       frameworks = "${inputs.mac-sdk}/System/Library/Frameworks";
