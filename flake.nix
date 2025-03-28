@@ -111,11 +111,11 @@
       # Check if cargo is being run with '--target', or '--no-wrapper'.
       ARG_COUNT=0
       for arg in "$@"; do
-        ARG_COUNT=$(expr "$ARG_COUNT" + 1)
+        ARG_COUNT=$((ARG_COUNT + 1))
 
         # If run with --target, save the arg number of the arch specified.
         if [ "$arg" = '--target' ]; then
-          TARGET_ARCH_ARG_COUNT=$(expr "$ARG_COUNT" + 1)
+          TARGET_ARCH_ARG_COUNT=$((ARG_COUNT + 1))
 
         elif [ "$arg" = '--no-wrapper' ]; then
           # Remove '-no-wrapper' from prompt.
@@ -127,7 +127,7 @@
 
       # Change environment based on target, if one is supplied.
       if [ "$TARGET_ARCH_ARG_COUNT" != "" ]; then
-        TARGET_ARCH=''${!TARGET_ARCH_ARG_COUNT}
+        eval "TARGET_ARCH=\$$TARGET_ARCH_ARG_COUNT"
         case $TARGET_ARCH in
 
           # Targets using `cargo-zigbuild`
