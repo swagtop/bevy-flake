@@ -146,9 +146,9 @@
               shift
               set -- "zigbuild" "$@"
             fi
-            if [ "$arg" = 'aarch64-unknown-linux-gnu' ]; then
+            if [ "$BEVY_FLAKE_TARGET_ARCH " = 'aarch64-unknown-linux-gnu' ]; then
               PKG_CONFIG_PATH="${lib.makeSearchPath "lib/pkgconfig" aarch64}"
-            elif [ "$arg" = 'x86_64-pc-windows-gnu' ]; then
+            elif [ "$BEVY_FLAKE_TARGET_ARCH " = 'x86_64-pc-windows-gnu' ]; then
               PATH="${pkgs.pkgsCross.mingwW64.stdenv.cc}/bin:$PATH"
             fi;;
 
@@ -158,7 +158,7 @@
               echo "bevy-flake: Aliasing 'build' to 'xwin build'" 1>&2 
               set -- "xwin" "$@"
             fi
-            if [ "$arg" = 'x86_64-pc-windows-msvc' ]; then
+            if [ "$BEVY_FLAKE_TARGET_ARCH " = 'x86_64-pc-windows-msvc' ]; then
               RUSTFLAGS="-L ${pkgs.pkgsCross.mingwW64.windows.mingw_w64}/lib $RUSTFLAGS"
             fi;;
 
