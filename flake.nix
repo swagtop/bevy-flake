@@ -68,7 +68,7 @@
     compileTimePackages = with pkgs; [
       alsa-lib.dev
       clang
-      libxkbcommon
+      libxkbcommon.dev
       llvm
       pkg-config
       udev.dev
