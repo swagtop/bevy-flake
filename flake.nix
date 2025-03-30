@@ -73,13 +73,14 @@
       llvm
       pkg-config
       udev.dev
-      wayland
+      wayland.dev
     ];
 
     # Packages specifically for compiling to aarch64-unknown-linux-gnu.
     aarch64 = with pkgs.pkgsCross.aarch64-multiplatform; [
       alsa-lib.dev
       udev.dev
+      wayland.dev
     ];
 
     # Environment variables for the MacOS targets.
