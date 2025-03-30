@@ -64,7 +64,7 @@ cargo build --target wasm32-unknown-unknown
                                   ║  aarch64-apple-darwin/ ◄────────╯
                                   ╚═════════════════════════════╝
 
-                    Local NixOS System:                  Other Systems: 
+                    Local NixOS System:                  Other Systems:
 
                     - RUSTFLAGS += localFlags            - RUSTFLAGS += crossFlags
                     - Runtime packages                   - Each targets libraries
