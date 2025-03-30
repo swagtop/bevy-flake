@@ -51,25 +51,25 @@ cargo build --target wasm32-unknown-unknown
 
 ---
 ```
-                     ╔═══════════target/═══════════╗     Local NixOS System: 
-               ╭──────► debug/                     ║     
-               ├──────► release/                   ║     - RUSTFLAGS += localFlags
-               │     ║  x86_64-unknown-linux-gnu/  ║     - Runtime packages 
-               │     ║  x86_64-pc-windows-msvc/    ║       provided through rpath 
-               │     ║  aarch64-apple-darwin/      ║     - cargo compiles for 
-               │     ╚═════════════════════════════╝       local system and runs
-               │
-               │                             $ cargo
-               │                                ▼
-               ╰─────────────────────────╴ cargo-wrapper ╶─────────────────────────╮
-                                                                                   │
-                                                                                   │
-                Other Systems:                 ╔═══════════target/═══════════╗     │
-                                               ║  debug/                     ║     │
-                - RUSTFLAGS += crossFlags      ║  release/                   ║     │
-                - Each targets libraries       ║  x86_64-unknown-linux-gnu/ ◄──────┤
-                  provided by cargo-wrapper    ║  x86_64-pc-windows-msvc/ ◄────────┤
-                - cargo-zigbuild,              ║  aarch64-apple-darwin/ ◄──────────╯
-                  cargo-xwin cross compile     ╚═════════════════════════════╝
+                                             $ cargo
+                                                ▼
+                             ╭───────────╴ cargo-wrapper ╶──────────╮
+                             │                                      │
+                             │                                      │
+                             │    ╔═══════════target/═══════════╗   │  
+                             │─────► debug/                     ║   │  
+                             ╰─────► release/                   ║   │  
+                                  ║  x86_64-unknown-linux-gnu/ ◄────┤ 
+                                  ║  x86_64-pc-windows-msvc/ ◄──────┤ 
+                                  ║  aarch64-apple-darwin/ ◄────────╯   
+                                  ╚═════════════════════════════╝     
+
+                    Local NixOS System:                  Other Systems: 
+
+                    - RUSTFLAGS += localFlags            - RUSTFLAGS += crossFlags
+                    - Runtime packages                   - Each targets libraries 
+                      provided through rpath               provided by cargo-wrapper 
+                    - cargo compiles for                 - cargo-zigbuild, 
+                      local system and runs                cargo-xwin cross compile
 ```
 - [Details](docs/details.md)
