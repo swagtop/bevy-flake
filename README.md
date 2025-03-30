@@ -56,13 +56,13 @@ cargo build --target wasm32-unknown-unknown
                              ╭───────────╴ cargo-wrapper ╶──────────╮
                              │                                      │
                              │                                      │
-                             │    ╔═══════════target/═══════════╗   │  
-                             │─────► debug/                     ║   │  
-                             ╰─────► release/                   ║   │  
-                                  ║  x86_64-unknown-linux-gnu/ ◄────┤ 
-                                  ║  x86_64-pc-windows-msvc/ ◄──────┤ 
-                                  ║  aarch64-apple-darwin/ ◄────────╯   
-                                  ╚═════════════════════════════╝     
+                             │    ╔═══════════target/═══════════╗   │
+                             │─────► debug/                     ║   │
+                             ╰─────► release/                   ║   │
+                                  ║  x86_64-unknown-linux-gnu/ ◄────┤
+                                  ║  x86_64-pc-windows-msvc/ ◄──────┤
+                                  ║  aarch64-apple-darwin/ ◄────────╯
+                                  ╚═════════════════════════════╝
 
                     Local NixOS System:                  Other Systems: 
 
