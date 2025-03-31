@@ -21,11 +21,15 @@ cross-compilation.*
 
 ## Quick setup
 
-Fetch `flake.nix` and `flake.lock` into your project root directory,
-and add them to the git index:
+Navigate to your Bevy project root:
 
 ```sh
-cd /path/to/project
+cd /path/to/bevy/project
+```
+
+Fetch `flake.nix` and `flake.lock`, and add them to the git index:
+
+```sh
 wget https://github.com/swagtop/bevy-flake/raw/refs/heads/main/flake.nix
 wget https://github.com/swagtop/bevy-flake/raw/refs/heads/main/flake.lock
 git add flake.nix flake.lock
