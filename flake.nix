@@ -83,7 +83,7 @@
     ];
 
     # Environment variables for the MacOS targets.
-    macCrossCompilationEnvironment =
+    macEnvironment =
     let
       frameworks = "${inputs.mac-sdk}/System/Library/Frameworks";
     in ''
@@ -121,7 +121,7 @@
       export CARGO_FEATURE_PURE=1 
 
       # Set up MacOS cross-compilation environment if SDK is in inputs.
-      ${if (inputs ? mac-sdk) then macCrossCompilationEnvironment else ""}
+      ${if (inputs ? mac-sdk) then macEnvironment else "# None found."}
 
       if [ "$BEVY_FLAKE_TARGET_ARCH" = "" ]; then
         # If no target is supplied, add 'localFlags' to RUSTFLAGS.
