@@ -4,13 +4,13 @@
 
 ### Changing toolchain version
 You can change the version of the version of the Rust toolchain by editing the
-`rustToolchain` section:
+`rust-toolchain` section:
 
 ```nix
-rustToolchain.stable.latest.default         # Latest stable
-rustToolchain.stable."1.48.0".default       # Specific version of stable
-rustToolchain.beta."2021-01-01".default     # Specific date for beta
-rustToolchain.nightly."2020-12-31".default  # ... or nightly
+rust-toolchain.stable.latest.default         # Latest stable
+rust-toolchain.stable."1.48.0".default       # Specific version of stable
+rust-toolchain.beta."2021-01-01".default     # Specific date for beta
+rust-toolchain.nightly."2020-12-31".default  # ... or nightly
 ```
 
 More info can be found on the [rust-overlay repository.][rust-overlay]
@@ -24,7 +24,7 @@ Add mold to the `shellPackages` list:
 shellPackages = with pkgs; [
   cargo-zigbuild
   cargo-xwin
-  rustToolchain
+  rust-toolchain
   mold # <-
 ];
 ```
@@ -65,6 +65,6 @@ localFlags = lib.concatStringsSep " " [
 Alternatively you can run `NO_WAYLAND=1 nix develop --impure` to remove it
 temporarily without editing the flake.
 
-## Removing `cargo build --target` and `cargo run` restrictions
+## Removing any restrictions, or other behaviours of `cargo-wrapper`
 Just use the `--no-wrapper` flag when running `cargo`, and you will essentially
 be running it without any restrictions placed by `bevy-flake`.
