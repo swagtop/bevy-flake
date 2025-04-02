@@ -39,12 +39,11 @@
     };
 
     shellPackages = with pkgs; [
-      cargo-xwin
-      cargo-zigbuild
-      rust-toolchain
+      # mold
     ];
 
     localFlags = lib.concatStringsSep " " [
+      # "-C target-cpu=native"
       "-C link-args=-Wl,-rpath,${lib.makeLibraryPath (with pkgs; [
         alsa-lib-with-plugins
         libGL
@@ -66,13 +65,22 @@
     ];
 
     compileTimePackages = with pkgs; [
-      alsa-lib.dev
-      clang
-      libxkbcommon.dev
-      llvm
+      # The wrapper, compilers, pkg-config, and linkers.
+      cargo-wrapper
+      cargo-xwin
+      cargo-zigbuild
+      rust-toolchain
       pkg-config
+    ] ++ [
+      # Headers.
+      alsa-lib.dev
+      libxkbcommon.dev
       udev.dev
       wayland.dev
+    ] ++ [
+      # Extra compilation tools.
+      clang
+      llvm
     ];
 
     # Packages specifically for compiling to aarch64-unknown-linux-gnu.
@@ -181,7 +189,7 @@
     devShells.${system}.default = pkgs.mkShell {
       name = "bevy-flake";
 
-      packages = [ cargo-wrapper ] ++ shellPackages;
+      packages = shellPackages;
       nativeBuildInputs = compileTimePackages;
     };
   };
