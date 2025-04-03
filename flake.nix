@@ -14,6 +14,7 @@
     overlays = [ (import rust-overlay) ];
     pkgs = import nixpkgs { inherit system overlays; };
     lib = pkgs.lib;
+    mingwW64 = pkgs.pkgsCross.mingwW64;
 
     rust-toolchain = pkgs.rust-bin.nightly.latest.default.override {
       extensions = [ "rust-src" "rust-analyzer" ];
@@ -26,10 +27,7 @@
         "x86_64-unknown-linux-gnu"
       ] ++ [
         # Windows targets.
-        "aarch64-pc-windows-gnullvm"
         "aarch64-pc-windows-msvc"
-        "x86_64-pc-windows-gnu"
-        "x86_64-pc-windows-gnullvm"
         "x86_64-pc-windows-msvc"
       ] ++ lib.optionals (inputs ? mac-sdk) [
         # MacOS targets (...if SDK is available).
@@ -65,14 +63,14 @@
     ];
 
     compileTimePackages = with pkgs; [
-      # The wrapper, compilers, pkg-config, and linkers.
+      # The wrapper, compilers, linkers, and pkg-config.
       cargo-wrapper
       cargo-xwin
       cargo-zigbuild
       rust-toolchain
       pkg-config
     ] ++ [
-      # Headers.
+      # Headers for x86_64-unknown-linux-gnu.
       alsa-lib.dev
       libxkbcommon.dev
       udev.dev
@@ -81,14 +79,17 @@
       # Extra compilation tools.
       clang
       llvm
-    ];
+    ] ++ lib.optionals (inputs ? mac-sdk) (with pkgs; [
+      libclang.lib
+    ]);
 
-    # Packages specifically for compiling to aarch64-unknown-linux-gnu.
-    aarch64 = with pkgs.pkgsCross.aarch64-multiplatform; [
+    # Headers for aarch64-unknown-linux-gnu.
+    aarch64LinuxHeadersPath = lib.makeSearchPath "lib/pkgconfig"
+    (with pkgs.pkgsCross.aarch64-multiplatform; [
       alsa-lib.dev
       udev.dev
       wayland.dev
-    ];
+    ]);
 
     # Environment variables for the MacOS targets.
     macEnvironment =
@@ -115,7 +116,7 @@
 
         # If run with --target, save the arg number of the arch specified.
         if [ "$arg" = '--target' ]; then
-          eval "BEVY_FLAKE_TARGET_ARCH=\$$((ARG_COUNT + 1))"
+          eval "BEVY_FLAKE_TARGET=\$$((ARG_COUNT + 1))"
 
         elif [ "$arg" = '--no-wrapper' ]; then
           # Remove '-no-wrapper' from prompt.
@@ -131,7 +132,7 @@
       # Set up MacOS cross-compilation environment if SDK is in inputs.
       ${if (inputs ? mac-sdk) then macEnvironment else "# None found."}
 
-      if [ "$BEVY_FLAKE_TARGET_ARCH" = "" ]; then
+      if [ "$BEVY_FLAKE_TARGET" = "" ]; then
         # If no target is supplied, add 'localFlags' to RUSTFLAGS.
         case $1 in
 
@@ -145,7 +146,7 @@
         esac
       else
         # If target is supplied, adapt environment to target arch.
-        case $BEVY_FLAKE_TARGET_ARCH in
+        case $BEVY_FLAKE_TARGET in
 
           # Targets using `cargo-zigbuild`
           *-unknown-linux-gnu|*pc-windows-gnu*|*-apple-darwin|wasm32-*)
@@ -154,10 +155,8 @@
               shift
               set -- "zigbuild" "$@"
             fi
-            if [ "$BEVY_FLAKE_TARGET_ARCH " = 'aarch64-unknown-linux-gnu' ]; then
-              PKG_CONFIG_PATH="${lib.makeSearchPath "lib/pkgconfig" aarch64}"
-            elif [ "$BEVY_FLAKE_TARGET_ARCH " = 'x86_64-pc-windows-gnu' ]; then
-              PATH="${pkgs.pkgsCross.mingwW64.stdenv.cc}/bin:$PATH"
+            if [ "$BEVY_FLAKE_TARGET" = 'aarch64-unknown-linux-gnu' ]; then
+              PKG_CONFIG_PATH="${aarch64LinuxHeadersPath}"
             fi;;
 
           # Targets using `cargo-xwin`
@@ -166,8 +165,8 @@
               echo "bevy-flake: Aliasing 'build' to 'xwin build'" 1>&2 
               set -- "xwin" "$@"
             fi
-            if [ "$BEVY_FLAKE_TARGET_ARCH " = 'x86_64-pc-windows-msvc' ]; then
-              RUSTFLAGS="-L ${pkgs.pkgsCross.mingwW64.windows.mingw_w64}/lib $RUSTFLAGS"
+            if [ "$BEVY_FLAKE_TARGET" = 'x86_64-pc-windows-msvc' ]; then
+              RUSTFLAGS="-L ${mingwW64.windows.mingw_w64}/lib $RUSTFLAGS"
             fi;;
 
         esac
