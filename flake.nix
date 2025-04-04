@@ -19,13 +19,11 @@
     rust-toolchain = pkgs.rust-bin.nightly.latest.default.override {
       extensions = [ "rust-src" "rust-analyzer" ];
       targets = [
-        # WASM targets.
+        # WASM target.
         "wasm32-unknown-unknown"
-      ] ++ [
         # Linux targets.
         "aarch64-unknown-linux-gnu"
         "x86_64-unknown-linux-gnu"
-      ] ++ [
         # Windows targets.
         "aarch64-pc-windows-msvc"
         "x86_64-pc-windows-msvc"
@@ -63,23 +61,22 @@
     ];
 
     compileTimePackages = with pkgs; [
-      # The wrapper, compilers, linkers, and pkg-config.
+      # The wrapper, linkers, compilers, and pkg-config.
       cargo-wrapper
       cargo-xwin
       cargo-zigbuild
       rust-toolchain
       pkg-config
-    ] ++ [
       # Headers for x86_64-unknown-linux-gnu.
       alsa-lib.dev
       libxkbcommon.dev
       udev.dev
       wayland.dev
-    ] ++ [
       # Extra compilation tools.
       clang
       llvm
     ] ++ lib.optionals (inputs ? mac-sdk) (with pkgs; [
+      # Libclang, needed for MacOS targets.
       libclang.lib
     ]);
 
@@ -126,60 +123,54 @@
         fi
       done
 
+      # Prevents 'cargo run' from being input with a target.
+      if [ "$1" = 'run' ] && [ "$BEVY_FLAKE_TARGET" != "" ]; then
+        echo "bevy-flake: Cannot use 'cargo run' with a '--target'"
+        exit 1
+      fi
+
       # Stops 'blake3' from messing up.
       export CARGO_FEATURE_PURE=1 
 
       # Set up MacOS cross-compilation environment if SDK is in inputs.
       ${if (inputs ? mac-sdk) then macEnvironment else "# None found."}
 
-      if [ "$BEVY_FLAKE_TARGET" = "" ]; then
+      case $BEVY_FLAKE_TARGET in
         # If no target is supplied, add 'localFlags' to RUSTFLAGS.
-        case $1 in
-
-          zigbuild|xwin)
+        "")
+          if [ "$1" = 'zigbuild' ] || [ "$1" = 'xwin' ]; then
             echo "bevy-flake: Cannot use 'cargo $1' without a '--target'"
-            exit 1;;
+            exit 1
+          elif [ "$1" = 'run' ] || [ "$1" = 'build' ]; then
+            RUSTFLAGS="${localFlags} $RUSTFLAGS"
+          fi
+        ;;
 
-          run|build)
-            RUSTFLAGS="${localFlags} $RUSTFLAGS";;
+        # Targets using `cargo-zigbuild`
+        aarch64-unknown-linux-gnu)
+          PKG_CONFIG_PATH="${aarch64LinuxHeadersPath}"
+        ;&
+        x86_64-unknown-linux-gnu|*-apple-darwin|wasm32-unknown-unknown)
+          RUSTFLAGS="${crossFlags} $RUSTFLAGS"
+          if [ "$1" = 'build' ]; then
+            echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
+            shift
+            set -- "zigbuild" "$@"
+          fi
+        ;;
 
-        esac
-      else
-        # If target is supplied, adapt environment to target arch.
-        case $BEVY_FLAKE_TARGET in
-
-          # Targets using `cargo-zigbuild`
-          *-unknown-linux-gnu|*pc-windows-gnu*|*-apple-darwin|wasm32-*)
-            if [ "$1" = 'build' ]; then
-              echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
-              shift
-              set -- "zigbuild" "$@"
-            fi
-            if [ "$BEVY_FLAKE_TARGET" = 'aarch64-unknown-linux-gnu' ]; then
-              PKG_CONFIG_PATH="${aarch64LinuxHeadersPath}"
-            fi;;
-
-          # Targets using `cargo-xwin`
-          *-pc-windows-msvc)
-            if [ "$1" = 'build' ]; then
-              echo "bevy-flake: Aliasing 'build' to 'xwin build'" 1>&2 
-              set -- "xwin" "$@"
-            fi
-            if [ "$BEVY_FLAKE_TARGET" = 'x86_64-pc-windows-msvc' ]; then
-              RUSTFLAGS="-L ${mingwW64.windows.mingw_w64}/lib $RUSTFLAGS"
-            fi;;
-
-        esac
-
-        # Prevents 'cargo run' from being input with a target.
-        if [ "$1" = 'run' ]; then
-          echo "bevy-flake: Cannot use 'cargo run' with a '--target'"
-          exit 1
-        fi
-
-        # When using target, add 'crossFlags' to RUSTFLAGS
-        RUSTFLAGS="${crossFlags} $RUSTFLAGS"
-      fi
+        # Targets using `cargo-xwin`
+        x86_64-pc-windows-msvc)
+          RUSTFLAGS="-L ${mingwW64.windows.mingw_w64}/lib $RUSTFLAGS"
+        ;&
+        aarch64-pc-windows-msvc)
+          RUSTFLAGS="${crossFlags} $RUSTFLAGS"
+          if [ "$1" = 'build' ]; then
+            echo "bevy-flake: Aliasing 'build' to 'xwin build'" 1>&2 
+            set -- "xwin" "$@"
+          fi
+        ;;
+      esac
 
       # Run cargo with relevant RUSTFLAGS.
       RUSTFLAGS=$RUSTFLAGS exec ${rust-toolchain}/bin/cargo "$@"

@@ -76,6 +76,6 @@ cargo build --target wasm32-unknown-unknown
                     - Runtime packages                 - Each targets libraries
                       provided through rpath             provided by cargo-wrapper
                     - cargo compiles for               - cargo-zigbuild,
-                      local system and runs              cargo-xwin cross compile
+                      local system and runs              cargo-xwin cross-compile
 ```
 - [Details](docs/details.md)
