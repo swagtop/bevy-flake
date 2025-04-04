@@ -30,12 +30,16 @@ When acquired, add it to the flake inputs as mac-sdk like so:
 ... or, download the tarball and reference it on your local system:
 
 ```nix
-inputs = {
+{
   ...
-  mac-sdk = {
-    url = "file:///home/user/Downloads/MacOSX(Version).tar.xz";
-                # ^ Notice the extra forward-slash.
-    flake = false;
+  inputs = {
+    ...
+    mac-sdk = {
+      url = "file:///home/user/Downloads/MacOSX(Version).tar.xz";
+                  # ^ Notice the extra forward-slash.
+      flake = false;
+    };
   };
-};
+  ...
+}
 ```
