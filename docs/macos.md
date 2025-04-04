@@ -10,7 +10,6 @@ somewhere on the internet.
 
 When acquired, add it to the flake inputs as mac-sdk like so:
 ```nix
-  
 {
   description = "A NixOS development flake for Bevy development.";
   inputs = {
@@ -24,21 +23,19 @@ When acquired, add it to the flake inputs as mac-sdk like so:
       flake = false;
     };
   };
-...
+  ...
+}
 ```
 
 ... or, download the tarball and reference it on your local system:
 
 ```nix
-{
-  inputs = {
-    ...
-    mac-sdk = {
-      url = "file:///home/user/Downloads/MacOSX(Version).tar.xz";
-                  # ^ Notice the extra forward-slash.
-      flake = false;
-    };
-  };
+inputs = {
   ...
-}
+  mac-sdk = {
+    url = "file:///home/user/Downloads/MacOSX(Version).tar.xz";
+                # ^ Notice the extra forward-slash.
+    flake = false;
+  };
+};
 ```
