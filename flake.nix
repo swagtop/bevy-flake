@@ -81,28 +81,28 @@
     ]);
 
     # Headers for aarch64-unknown-linux-gnu.
-    aarch64LinuxHeadersPath = lib.makeSearchPath "lib/pkgconfig"
-    (with pkgs.pkgsCross.aarch64-multiplatform; [
-      alsa-lib.dev
-      udev.dev
-      wayland.dev
-    ]);
+    aarch64LinuxHeadersPath = (lib.makeSearchPath "lib/pkgconfig"
+      (with pkgs.pkgsCross.aarch64-multiplatform; [
+        alsa-lib.dev
+        udev.dev
+        wayland.dev
+    ]));
 
     # Environment variables for the MacOS targets.
-    macEnvironment =
-    let
-      frameworks = "${inputs.mac-sdk}/System/Library/Frameworks";
-    in ''
-      export SDKROOT="${inputs.mac-sdk}"
-      export COREAUDIO_SDK_PATH="${frameworks}/CoreAudio.framework/Headers"
-      export LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
+    macEnvironment = (
+      let
+        frameworks = "${inputs.mac-sdk}/System/Library/Frameworks";
+      in ''
+        export SDKROOT="${inputs.mac-sdk}"
+        export COREAUDIO_SDK_PATH="${frameworks}/CoreAudio.framework/Headers"
+        export LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
 
-      export BINDGEN_EXTRA_CLANG_ARGS="${lib.concatStringsSep " " [
-        "--sysroot=${inputs.mac-sdk}"
-        "-F ${frameworks}"
-        "-I${inputs.mac-sdk}/usr/include"
-      ]}"
-    '';
+        export BINDGEN_EXTRA_CLANG_ARGS="${lib.concatStringsSep " " [
+          "--sysroot=${inputs.mac-sdk}"
+          "-F ${frameworks}"
+          "-I${inputs.mac-sdk}/usr/include"
+        ]}"
+    '');
 
     # Wrapping 'cargo', to adapt the environment to context of compilation.
     cargo-wrapper = pkgs.writeShellScriptBin "cargo" ''
