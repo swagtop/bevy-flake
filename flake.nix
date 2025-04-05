@@ -118,7 +118,7 @@
         elif [ "$arg" = '--no-wrapper' ]; then
           # Remove '-no-wrapper' from prompt.
           set -- $(printf '%s\n' "$@" | grep -vx -- '--no-wrapper')
-          # Run 'cargo' with no checks.
+          # Run 'cargo' with no change to environment.
           exec ${rust-toolchain}/bin/cargo "$@"
         fi
       done
