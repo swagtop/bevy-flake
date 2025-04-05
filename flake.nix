@@ -136,10 +136,10 @@
       ${if (inputs ? mac-sdk) then macEnvironment else "# None found."}
 
       case $BEVY_FLAKE_TARGET in
-        # If no target is supplied, add 'localFlags' to RUSTFLAGS.
+        # No target means local system, sets localFlags if running or building.
         "")
-          if [ "$1" = 'zigbuild' ] || [ "$1" = 'xwin' ]; then
-            echo "bevy-flake: Cannot use 'cargo $1' without a '--target'"
+          if [ "$1" = 'zigbuild' ] || [ "$1 $2" = 'xwin build' ]; then
+            echo "bevy-flake: Cannot use '"cargo $@"' without a '--target'"
             exit 1
           elif [ "$1" = 'run' ] || [ "$1" = 'build' ]; then
             RUSTFLAGS="${localFlags} $RUSTFLAGS"
@@ -148,7 +148,7 @@
 
         # Targets using `cargo-zigbuild`
         aarch64-unknown-linux-gnu)
-          PKG_CONFIG_PATH="${aarch64LinuxHeadersPath}"
+          PKG_CONFIG_PATH="${aarch64LinuxHeadersPath}:$PKG_CONFIG_PATH"
         ;&
         x86_64-unknown-linux-gnu|*-apple-darwin|wasm32-unknown-unknown)
           RUSTFLAGS="${crossFlags} $RUSTFLAGS"
