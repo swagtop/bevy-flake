@@ -2,6 +2,14 @@
 
 # bevy-flake
 
+> [!WARNING]
+> This flake is still under development, as I'm constantly trying new things
+> to get the smoothest experience with Bevy possible.
+> Right now I'm trying to get rid of `cargo-zigbuild` and `cargo-xwin`.
+> The behaviour of `cargo-zigbuild` broke after an update, and `cargo-xwin`
+> builds are not truly reproducable, as it downloads the newest available
+> Windows SDK when installing, not allowing you to pin the version.
+
 A simple and easy-to-edit Nix development flake,
 for painless Bevy development and cross-compilation on NixOS.
 This flake is meant to help new NixOS users hit the ground running,
