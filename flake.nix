@@ -61,6 +61,43 @@
       # "-Zlocation-detail=none"
     ];
 
+    rustFlags = {
+      wasm32 = "${lib.concatStringsSep " " [
+        "${crossFlags}"
+      ]}";
+      x86_64Linux = "${lib.concatStringsSep " " [
+        "-C link-args=-Wl,--dynamic-linker=/lib64/ld-linux-x86-64.so.2"
+        "${crossFlags}"
+      ]}";
+      aarch64Linux = "${lib.concatStringsSep " " [
+        "-C link-args=-Wl,--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
+        "-C linker=${aarch64-multiplatform.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc"
+        "${crossFlags}"
+      ]}";
+      x86_64Windows = "${lib.concatStringsSep " " [
+        "-L ${mingwW64.windows.mingw_w64}/lib"
+        "${crossFlags}"
+      ]}";
+      aarch64Windows = "${lib.concatStringsSep " " [
+        "${crossFlags}"
+      ]}";
+      mac = "${lib.concatStringsSep " " [
+        "-C linker=${pkgs.clangStdenv.cc.cc}/bin/clang"
+        "-C link-arg=-fuse-ld=${pkgs.lld}/bin/ld64.lld"
+        "-C link-arg=--target=\${BEVY_FLAKE_TARGET}"
+        "-C link-args=${lib.concatStringsSep "," [
+          "-Wl"
+          "-platform_version"
+          "macos"
+          "${macSdkJson.SupportedTargets.macosx.MinimumDeploymentTarget}"
+          "${macSdkJson.SupportedTargets.macosx.DefaultDeploymentTarget}"
+        ]}"
+        "-C link-arg=-isysroot"
+        "-C link-arg=${inputs.mac-sdk}"
+        "${crossFlags}"
+      ]}";
+    };
+
     compileTimePackages = with pkgs; [
       # The wrapper, linkers, compilers, and pkg-config.
       cargo-wrapper
@@ -89,9 +126,6 @@
     ]));
 
     macSdkJson = lib.importJSON "${inputs.mac-sdk}/SDKSettings.json";
-    macSdkTarget = macSdkJson.SupportedTargets.macosx;
-    macSdkMinVersion = macSdkTarget.MinimumDeploymentTarget;
-    macSdkDefaultVersion = macSdkTarget.DefaultDeploymentTarget;
     
     # Wrapping 'cargo', to adapt the environment to context of compilation.
     cargo-wrapper = pkgs.writeShellScriptBin "cargo" ''
@@ -123,7 +157,7 @@
       case $BEVY_FLAKE_TARGET in
         # No target means local system, sets localFlags if running or building.
         "")
-          if [ "$1" = 'zigbuild' ] || [ "$1 $2" = 'xwin build' ]; then
+          if [ "$1 $2" = 'xwin build' ]; then
             echo "bevy-flake: Cannot use '"cargo $@"' without a '--target'"
             exit 1
           elif [ "$1" = 'run' ] || [ "$1" = 'build' ]; then
@@ -132,23 +166,14 @@
         ;;
 
         wasm32-unknown-unknown)
-          RUSTFLAGS="${crossFlags} $RUSTFLAGS"
+          RUSTFLAGS="${rustFlags.wasm32} $RUSTFLAGS"
         ;;
         x86_64-unknown-linux-gnu)
-          RUSTFLAGS="${lib.concatStringsSep " " [
-            "-C link-args=-Wl,--dynamic-linker=/lib64/ld-linux-x86-64.so.2"
-            "${crossFlags}"
-            "$RUSTFLAGS"
-          ]}"
+          RUSTFLAGS="${rustFlags.x86_64Linux} $RUSTFLAGS"
         ;;
         aarch64-unknown-linux-gnu)
           PKG_CONFIG_PATH="${aarch64LinuxHeadersPath}:$PKG_CONFIG_PATH"
-          RUSTFLAGS="${lib.concatStringsSep " " [
-            "-C link-args=-Wl,--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
-            "-C linker=${aarch64-multiplatform.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc"
-            "${crossFlags}"
-            "$RUSTFLAGS"
-          ]}"
+          RUSTFLAGS="${rustFlags.aarch64Linux} $RUSFTLAGS"
         ;;
         *-apple-darwin)
         # Add MacOS environment only if SDK can be found in inputs.
@@ -159,28 +184,18 @@
             "-I${inputs.mac-sdk}/usr/include"
             "$BINDGEN_EXTRA_CLANG_ARGS"
           ]}"
-          RUSTFLAGS="${lib.concatStringsSep " " [
-            "-C linker=${pkgs.clangStdenv.cc.cc}/bin/clang"
-            "-C link-arg=-fuse-ld=${pkgs.lld}/bin/ld64.lld"
-            "-C link-arg=--target=\${BEVY_FLAKE_TARGET}"
-            "-C link-args=${lib.concatStringsSep "," [
-              "-Wl"
-              "-platform_version"
-              "macos"
-              "${macSdkMinVersion}"
-              "${macSdkDefaultVersion}"
-            ]}"
-            "-C link-arg=-isysroot"
-            "-C link-arg=${inputs.mac-sdk}"
-            "$RUSTFLAGS"
-          ]}"
+          RUSTFLAGS="${rustFlags.mac} $RUSTFLAGS"
         ''}
         ;;
         x86_64-pc-windows-msvc)
-          RUSTFLAGS="-L ${mingwW64.windows.mingw_w64}/lib $RUSTFLAGS"
-        ;&
+          RUSTFLAGS="${rustFlags.x86_64Windows} $RUSTFLAGS"
+          if [ "$1" = 'build' ]; then
+            echo "bevy-flake: Aliasing 'build' to 'xwin build'" 1>&2 
+            set -- "xwin" "$@"
+          fi
+        ;;
         aarch64-pc-windows-msvc)
-          RUSTFLAGS="${crossFlags} $RUSTFLAGS"
+          RUSTFLAGS="${rustFlags.aarch64Windows} $RUSTFLAGS"
           if [ "$1" = 'build' ]; then
             echo "bevy-flake: Aliasing 'build' to 'xwin build'" 1>&2 
             set -- "xwin" "$@"
