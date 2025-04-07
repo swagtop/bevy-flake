@@ -87,6 +87,11 @@
         udev.dev
         wayland.dev
     ]));
+
+    macSdkJson = lib.importJSON "${inputs.mac-sdk}/SDKSettings.json";
+    macSdkTarget = macSdkJson.SupportedTargets.macosx;
+    macSdkMinVersion = macSdkTarget.MinimumDeploymentTarget;
+    macSdkDefaultVersion = macSdkTarget.DefaultDeploymentTarget;
     
     # Wrapping 'cargo', to adapt the environment to context of compilation.
     cargo-wrapper = pkgs.writeShellScriptBin "cargo" ''
@@ -158,16 +163,15 @@
             "-C linker=${pkgs.clangStdenv.cc.cc}/bin/clang"
             "-C link-arg=-fuse-ld=${pkgs.lld}/bin/ld64.lld"
             "-C link-arg=--target=\${BEVY_FLAKE_TARGET}"
-            "-C link-arg=-isysroot"
-            "-C link-arg=${inputs.mac-sdk}"
             "-C link-args=${lib.concatStringsSep "," [
               "-Wl"
               "-platform_version"
               "macos"
-              "10.13"
-              "${(lib.importJSON "${inputs.mac-sdk}/SDKSettings.json").Version}"
+              "${macSdkMinVersion}"
+              "${macSdkDefaultVersion}"
             ]}"
-            "-C link-arg=-mmacosx-version-min=10.13"
+            "-C link-arg=-isysroot"
+            "-C link-arg=${inputs.mac-sdk}"
             "$RUSTFLAGS"
           ]}"
         ''}
