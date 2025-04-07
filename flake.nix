@@ -15,6 +15,7 @@
     pkgs = import nixpkgs { inherit system overlays; };
     lib = pkgs.lib;
     mingwW64 = pkgs.pkgsCross.mingwW64;
+    aarch64-multiplatform = pkgs.pkgsCross.aarch64-multiplatform;
 
     rust-toolchain = pkgs.rust-bin.nightly.latest.default.override {
       extensions = [ "rust-src" "rust-analyzer" ];
@@ -64,7 +65,6 @@
       # The wrapper, linkers, compilers, and pkg-config.
       cargo-wrapper
       cargo-xwin
-      cargo-zigbuild
       rust-toolchain
       pkg-config
       # Headers for x86_64-unknown-linux-gnu.
@@ -87,23 +87,7 @@
         udev.dev
         wayland.dev
     ]));
-
-    # Environment variables for the MacOS targets.
-    macEnvironment = (
-      let
-        frameworks = "${inputs.mac-sdk}/System/Library/Frameworks";
-      in ''
-        export SDKROOT="${inputs.mac-sdk}"
-        export COREAUDIO_SDK_PATH="${frameworks}/CoreAudio.framework/Headers"
-        export LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
-
-        export BINDGEN_EXTRA_CLANG_ARGS="${lib.concatStringsSep " " [
-          "--sysroot=${inputs.mac-sdk}"
-          "-F ${frameworks}"
-          "-I${inputs.mac-sdk}/usr/include"
-        ]}"
-    '');
-
+    
     # Wrapping 'cargo', to adapt the environment to context of compilation.
     cargo-wrapper = pkgs.writeShellScriptBin "cargo" ''
       # Check if cargo is being run with '--target', or '--no-wrapper'.
@@ -111,10 +95,9 @@
       for arg in "$@"; do
         ARG_COUNT=$((ARG_COUNT + 1))
 
-        # If run with --target, save the arg number of the arch specified.
         if [ "$arg" = '--target' ]; then
+          # If run with --target, save the arg number of the arch specified.
           eval "BEVY_FLAKE_TARGET=\$$((ARG_COUNT + 1))"
-
         elif [ "$arg" = '--no-wrapper' ]; then
           # Remove '-no-wrapper' from prompt.
           set -- $(printf '%s\n' "$@" | grep -vx -- '--no-wrapper')
@@ -132,9 +115,6 @@
       # Stops 'blake3' from messing up.
       export CARGO_FEATURE_PURE=1 
 
-      # Set up MacOS cross-compilation environment if SDK is in inputs.
-      ${if (inputs ? mac-sdk) then macEnvironment else "# None found."}
-
       case $BEVY_FLAKE_TARGET in
         # No target means local system, sets localFlags if running or building.
         "")
@@ -146,20 +126,52 @@
           fi
         ;;
 
-        # Targets using `cargo-zigbuild`
+        wasm32-unknown-unknown)
+          RUSTFLAGS="${crossFlags} $RUSTFLAGS"
+        ;;
+        x86_64-unknown-linux-gnu)
+          RUSTFLAGS="${lib.concatStringsSep " " [
+            "-C link-args=-Wl,--dynamic-linker=/lib64/ld-linux-x86-64.so.2"
+            "${crossFlags}"
+            "$RUSTFLAGS"
+          ]}"
+        ;;
         aarch64-unknown-linux-gnu)
           PKG_CONFIG_PATH="${aarch64LinuxHeadersPath}:$PKG_CONFIG_PATH"
-        ;&
-        x86_64-unknown-linux-gnu|*-apple-darwin|wasm32-unknown-unknown)
-          RUSTFLAGS="${crossFlags} $RUSTFLAGS"
-          if [ "$1" = 'build' ]; then
-            echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
-            shift
-            set -- "zigbuild" "$@"
-          fi
+          RUSTFLAGS="${lib.concatStringsSep " " [
+            "-C link-args=-Wl,--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
+            "-C linker=${aarch64-multiplatform.stdenv.cc}/bin/aarch64-unknown-linux-gnu-gcc"
+            "${crossFlags}"
+            "$RUSTFLAGS"
+          ]}"
         ;;
-
-        # Targets using `cargo-xwin`
+        *-apple-darwin)
+        # Add MacOS environment only if SDK can be found in inputs.
+        ${lib.optionalString (inputs ? mac-sdk) ''
+          export LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
+          export BINDGEN_EXTRA_CLANG_ARGS="${lib.concatStringsSep " " [
+            "-F ${inputs.mac-sdk}/System/Library/Frameworks"
+            "-I${inputs.mac-sdk}/usr/include"
+            "$BINDGEN_EXTRA_CLANG_ARGS"
+          ]}"
+          RUSTFLAGS="${lib.concatStringsSep " " [
+            "-C linker=${pkgs.clangStdenv.cc.cc}/bin/clang"
+            "-C link-arg=-fuse-ld=${pkgs.lld}/bin/ld64.lld"
+            "-C link-arg=--target=\${BEVY_FLAKE_TARGET}"
+            "-C link-arg=-isysroot"
+            "-C link-arg=${inputs.mac-sdk}"
+            "-C link-args=${lib.concatStringsSep "," [
+              "-Wl"
+              "-platform_version"
+              "macos"
+              "10.13"
+              "${(lib.importJSON "${inputs.mac-sdk}/SDKSettings.json").Version}"
+            ]}"
+            "-C link-arg=-mmacosx-version-min=10.13"
+            "$RUSTFLAGS"
+          ]}"
+        ''}
+        ;;
         x86_64-pc-windows-msvc)
           RUSTFLAGS="-L ${mingwW64.windows.mingw_w64}/lib $RUSTFLAGS"
         ;&

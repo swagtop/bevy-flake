@@ -81,6 +81,6 @@ Caused by:
 You are trying to compile to MacOS without adding a link to the MacOS SDK.
 Check out the [MacOS section.](macos.md)
 
-## Mimalloc on `wasm32-unknown-unknown`
+## Mimalloc
 
-Currently you cannot compile with mimalloc on WASM targets.
+Currently you cannot compile with mimalloc on WASM or MacOS targets.

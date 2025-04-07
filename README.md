@@ -75,7 +75,7 @@ cargo build --target wasm32-unknown-unknown
                     - RUSTFLAGS += localFlags         - RUSTFLAGS += crossFlags
                     - Runtime packages                - Each targets libraries
                       provided through rpath            provided by cargo-wrapper
-                    - cargo compiles for              - cargo-zigbuild,
-                      local system and runs             cargo-xwin cross-compile
+                    - cargo compiles for              - cargo and cargo-xwin,
+                      local system and runs             cross-compile
 ```
 - [Details](docs/details.md)
