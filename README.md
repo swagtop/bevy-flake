@@ -61,7 +61,6 @@ cargo build --target wasm32-unknown-unknown
 > to get the smoothest experience with Bevy possible.
 >
 > Right now I'm trying to get rid of `cargo-zigbuild` and `cargo-xwin`.
->
 > The behaviour of `cargo-zigbuild` broke after an update, and `cargo-xwin`
 > builds are not truly reproducable, as it downloads the newest available
 > Windows SDK when installing, not allowing you to pin the version.
