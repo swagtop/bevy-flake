@@ -56,7 +56,7 @@ cargo build --target wasm32-unknown-unknown
 - [MacOS](docs/macos.md)
 
 ---
-> [!NOTICE]
+> [!NOTE]
 > This flake is still under development, as I'm constantly trying new things
 > to get the smoothest experience with Bevy possible.
 >
