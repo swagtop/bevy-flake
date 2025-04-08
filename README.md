@@ -57,13 +57,11 @@ cargo build --target wasm32-unknown-unknown
 
 ---
 > [!NOTE]
-> This flake is still under development, as I'm constantly trying new things
+> This flake is still under development. I'm constantly trying new things
 > to get the smoothest experience with Bevy possible.
 >
-> Right now I'm trying to get rid of `cargo-zigbuild` and `cargo-xwin`.
-> The behaviour of `cargo-zigbuild` broke after an update, and `cargo-xwin`
-> builds are not truly reproducable, as it downloads the newest available
-> Windows SDK when installing, not allowing you to pin the version.
+> Right now I'd like to get rid of cargo-xwin, or at least find a way to
+> set the version of the Windows SDK for truly reproducable builds.
 
 ```
                                              $ cargo
@@ -84,7 +82,7 @@ cargo build --target wasm32-unknown-unknown
                     - RUSTFLAGS += localFlags         - RUSTFLAGS += crossFlags
                     - Runtime packages                - Each targets libraries
                       provided through rpath            provided by cargo-wrapper
-                    - cargo compiles for              - cargo and cargo-xwin,
-                      local system and runs             cross-compile
+                    - cargo compiles for              - cargo, cargo-zigbuild,
+                      local system and runs             cargo-xwin cross-compile
 ```
 - [Details](docs/details.md)
