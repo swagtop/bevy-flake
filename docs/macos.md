@@ -6,11 +6,6 @@ Get your hands on a SDK packaged into a tarball. This is either done by
 packaging it yourself with [osxcross][osxcross], or finding it pre-packaged
 somewhere on the internet.
 
-The SDK should be version 11.0 or later, as before they don't include a json
-file used by this flake. If you still want to use an earlier version, you will
-have to manually insert the minimum and current version of the SDK in the
-MacOS target section of the cargo-wrapper.
-
 [osxcross]: https://github.com/tpoechtrager/osxcross
 
 When acquired, add it to the flake inputs as mac-sdk like so:
