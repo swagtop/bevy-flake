@@ -108,16 +108,17 @@
       ARG_COUNT=0
       for arg in "$@"; do
         ARG_COUNT=$((ARG_COUNT + 1))
-
-        # If run with --target, save the arg number of the arch specified.
-        if [ "$arg" = '--target' ]; then
-          eval "BEVY_FLAKE_TARGET=\$$((ARG_COUNT + 1))"
-        # If run with --no-wrapper, run cargo with no changes in environment.
-        elif [ "$arg" = '--no-wrapper' ]; then
-          # Remove '-no-wrapper' from prompt.
-          set -- $(printf '%s\n' "$@" | grep -vx -- '--no-wrapper')
-          exec ${rust-toolchain}/bin/cargo "$@"
-        fi
+        case $arg in
+          --target)
+            # Save next arg as target.
+            eval "BEVY_FLAKE_TARGET=\$$((ARG_COUNT + 1))"
+          ;;
+          --no-wrapper)
+            # Remove '--no-wrapper' from args, run cargo without changed env.
+            set -- $(printf '%s\n' "$@" | grep -vx -- '--no-wrapper')
+            exec ${rust-toolchain}/bin/cargo "$@"
+          ;;
+        esac
       done
 
       if [ "$1" = 'run' ] && [ "$BEVY_FLAKE_TARGET" != "" ]; then
