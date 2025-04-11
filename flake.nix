@@ -1,7 +1,7 @@
 {
   description = "A NixOS development flake for Bevy development.";
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "git+https://github.com/NixOS/nixpkgs?ref=nixos-unstable";
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -38,7 +38,6 @@
     ];
 
     localFlags = lib.concatStringsSep " " [
-      # "-C target-cpu=native"
       "-C link-args=-Wl,-rpath,${lib.makeLibraryPath (with pkgs; [
         alsa-lib-with-plugins
         libGL
@@ -52,6 +51,8 @@
       ]
       ++ lib.optionals (!(builtins.getEnv "NO_WAYLAND" == "1")) [ wayland ]
       )}"
+      # "-C target-cpu=native"
+      # "-C link-arg=-fuse-ld=mold"
     ];
 
     crossFlags = lib.concatStringsSep " " [
