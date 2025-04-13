@@ -13,6 +13,10 @@ rust-toolchain.beta."2021-01-01".default     # Specific date for beta
 rust-toolchain.nightly."2020-12-31".default  # ... or nightly
 ```
 
+> [!NOTE]
+> Changing away from the nightly compiler will no longer let you use the
+> nightly only flags (the ones begining with `-Z`)
+
 More info can be found on the [rust-overlay repository.][rust-overlay]
 
 [rust-overlay]: https://github.com/oxalica/rust-overlay
@@ -20,20 +24,17 @@ More info can be found on the [rust-overlay repository.][rust-overlay]
 ### Using the mold linker
 
 Add mold to the `shellPackages` list:
-```nix
+```diff
 shellPackages = with pkgs; [
-  cargo-zigbuild
-  cargo-xwin
-  rust-toolchain
-  mold # <-
++ mold
 ];
 ```
 
 Then add this to the list of your local `RUSTFLAGS`:
 
-```sh
+```diff
 localFlags = lib.concatStringsSep " " [
-  "-C link-arg=-fuse-ld=mold" # <-
++ "-C link-arg=-fuse-ld=mold"
   "-C link-args=-Wl,-rpath,${ ... }"
 ];
 ```
@@ -44,7 +45,7 @@ localFlags = lib.concatStringsSep " " [
 If you're having Wayland issues, Wayland can simply be turned
 off in the development shell, by commenting out the list concatnation of
 `[ wayland ]`, in the `localFlags` rpath section:
-```nix
+```diff
 localFlags = lib.concatStringsSep " " [
   "-C link-args=-Wl,-rpath,${lib.makeLibraryPath (with pkgs; [
     alsa-lib-with-plugins
@@ -57,7 +58,7 @@ localFlags = lib.concatStringsSep " " [
     xorg.libXi
     xorg.libXrandr
   ]
-  # ++ lib.optionals (!(builtins.getEnv "NO_WAYLAND" == "1")) [ wayland ] # <-
++ # ++ lib.optionals (!(builtins.getEnv "NO_WAYLAND" == "1")) [ wayland ]
   )}"
 ];
 ```

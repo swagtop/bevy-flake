@@ -20,9 +20,8 @@ called `Result::unwrap()` on an `Err` value: BadDisplay
 You're having Wayland issues. Do one of the following:
 1. [Set up graphics drivers properly.][graphics] If the drivers for your
 specific GPU are borked, this might not be possible.
-2. Remove the Bevy Wayland feature from your `Cargo.toml`, then re-add it to
-the build command when compiling:
-`--features bevy/wayland`
+2. Remove the Bevy Wayland feature from your `Cargo.toml`. You can re-add it
+while compiling for other systems, with the flag: `--features bevy/wayland`
 
 [graphics]: https://wiki.nixos.org/wiki/Graphics
 
@@ -47,7 +46,7 @@ error: linker `x86_64-w64-mingw32-gcc` not found
   = note: No such file or directory (os error 2)
 ```
 
-You are trying to compile to Windows using `cargo build`. You should:
+You are trying to compile to Windows-GNU using `cargo build`. You should:
 1. Refrain from using the `--no-wrapper` flag here.
 2. Use `cargo zigbuild` instead of `cargo build`.
 
@@ -56,7 +55,7 @@ You are trying to compile to Windows using `cargo build`. You should:
 ```
   error occurred in cc-rs: Command LC_ALL="C" "gcc" "-O3" "-ffunction-sections" "-fdata-sections" "-fPIC" "-gdwarf-2" "-fno-omit-frame-pointer" "-arch" "arm64" "-mmacosx-version-min=11.0" "-Wall" "-Wextra" "-std=c11" "-o" "/home/user/Documents/git/bevy-project/target/aarch64-apple-darwin/debug/build/blake3-7165bcba79fb06bd/out/a1edd97dd51cd48d-blake3_neon.o" "-c" "c/blake3_neon.c" with args gcc did not execute successfully (status code exit status: 1).
 ```
-You are trying to compile to MacOS using `cargo-zigbuild`. You should:
+You are trying to compile to MacOS without using `cargo-zigbuild`. You should:
 1. Refrain from using the `--no-wrapper` flag here.
 2. Use `cargo zigbuild` instead of `cargo build`.
 

@@ -9,7 +9,7 @@ somewhere on the internet.
 [osxcross]: https://github.com/tpoechtrager/osxcross
 
 When acquired, add it to the flake inputs as mac-sdk like so:
-```nix
+```diff
 {
   description = "A NixOS development flake for Bevy development.";
   inputs = {
@@ -18,10 +18,10 @@ When acquired, add it to the flake inputs as mac-sdk like so:
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    mac-sdk = {
-      url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
-      flake = false;
-    };
++   mac-sdk = {
++     url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
++     flake = false;
++   };
   };
   ...
 }
