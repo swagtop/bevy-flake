@@ -3,7 +3,7 @@
 # bevy-flake
 
 A simple and easy-to-edit Nix development flake,
-for painless Bevy development and cross-compilation on NixOS.
+for painless [Bevy][bevy] development and cross-compilation on NixOS.
 This flake is meant to help new NixOS users hit the ground running,
 and get started quickly, with as little hassle as possible.
 
@@ -15,6 +15,7 @@ nix develop github:swagtop/bevy-flake
 and [cargo-zigbuild][zigbuild], [cargo-xwin](xwin) to assist in
 cross-compilation.*
 
+[bevy]: https://github.com/bevyengine/bevy
 [overlay]: https://github.com/oxalica/rust-overlay/
 [zigbuild]: https://github.com/rust-cross/cargo-zigbuild
 [xwin]: https://github.com/rust-cross/cargo-xwin
