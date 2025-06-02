@@ -13,6 +13,10 @@
     system = "x86_64-linux";
     overlays = [ (import rust-overlay) ];
     pkgs = import nixpkgs { inherit system overlays; };
+    aarch64-pkgs = import nixpkgs {
+      inherit overlays;
+      system = "aarch64-linux";
+    };
     lib = pkgs.lib;
 
     rust-toolchain = pkgs.rust-bin.nightly.latest.default.override {
@@ -76,8 +80,8 @@
     ];
 
     # Headers for aarch64-unknown-linux-gnu.
-    aarch64LinuxHeadersPath = (lib.makeSearchPath "lib/pkgconfig"
-      (with pkgs.pkgsCross.aarch64-multiplatform; [
+    aarch64LinuxHeaders = (lib.makeSearchPath "lib/pkgconfig"
+      (with aarch64-pkgs; [
         alsa-lib.dev
         udev.dev
         wayland.dev
@@ -144,7 +148,7 @@
 
         # Targets using `cargo-zigbuild`
         aarch64-unknown-linux-gnu*)
-          PKG_CONFIG_PATH="${aarch64LinuxHeadersPath}:$PKG_CONFIG_PATH"
+          PKG_CONFIG_PATH="${aarch64LinuxHeaders}:$PKG_CONFIG_PATH"
         ;&
         x86_64-unknown-linux-gnu*|wasm32-unknown-unknown)
           RUSTFLAGS="${crossFlags} $RUSTFLAGS"
