@@ -89,7 +89,6 @@
         frameworks = "${inputs.mac-sdk}/System/Library/Frameworks";
       in ''
         export COREAUDIO_SDK_PATH="${frameworks}/CoreAudio.framework/Headers"
-        export LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
         export BINDGEN_EXTRA_CLANG_ARGS="${lib.concatStringsSep " " [
           "--sysroot=${inputs.mac-sdk}"
           "-F ${frameworks}"
@@ -129,6 +128,8 @@
 
       # Stops 'blake3' from messing up.
       export CARGO_FEATURE_PURE=1 
+      # Needed for the MacOS target, and many non-bevy crates.
+      export LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
 
       case $BEVY_FLAKE_TARGET in
         # No target means local system, sets localFlags if running or building.
@@ -142,10 +143,10 @@
         ;;
 
         # Targets using `cargo-zigbuild`
-        aarch64-unknown-linux-gnu)
+        aarch64-unknown-linux-gnu*)
           PKG_CONFIG_PATH="${aarch64LinuxHeadersPath}:$PKG_CONFIG_PATH"
         ;&
-        x86_64-unknown-linux-gnu|wasm32-unknown-unknown)
+        x86_64-unknown-linux-gnu*|wasm32-unknown-unknown)
           RUSTFLAGS="${crossFlags} $RUSTFLAGS"
           if [ "$1" = 'build' ]; then
             echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
