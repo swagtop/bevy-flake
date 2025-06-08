@@ -166,7 +166,12 @@
           PKG_CONFIG_PATH="${aarch64LinuxHeaders}:$PKG_CONFIG_PATH"
           RUSTFLAGS="${crossFlags} $RUSTFLAGS"
         ;;
-        x86_64-unknown-linux-gnu*|*-pc-windows-msvc|wasm32-unknown-unknown)
+        x86_64-unknown-linux-gnu*|*-pc-windows-msvc)
+          RUSTFLAGS="${crossFlags} $RUSTFLAGS"
+        ;;
+        wasm32-unknown-unknown)
+          # Allows for 'rand' to be compiled.
+          RUSTFLAGS="--cfg getrandom_backend=\"wasm_js\" $RUSTFLAGS"
           RUSTFLAGS="${crossFlags} $RUSTFLAGS"
         ;;
         *-apple-darwin)
