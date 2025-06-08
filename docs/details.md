@@ -17,13 +17,12 @@ can easily integrate it into their existing workflow.
 ## How does `cargo-wrapper` work?
 
 The shell provided with the flake wraps `cargo` in a shell script, that adapts
-your environment based on the target in 4 discrete steps:
+your environment based on the target in 4 steps:
 
-### Step 1: Checking for a '--target'
+### Step 1: Check for a target
 
-The increments a counter for each arg it iterates over, and saves the following
-argument string in the `BEVY_FLAKE_TARGET` varialbe, if the current argument
-is `--target`.
+The script checks for the `--target` flag, and if found saves the following
+arg string in the `BEVY_FLAKE_TARGET` variable.
 
 ```bash
 # Check if cargo is being run with '--target', or '--no-wrapper'.
@@ -44,11 +43,10 @@ for arg in "$@"; do
 done
 ```
 
-This is also where it checks for the `--no-wrapper` argument. If it encounters
-it here, it removes it from the arguments, and calls `exec` on an unwrapped
-version of `cargo` with said arguments. This replaces the current process with
-the unwrapped version of `cargo`, and the script therefore stops dead in its
-tracks.
+This is also where it checks for the `--no-wrapper` flag. If it encounters it
+here, it removes it from the arguments, and calls `exec` on an unwrapped version
+of `cargo` with said arguments. This replaces the current process with the
+unwrapped version of `cargo`, and the script therefore stops dead in its tracks.
 
 ### Step 2: Swap out linker based on `BEVY_FLAKE_TARGET`
 
@@ -80,7 +78,7 @@ esac
 ### Step 3: Set environment variables for all targets
 
 This is a small section, where we simply export environment variables that are
-used - or could be used - by any target.
+used - or could be used - by any target. You can add your own here!
 
 ```bash
 # Environment variables for all targets.
@@ -129,7 +127,9 @@ This is where `localFlags` and `crossFlags` are added to RUSTFLAGS.
 Here we also how the MacOS targets get their SDK and environment variables
 exposed, when the `mac-sdk` input is available. Nix is lazily evaluated, so we
 don't get any runtime errors for erronious references to a non-existing SDK, if
-it is not available. More on adding the MacOS SDK in: [MacOS](docs/macos.md).
+it is not available.
+
+More on adding the MacOS SDK in: [MacOS](macos.md).
 
 ### Finally: Run cargo with adapted environment:
 
@@ -143,4 +143,4 @@ do `RUSTFLAGS=foo` from outside the wrapper.
 RUSTFLAGS=$RUSTFLAGS exec ${rust-toolchain}/bin/cargo "$@"
 ```
 
-More on tweaking the flake in: [Tweaks](docs/tweaks.md).
+More on tweaking the flake in: [Tweaks](tweaks.md).
