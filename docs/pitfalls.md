@@ -1,5 +1,10 @@
 # Pitfalls
 
+If nothing on this page helps you, feel free to open an issue [here][github],
+and I will try to help you as best as I can!
+
+[github]: https://github.com/swagtop/bevy-flake/issues
+
 ## Errors
 
 ### Failed to build event loop
@@ -47,8 +52,9 @@ error: linker `x86_64-w64-mingw32-gcc` not found
 ```
 
 You are trying to compile to Windows-GNU using `cargo build`. You should:
-1. Refrain from using the `--no-wrapper` flag here.
-2. Use `cargo zigbuild` instead of `cargo build`.
+1. Use the MSVC target instead. `bevy-flake` no longer supports this target.
+2. Refrain from using the `--no-wrapper` flag here.
+3. Use `cargo zigbuild` instead of `cargo build`.
 
 ### failed to run custom build command for \`blake3`
 
@@ -77,8 +83,7 @@ Caused by:
   Unable to find libclang: "couldn't find any valid shared libraries matching: ['libclang.so', 'libclang-*.so', 'libclang.so.*', 'libclang-*.so.*'], set the `LIBCLANG_PATH` environment variable to a path where one of these files can be found (invalid: [])"
 ```
 
-You are trying to compile to MacOS without adding a link to the MacOS SDK.
-Check out the [MacOS section.](macos.md)
+You have removed the exporting of `LIBCLANG_PATH` in the shellscript. Re-add it.
 
 ## Mimalloc
 

@@ -3,6 +3,7 @@
 ## Cargo / Rust
 
 ### Changing toolchain version
+
 You can change the version of the version of the Rust toolchain by editing the
 `rust-toolchain` section:
 
@@ -48,14 +49,10 @@ To add environment variables that affect all targets, simply add your exports
 around the already existing ones, right before the switch case:
 
 ```diff
-  if [ "$1" = 'run' ] && [ "$BEVY_FLAKE_TARGET" != "" ]; then
-    echo "bevy-flake: Cannot use 'cargo run' with a '--target'"
-    exit 1
-  fi
-
-  # Stops 'blake3' from messing up.
-  export CARGO_FEATURE_PURE=1 
-  # Needed for the MacOS target, and many non-bevy crates.
+  # Environment variables for all targets.
+  ## Stops 'blake3' from messing up.
+  export CARGO_FEATURE_PURE=1
+  ## Needed for MacOS target, and many non-bevy crates.
   export LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
 
 + export FOO="bar"
@@ -80,87 +77,30 @@ own local NixOS system), then add it under its individual case:
         RUSTFLAGS="${localFlags} $RUSTFLAGS"
       fi
     ;;
-
     *-apple-darwin)
 +     export MACOS_FOO="bar"
       # Set up MacOS cross-compilation environment if SDK is in inputs.
       ${if (inputs ? mac-sdk) then macEnvironment else "# None found."}
-      if [ "$1" = 'build' ]; then
-        echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
-        shift
-        set -- "zigbuild" "$@"
-      fi
-    ;;
-
-    # Targets using `cargo-xwin`
-    *-pc-windows-msvc)
-+     export WINDOWS_FOO="bar"
-      RUSTFLAGS="${crossFlags} $RUSTFLAGS"
-      if [ "$1" = 'build' ]; then
-        echo "bevy-flake: Aliasing 'build' to 'xwin build'" 1>&2 
-        set -- "xwin" "$@"
-      fi
     ;;
 ```
 
 This way you avoid tainting the target build environments with unwanted changes.
-Right now some of the target environments are combined into one case, like the
-`x86_64-unknown-linux-gnu` and `wasm32-unknown-unknown` targets. If you need to
-have an environment variable exclusive to one of them, just split them up like
-so:
+Right now most of the targets don't need much individual attention, and are
+therefore combined into one.
+
+When you want to split any of the targets in the combined one off, it can easily
+be done like so:
 
 ```diff
-- x86_64-unknown-linux-gnu*|wasm32-unknown-unknown)
+- x86_64-unknown-linux-gnu*|*-pc-windows-msvc|wasm32-unknown-unknown)
++ *-pc-windows-msvc|wasm32-unknown-unknown)
+    RUSTFLAGS="${crossFlags} $RUSTFLAGS"
+  ;;
 + x86_64-unknown-linux-gnu*)
-    RUSTFLAGS="${crossFlags} $RUSTFLAGS"
-+   export X86_LINUX_FOO="bar"
-    if [ "$1" = 'build' ]; then
-      echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
-      shift
-      set -- "zigbuild" "$@"
-    fi
-  ;;
-+ wasm32-unknown-unknown)
 +   RUSTFLAGS="${crossFlags} $RUSTFLAGS"
-+   export WASM32_FOO="bar"
-+   if [ "$1" = 'build' ]; then
-+     echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
-+     shift
-+     set -- "zigbuild" "$@"
-+   fi
++   export X86_LINUX_FOO="bar"
 + ;;
 ```
-
-It is also worth mentioning, that the current setup of the
-`aarch64-unknown-linux-gnu` case relies on switch-case fallthrough into the
-`x86_64-unknown-linux-gnu*|wasm32-unknown-unknown` target.
-If you need to separate these two environments further for any reason
-(perhaps to add an environment variable for the `x86_64-unknown-linux-gnu`
-target that doesn't affect the `aarch64-unknown-gnu-linux` environment), you
-can separate them cleanly like so:
-
-```diff
-  # Targets using `cargo-zigbuild`
-  aarch64-unknown-linux-gnu*)
-    PKG_CONFIG_PATH="${aarch64LinuxHeadersPath}:$PKG_CONFIG_PATH"
-+   if [ "$1" = 'build' ]; then
-+     echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
-+     shift
-+     set -- "zigbuild" "$@"
-+   fi
-- ;&
-+ ;;
-  x86_64-unknown-linux-gnu*|wasm32-unknown-unknown)
-    RUSTFLAGS="${crossFlags} $RUSTFLAGS"
-    if [ "$1" = 'build' ]; then
-      echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
-      shift
-      set -- "zigbuild" "$@"
-    fi
-  ;;
-```
-
-It is important to keep the build-to-zigbuild aliasing for these targets.
 
 ## Wayland issues
 
@@ -190,4 +130,4 @@ temporarily without editing the flake.
 
 ## Removing any restrictions, or other behaviours of `cargo-wrapper`
 Just use the `--no-wrapper` flag when running `cargo`, and you will essentially
-be running it without any restrictions placed by `bevy-flake`.
+be running cargo unwrapped.

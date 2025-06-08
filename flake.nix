@@ -1,5 +1,5 @@
 {
-  description = "A NixOS development flake for Bevy development.";
+  description = "A flake for Bevy development on NixOS.";
   inputs = {
     nixpkgs.url = "git+https://github.com/NixOS/nixpkgs?ref=nixos-unstable";
     rust-overlay = {
@@ -125,56 +125,53 @@
         esac
       done
 
-      if [ "$1" = 'run' ] && [ "$BEVY_FLAKE_TARGET" != "" ]; then
-        echo "bevy-flake: Cannot use 'cargo run' with a '--target'"
-        exit 1
-      fi
+      # Make sure first argument of 'cargo' is correct for target.
+      case $BEVY_FLAKE_TARGET in
+        *-unknown-linux-gnu*);&
+        *-apple-darwin);&
+        wasm32-unknown-unknown)
+          if [ "$1" = 'build' ]; then
+            echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
+            shift
+            set -- "zigbuild" "$@"
+          fi
+        ;;
+        *-pc-windows-msvc)
+          if [ "$1" = 'build' ] || [ "$1" = 'run' ]; then
+            echo "bevy-flake: Aliasing 'build' to 'xwin build'" 1>&2 
+            set -- "xwin" "$@"
+          fi
+        ;;
+      esac
 
-      # Stops 'blake3' from messing up.
-      export CARGO_FEATURE_PURE=1 
-      # Needed for the MacOS target, and many non-bevy crates.
+      # Environment variables for all targets.
+      ## Stops 'blake3' from messing up.
+      export CARGO_FEATURE_PURE=1
+      ## Needed for MacOS target, and many non-bevy crates.
       export LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
 
+      # Set final environment variables based on target.
       case $BEVY_FLAKE_TARGET in
         # No target means local system, sets localFlags if running or building.
         "")
           if [ "$1" = 'zigbuild' ] || [ "$1 $2" = 'xwin build' ]; then
-            echo "bevy-flake: Cannot use '"cargo $@"' without a '--target'"
+            echo "bevy-flake: Cannot use 'cargo $@' without a '--target'"
             exit 1
           elif [ "$1" = 'run' ] || [ "$1" = 'build' ]; then
             RUSTFLAGS="${localFlags} $RUSTFLAGS"
           fi
         ;;
 
-        # Targets using `cargo-zigbuild`
         aarch64-unknown-linux-gnu*)
           PKG_CONFIG_PATH="${aarch64LinuxHeaders}:$PKG_CONFIG_PATH"
-        ;&
-        x86_64-unknown-linux-gnu*|wasm32-unknown-unknown)
           RUSTFLAGS="${crossFlags} $RUSTFLAGS"
-          if [ "$1" = 'build' ]; then
-            echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
-            shift
-            set -- "zigbuild" "$@"
-          fi
+        ;;
+        x86_64-unknown-linux-gnu*|*-pc-windows-msvc|wasm32-unknown-unknown)
+          RUSTFLAGS="${crossFlags} $RUSTFLAGS"
         ;;
         *-apple-darwin)
           # Set up MacOS cross-compilation environment if SDK is in inputs.
           ${if (inputs ? mac-sdk) then macEnvironment else "# None found."}
-          if [ "$1" = 'build' ]; then
-            echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
-            shift
-            set -- "zigbuild" "$@"
-          fi
-        ;;
-
-        # Targets using `cargo-xwin`
-        *-pc-windows-msvc)
-          RUSTFLAGS="${crossFlags} $RUSTFLAGS"
-          if [ "$1" = 'build' ]; then
-            echo "bevy-flake: Aliasing 'build' to 'xwin build'" 1>&2 
-            set -- "xwin" "$@"
-          fi
         ;;
       esac
 
