@@ -62,8 +62,9 @@
     ];
 
     compileTimePackages = with pkgs; [
-      # The wrapper, linkers, compilers, and pkg-config.
+      # The wrappers, linkers, compilers, and pkg-config.
       cargo-wrapper
+      dx-wrapper
       cargo-zigbuild
       cargo-xwin
       rust-toolchain
@@ -75,14 +76,17 @@
       wayland.dev
     ];
 
+    aarch64-pkgs = import nixpkgs {
+      inherit overlays;
+      system = "aarch64-linux";
+    };
     # Headers for aarch64-unknown-linux-gnu.
     aarch64LinuxHeaders = (lib.makeSearchPath "lib/pkgconfig"
-      (with (import nixpkgs { inherit overlays; system = "aarch64-linux"; }); [
+      (with aarch64-pkgs; [
         alsa-lib.dev
         udev.dev
         wayland.dev
-      ])
-    );
+    ]));
 
     # Environment variables for the MacOS targets.
     macEnvironment =
@@ -101,6 +105,33 @@
           "${crossFlags}"
           "$RUSTFLAGS"
         ]}"
+    '';
+
+    dx-wrapper = pkgs.writeShellScriptBin "hot" ''
+      if [ "$BEVY_ASSET_ROOT" = "" ]; then
+        BEVY_ASSET_ROOT="."
+      fi
+      RUSTFLAGS="${localFlags} $RUSTFLAGS"
+      RUSTFLAGS="$RUSTFLAGS" BEVY_ASSET_ROOT="$BEVY_ASSET_ROOT" ${
+        (pkgs.dioxus-cli.override (old: {
+          rustPlatform = old.rustPlatform // {
+            buildRustPackage = args:
+              old.rustPlatform.buildRustPackage (
+                args // {
+                  src = old.fetchCrate {
+                    pname = "dioxus-cli";
+                    version = "0.7.0-alpha.1";
+                    hash = "sha256-3b82XlxffgbtYbEYultQMzJRRwY/I36E1wgzrKoS8BU=";
+                  };
+
+                  cargoHash = "sha256-r42Z6paBVC2YTlUr4590dSA5RJJEjt5gfKWUl91N/ac=";
+                  cargoPatches = [ ];
+                  buildFeatures = [ ];
+                }
+              );
+          };
+        })
+      )}/bin/dx serve --hot-patch "$@"
     '';
 
     # Wrapping 'cargo', to adapt the environment to context of compilation.
@@ -149,7 +180,7 @@
 
       # Set final environment variables based on target.
       case $BEVY_FLAKE_TARGET in
-        # No target means local system, sets localFlags if running or building.
+        # No target is local system. Sets localFlags if running or building.
         "")
           if [ "$1" = 'zigbuild' ] || [ "$1 $2" = 'xwin build' ]; then
             echo "bevy-flake: Cannot use 'cargo $@' without a '--target'"
@@ -163,7 +194,11 @@
           PKG_CONFIG_PATH="${aarch64LinuxHeaders}:$PKG_CONFIG_PATH"
           RUSTFLAGS="${crossFlags} $RUSTFLAGS"
         ;;
-        x86_64-unknown-linux-gnu*|*-pc-windows-msvc)
+        x86_64-unknown-linux-gnu*)
+          RUSTFLAGS="${crossFlags} $RUSTFLAGS"
+        ;;
+        *-pc-windows-msvc)
+          # RUSTFLAGS="-C target-feature=+crt-static $RUSTFLAGS"
           RUSTFLAGS="${crossFlags} $RUSTFLAGS"
         ;;
         wasm32-unknown-unknown)

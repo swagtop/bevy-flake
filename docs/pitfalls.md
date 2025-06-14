@@ -88,3 +88,28 @@ You have removed the exporting of `LIBCLANG_PATH` in the shellscript. Re-add it.
 ## Mimalloc
 
 Currently you cannot compile with mimalloc on WASM or MacOS targets.
+
+If you still want to use it in your project for the other targets, you can
+disable it from these targets like so:
+
+Only add the `mimalloc` crate as a dependency only if not `wasm32` or `macos` in
+your `Cargo.toml`.
+
+```toml
+[target.'cfg(all(not(target_arch = "wasm32"), not(target_os = "macos")))'.dependencies.mimalloc]
+version = "0.1.45"
+```
+
+Then, only assign the global allocator in your `main.rs` if not these targets
+as well.
+
+```rust
+#[cfg(all(not(target_arch = "wasm32"), not(target_os = "macos")))]
+mod init_mimalloc {
+    use super::*;
+    use mimalloc::MiMalloc;
+
+    #[global_allocator]
+    static GLOBAL: MiMalloc = MiMalloc;
+}
+```
