@@ -2,54 +2,54 @@
   description = "A flake for Bevy development on NixOS.";
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
-    rust-overlay = {
-      url = "github:oxalica/rust-overlay";
+    fenix = {
+      url = "github:nix-community/fenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { self, rust-overlay, nixpkgs, ... }@inputs:
+  outputs = { self, fenix, nixpkgs, ... }@inputs:
   let
     system = "x86_64-linux";
-    overlays = [ (import rust-overlay) ];
-    pkgs = import nixpkgs { inherit system overlays; };
+    pkgs = import nixpkgs { inherit system; };
     lib = pkgs.lib;
+    fx = fenix.packages.${system};
 
-    rust-toolchain = pkgs.rust-bin.nightly.latest.default.override {
-      extensions = [ "rust-src" "rust-analyzer" ];
-      targets = [
-        # WASM target.
-        "wasm32-unknown-unknown"
-        # Linux targets.
-        "aarch64-unknown-linux-gnu"
-        "x86_64-unknown-linux-gnu"
-        # Windows targets.
-        "aarch64-pc-windows-msvc"
-        "x86_64-pc-windows-msvc"
-      ] ++ lib.optionals (inputs ? mac-sdk) [
-        # MacOS targets (...if SDK is available).
-        "aarch64-apple-darwin"
-        "x86_64-apple-darwin"
-      ];
-    };
+    rust-toolchain = fx.combine ([
+      fx.complete.toolchain
+    ] ++ map (target: fx.targets.${target}.latest.rust-std) ([
+      "wasm32-unknown-unknown"
+      "aarch64-unknown-linux-gnu"
+      "x86_64-unknown-linux-gnu"
+      "aarch64-pc-windows-msvc"
+      "x86_64-pc-windows-msvc"
+    ] ++ lib.optionals (inputs ? mac-sdk) [
+      "aarch64-apple-darwin"
+      "x86_64-apple-darwin"
+    ]));
 
     shellPackages = with pkgs; [
       # mold
     ];
 
     localFlags = lib.concatStringsSep " " [
-      "-C link-args=-Wl,-rpath,${lib.makeLibraryPath (with pkgs; [
-        alsa-lib-with-plugins
-        libGL
-        libxkbcommon
-        udev
-        vulkan-loader
-        xorg.libX11
-        xorg.libXcursor
-        xorg.libXi
-        xorg.libXrandr
-      ]
-      ++ lib.optionals (!(builtins.getEnv "NO_WAYLAND" == "1")) [ wayland ]
+      "-C link-args=-Wl,-rpath,${lib.makeLibraryPath
+        (with pkgs; [
+          # Audio
+          alsa-lib-with-plugins
+          # Graphics libraries
+          libGL
+          vulkan-loader
+          # IO
+          libxkbcommon
+          udev
+          # Xorg
+          xorg.libX11
+          xorg.libXcursor
+          xorg.libXi
+          xorg.libXrandr
+        ]
+        ++ lib.optionals (!(builtins.getEnv "NO_WAYLAND" == "1")) [ wayland ]
       )}"
       # "-C target-cpu=native"
       # "-C link-arg=-fuse-ld=mold"
@@ -69,7 +69,7 @@
       rust-toolchain
       pkg-config
       # Headers for x86_64-unknown-linux-gnu.
-      alsa-lib.dev
+      alsa-lib-with-plugins.dev
       libxkbcommon.dev
       udev.dev
       wayland.dev
@@ -77,8 +77,8 @@
 
     # Headers for aarch64-unknown-linux-gnu.
     aarch64LinuxHeaders = (lib.makeSearchPath "lib/pkgconfig"
-      (with (import nixpkgs { inherit overlays; system = "aarch64-linux"; }); [
-        alsa-lib.dev
+      (with (import nixpkgs { system = "aarch64-linux"; }); [
+        alsa-lib-with-plugins.dev
         udev.dev
         wayland.dev
       ])

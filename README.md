@@ -59,8 +59,10 @@ cargo build --target wasm32-unknown-unknown
 --------------------------------------------------------------------------------
 
 > [!NOTE]
-> This flake is still under development. I'm constantly trying new things
-> to get the smoothest experience with Bevy possible.
+> This flake is still under development.
+>
+> I'm constantly trying new things to get the smoothest NixOS experience with
+> Bevy possible.
 
 ```
                                              $ cargo
