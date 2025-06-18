@@ -2,11 +2,11 @@
   "nodes": {
     "nixpkgs": {
       "locked": {
-        "lastModified": 1749285348,
-        "narHash": "sha256-frdhQvPbmDYaScPFiCnfdh3B/Vh81Uuoo0w5TkWmmjU=",
+        "lastModified": 1750134718,
+        "narHash": "sha256-v263g4GbxXv87hMXMCpjkIxd/viIF7p3JpJrwgKdNiI=",
         "ref": "nixos-unstable",
-        "rev": "3e3afe5174c561dee0df6f2c2b2236990146329f",
-        "revCount": 811950,
+        "rev": "9e83b64f727c88a7711a2c463a7b16eedb69a84c",
+        "revCount": 816272,
         "type": "git",
         "url": "https://github.com/NixOS/nixpkgs"
       },
@@ -29,11 +29,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1749350575,
-        "narHash": "sha256-ltLegOYrp69v/7BXlNfSwUPrt2DvF7N668pV4a6rWRA=",
+        "lastModified": 1750214276,
+        "narHash": "sha256-1kniuhH70q4TAC/xIvjFYH46aHiLrbIlcr6fdrRwO1A=",
         "ref": "master",
-        "rev": "24d5806474b0779d373f381f00d75ad51fd45099",
-        "revCount": 1810,
+        "rev": "f9b2b2b1327ff6beab4662b8ea41689e0a57b8d4",
+        "revCount": 1820,
         "type": "git",
         "url": "https://github.com/oxalica/rust-overlay"
       },

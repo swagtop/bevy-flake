@@ -183,7 +183,6 @@
   in {
     devShells.${system}.default = pkgs.mkShell {
       name = "bevy-flake";
-
       packages = shellPackages;
       nativeBuildInputs = compileTimePackages;
     };

@@ -56,13 +56,11 @@ cargo build --target wasm32-unknown-unknown
 - [Pitfalls](docs/pitfalls.md)
 - [MacOS](docs/macos.md)
 
----
+--------------------------------------------------------------------------------
+
 > [!NOTE]
 > This flake is still under development. I'm constantly trying new things
 > to get the smoothest experience with Bevy possible.
->
-> Right now I'd like to get rid of cargo-xwin, or at least find a way to
-> set the version of the Windows SDK for truly reproducable builds.
 
 ```
                                              $ cargo
@@ -86,4 +84,5 @@ cargo build --target wasm32-unknown-unknown
                     - cargo compiles for              - cargo-zigbuild,
                       local system and runs             cargo-xwin cross-compile
 ```
+
 - [Details](docs/details.md)
