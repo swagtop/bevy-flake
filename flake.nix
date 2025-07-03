@@ -112,6 +112,7 @@
         "aarch64-apple-darwin" = x86_64-apple-darwin;
         "wasm32-unknown-unknown" = ''
           RUSTFLAGS="${makeFlagString [
+            # https://docs.rs/getrandom/latest/getrandom/#webassembly-support
             "--cfg getrandom_backend=\"wasm_js\""
             "$RUSTFLAGS"
           ]}"
