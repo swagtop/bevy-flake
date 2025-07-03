@@ -8,7 +8,7 @@ somewhere on the internet.
 
 [osxcross]: https://github.com/tpoechtrager/osxcross
 
-When acquired, add it to the flake inputs as mac-sdk like so:
+When acquired, add it to the flake inputs as `macos-sdk` like so:
 ```diff
 {
   description = "A NixOS development flake for Bevy development.";
@@ -18,7 +18,7 @@ When acquired, add it to the flake inputs as mac-sdk like so:
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-+   mac-sdk = {
++   macos-sdk = {
 +     url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
 +     flake = false;
 +   };
@@ -30,9 +30,30 @@ When acquired, add it to the flake inputs as mac-sdk like so:
 ... or, download the tarball and reference it on your local system:
 
 ```
-mac-sdk = {
+macos-sdk = {
   url = "file:///home/user/Downloads/MacOSX(Version).tar.xz";
               # ^ Notice the extra forward-slash.
   flake = false;
 };
 ```
+
+## I am wrapping my own toolchain
+
+Add the path of the MacOS SDK to the `config.mac.sdk` input of
+`makeToolchainWrapper` like so:
+
+```nix
+{
+  rust-toolchain-wrapped = makeToolchainWrapper {
+    inherit system;
+    rust-toolchain = pkgs.cargo;
+    config = existingConfig // {
+      macos.sdk = inputs.macos-sdk;
+    };
+  };
+}
+```
+
+## I am on MacOS
+
+You should add a specific MacOS SDK to your system.
