@@ -162,7 +162,7 @@
             .rust-bin.nightly.latest.default.override {
               inherit (self.config) targets;
               extensions = [ "rust-src" "rust-analyzer" ];
-            }).
+            }),
           runtimePackages ? self.bundles.${system}.runtimePackages,
           buildPackages ? self.bundles.${system}.buildPackages,
           config ? self.config,
