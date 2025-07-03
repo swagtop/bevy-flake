@@ -111,7 +111,11 @@
         '';
         "aarch64-apple-darwin" = x86_64-apple-darwin;
         "wasm32-unknown-unknown" = ''
-          RUSTFLAGS="--cfg getrandom_backend=\"wasm_js\" $RUSTFLAGS"
+          RUSTFLAGS="${makeFlagString [
+            "--cfg getrandom_backend=\"wasm_js\""
+            "--cfg wasm-js"
+            "$RUSTFLAGS"
+          ]}"
         '';
       };
     };
