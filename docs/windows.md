@@ -8,7 +8,7 @@ Only the compilation process is confirmed to be successful. You should check for
 yourself if any issues show up at runtime.
 
 Find more invormation about the versions of the SDK and CRT's here:
-[Visual Studio Build Tools component directory][sdk-microsoft].
+[Visual Studio Build Tools component directory][sdk_microsoft].
 
 [sdk_microsoft]: https://learn.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-build-tools
 

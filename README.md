@@ -50,7 +50,7 @@ index:
 ```nix
 {
   inputs = {
-    nixpkgs = "nixpkgs/nixos-unstable";
+    nixpkgs.url = "nixpkgs/nixos-unstable";
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -59,11 +59,11 @@ index:
       url = "github:swagtop/bevy-flake/dev";
       inputs = {
         nixpkgs.follows = "nixpkgs";
-        rust-overlay = "rust-overlay";
+        rust-overlay.follows = "rust-overlay";
       };
     };
   };
-  outputs = {
+  outputs = { nixpkgs, bevy-flake, ... }: {
     devShells = bevy-flake.devShells;
   };
 }
