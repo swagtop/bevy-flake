@@ -92,6 +92,8 @@
         "aarch64-unknown-linux-gnu*"= ''
           export PKG_CONFIG_PATH=${makePkgconfigPath "aarch64-linux"}
         '';
+        "x86_64-pc-windows-msvc" = "";
+        "aarch64-pc-windows-msvc" = "";
         "x86_64-apple-darwin" = ''
           FRAMEWORKS="$MAC_SDK_DIR/System/Library/Frameworks";
           export SDKROOT="$MAC_SDK_DIR"
