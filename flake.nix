@@ -283,30 +283,27 @@
     bundles =
       self.lib.forSystems self.config.systems (system:
         let
+          inherit (self.config.linux) runtime;
           pkgs = nixpkgs.legacyPackages.${system};
-          linuxOptionals = option:
-            optionals (pkgs.stdenv.isLinux && option);
         in rec {
         runtimePackages =
-          optionals (pkgs.stdenv.isLinux)
+          optionals (pkgs.stdenv.isLinux) (
             (with pkgs; [
               alsa-lib-with-plugins
               libxkbcommon
               udev
             ])
-          ++ linuxOptionals self.config.linux.runtime.vulkan.enable
-            [ pkgs.vulkan-loader ]
-          ++ linuxOptionals self.config.linux.runtime.opengl.enable
-            [ pkgs.libGL ]
-          ++ linuxOptionals self.config.linux.runtime.wayland.enable
-            [ pkgs.wayland ]
-          ++ linuxOptionals self.config.linux.runtime.xorg.enable
-            (with pkgs.xorg; [
-              libX11
-              libXcursor
-              libXi
-              libXrandr
-            ]);
+            ++ optionals runtime.vulkan.enable [ pkgs.vulkan-loader ]
+            ++ optionals runtime.opengl.enable [ pkgs.libGL ]
+            ++ optionals runtime.wayland.enable [ pkgs.wayland ]
+            ++ optionals runtime.xorg.enable
+              (with pkgs.xorg; [
+                libX11
+                libXcursor
+                libXi
+                libXrandr
+              ])
+          );
 
         linkers = with pkgs; [
           cargo-zigbuild
