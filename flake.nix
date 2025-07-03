@@ -113,7 +113,6 @@
         "wasm32-unknown-unknown" = ''
           RUSTFLAGS="${makeFlagString [
             "--cfg getrandom_backend=\"wasm_js\""
-            "--cfg wasm-js"
             "$RUSTFLAGS"
           ]}"
         '';
