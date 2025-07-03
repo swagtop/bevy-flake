@@ -22,9 +22,9 @@
         default = nixpkgs.legacyPackages.${system}.mkShell {
           name = "bevy-flake";
           packages = [
-            self.packages.${system}.rust-toolchain-nightly
+            self.packages.${system}.wrapped-nightly
           ];
-          CARGO = "${self.packages.${system}.rust-toolchain-nightly}/bin/cargo";
+          CARGO = "${self.packages.${system}.wrapped-nightly}/bin/cargo";
         };
     });
 
@@ -158,11 +158,7 @@
       makeToolchainWrapper =
         {
           system,
-          rust-toolchain ? (nixpkgs.legacyPackages.${system}
-            .rust-bin.nightly.latest.default.override {
-              inherit (self.config) targets;
-              extensions = [ "rust-src" "rust-analyzer" ];
-            }),
+          rust-toolchain ? self.packages.${system}.unwrapped-stable,
           runtimePackages ? self.bundles.${system}.runtimePackages,
           buildPackages ? self.bundles.${system}.buildPackages,
           config ? self.config,
@@ -336,7 +332,19 @@
           overlays = [ (import rust-overlay) ];
         };
       in {
-      rust-toolchain-nightly = self.lib.makeToolchainWrapper {
+      unwrapped-stable = 
+        pkgs.rust-bin.stable.latest.default.override {
+          inherit (self.config) targets;
+          extensions = [ "rust-src" "rust-analyzer" ];
+        };
+
+      unwrapped-nightly = 
+        pkgs.rust-bin.nightly.latest.default.override {
+          inherit (self.config) targets;
+          extensions = [ "rust-src" "rust-analyzer" ];
+        };
+      
+      wrapped-nightly = self.lib.makeToolchainWrapper {
         inherit system;
         config =
           self.config // {
@@ -346,20 +354,12 @@
                 "-Zlocation-detail=none"
               ];
           };
-        rust-toolchain =
-          pkgs.rust-bin.nightly.latest.default.override {
-            inherit (self.config) targets;
-            extensions = [ "rust-src" "rust-analyzer" ];
-          };
+        rust-toolchain = self.packages.${system}.unwrapped-nightly;
       };
 
-      rust-toolchain-stable = self.lib.makeToolchainWrapper {
+      wrapped-stable = self.lib.makeToolchainWrapper {
         inherit system;
-        rust-toolchain =
-          pkgs.rust-bin.stable.latest.default.override {
-            inherit (self.config) targets;
-            extensions = [ "rust-src" "rust-analyzer" ];
-          };
+        rust-toolchain = self.packages.${system}.unwrapped-stable;
       };
 
       dioxus-hot-reload =
