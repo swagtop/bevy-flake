@@ -147,8 +147,8 @@
             inherit system;
             overlays = [ (import rust-overlay) ];
           };
-        in {
-        default = self.packages.${system}.wrapped-nightly;
+        in rec {
+        default = wrapped-nightly;
         
         wrapped-stable = self.module.${system}.wrapToolchain {
           rust-toolchain =
@@ -335,7 +335,7 @@
           '';
         in
           pkgs.stdenv.mkDerivation {
-            name = "cargo";
+            name = "bevy-flake-wrapped-toolchain";
             buildInputs = [ cargo-wrapper ];
             propagatedBuildInputs = [ rust-toolchain ] ++ buildPackages;
             installPhase = ''
