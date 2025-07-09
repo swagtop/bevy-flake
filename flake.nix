@@ -12,22 +12,12 @@
   outputs = inputs@{ self, rust-overlay, nixpkgs, ... }: 
   let
     inherit (self.lib)
-      forSystems makeRpath makeFlagString makePkgconfigPath;
+      forSystems forConfig
+      makeRpath makeFlagString makePkgconfigPath;
     inherit (nixpkgs.lib)
-      optionals optionalString mapAttrsToList makeLibraryPath makeSearchPath;
-  in
-  {
-    devShells =
-      forSystems self.config.systems (system: {
-        default = nixpkgs.legacyPackages.${system}.mkShell {
-          name = "bevy-flake";
-          packages = [
-            self.packages.${system}.wrapped-nightly
-          ];
-          CARGO = "${self.packages.${system}.wrapped-nightly}/bin/cargo";
-        };
-    });
-
+      optionals optionalString mapAttrsToList
+      makeLibraryPath makeSearchPath makeOverridable;
+  in {
     config = {
       systems = [
         "x86_64-linux"
@@ -46,6 +36,16 @@
         "x86_64-apple-darwin"
       ];
 
+      linux = {
+        # These options do not affect the build, only your dev environment.
+        runtime = {
+          vulkan.enable = true;
+          opengl.enable = true;
+          wayland.enable = true && (builtins.getEnv "NO_WAYLAND" != "1");
+          xorg.enable = true;
+        };
+      };
+
       windows = {
         # If you always want the latest SDK and CRT version, set this to false.
         pin = true;
@@ -53,15 +53,6 @@
         manifestVersion = "16";
         sdkVersion = "10.0.17134";
         crtVersion = "14.29.16.10";
-      };
-
-      linux = {
-        runtime = {
-          vulkan.enable = true;
-          opengl.enable = true;
-          wayland.enable = true && (builtins.getEnv "NO_WAYLAND" == "1");
-          xorg.enable = true;
-        };
       };
 
       macos = {
@@ -87,13 +78,19 @@
       # The target (attribute names) should use Bash case-switching syntax.
       targetEnvironment = rec {
         "x86_64-unknown-linux-gnu*" = ''
-          export PKG_CONFIG_PATH=${makePkgconfigPath "x86_64-linux"}
+          export PKG_CONFIG_PATH="${
+            makePkgconfigPath self.module."x86_64-linux".bundles.headers
+          }"
         '';
         "aarch64-unknown-linux-gnu*"= ''
-          export PKG_CONFIG_PATH=${makePkgconfigPath "aarch64-linux"}
+          export PKG_CONFIG_PATH="${
+            makePkgconfigPath self.module."aarch64-linux".bundles.headers
+          }"
         '';
+
         "x86_64-pc-windows-msvc" = "";
         "aarch64-pc-windows-msvc" = "";
+
         "x86_64-apple-darwin" = ''
           FRAMEWORKS="$MAC_SDK_DIR/System/Library/Frameworks";
           export SDKROOT="$MAC_SDK_DIR"
@@ -110,6 +107,7 @@
           ]}"
         '';
         "aarch64-apple-darwin" = x86_64-apple-darwin;
+
         "wasm32-unknown-unknown" = ''
           RUSTFLAGS="${makeFlagString [
             # https://docs.rs/getrandom/latest/getrandom/#webassembly-support
@@ -120,59 +118,122 @@
       };
     };
 
-    lib = {
-      forSystems = systems: f:
-        builtins.listToAttrs (map (system: {
-          name = system;
-          value = f system;
-        }) systems);
+    devShells =
+      forSystems self.config.systems (system: {
+        default = nixpkgs.legacyPackages.${system}.mkShell {
+          name = "bevy-flake";
+          packages = [
+            self.packages.${system}.wrapped-nightly
+          ];
+          CARGO = "${self.packages.${system}.wrapped-nightly}/bin/cargo";
+        };
+    });
 
-      # Make rustflag that sets rpath to searchpath of input packages.
-      # This is what is used instead of LD_LIBRARY_PATH.
-      makeRpath = packages:
-        "-C link-args=-Wl,-rpath,/usr/lib:${makeLibraryPath
-          (map (p: p.out) packages)
-        }";
+    packages =
+      forSystems self.config.systems (system:
+        let
+          stable-module = self.module;
+          nightly-module = self.module.override {
+            crossFlags =
+              self.config.crossFlags ++ [
+                "-Zlinker-features=-lld"
+                "-Zlocation-detail=none"
+              ];
+          };
+          pkgs = import nixpkgs {
+            inherit system;
+            overlays = [ (import rust-overlay) ];
+          };
+        in {
+        wrapped-stable = stable-module.${system}.wrapToolchain {
+          rust-toolchain =
+            pkgs.rust-bin.stable.latest.default.override {
+              inherit (self.config) targets;
+              extensions = [ "rust-src" "rust-analyzer" ];
+            };
+        };
 
-      makeFlagString = flags: builtins.concatStringsSep " " flags;
+        wrapped-nightly = nightly-module.${system}.wrapToolchain {
+          rust-toolchain =
+            pkgs.rust-bin.nightly.latest.default.override {
+              inherit (self.config) targets;
+              extensions = [ "rust-src" "rust-analyzer" ];
+            };
+        };
 
-      makePkgconfigPath = system:
-        "${(makeSearchPath "lib/pkgconfig"
-          self.bundles.${system}.headers
-        )}:$PKG_CONFIG_PATH";
+        dioxus-hot-reload =
+          let
+            dioxus = pkgs.dioxus-cli.override (old: {
+              rustPlatform = old.rustPlatform // {
+                buildRustPackage = args:
+                  old.rustPlatform.buildRustPackage (
+                    args // {
+                      src = old.fetchCrate {
+                        pname = "dioxus-cli";
+                        version = "0.7.0-alpha.1";
+                        hash =
+                          "sha256-3b82XlxffgbtYbEYultQMzJRRwY/I36E1wgzrKoS8BU=";
+                      };
+                      cargoHash =
+                        "sha256-r42Z6paBVC2YTlUr4590dSA5RJJEjt5gfKWUl91N/ac=";
+                      cargoPatches = [ ];
+                      buildFeatures = [ ];
+                    }
+                  );
+              };
+            });
+          in
+            self.module.${system}.wrapProgram {
+              program-path = "${dioxus}/bin/dx";
+              output-name = "dx";
+            };
+      });
 
-      makeRuntimePackagesWrapper =
+    # Access module attributes with a system, like so:
+    #   bevy-flake.module.${system}.wrapProgram
+    #   bevy-flake.module.${system}.bundles.linkers
+    #
+    # Override config used in module like so:
+    #   (bevy-flake.module.override {
+    #     localFlags = [ "-C link-arg=-fuse-ld=mold" ];
+    #   }).${system}.wrapToolchain
+    module = forConfig (config: system:
+    let
+      pkgs = nixpkgs.legacyPackages.${system};
+      thisModule = self.module.${system};
+    in {
+      wrapProgram =
         {
-          system,
           program-path,
           output-name, 
-          runtimePackages ? self.bundles.${system}.runtimePackages,
-          environment ? "",
+          runtimePackages ? thisModule.bundles.runtimePackages,
           arguments ? "",
         }:
         let
           rpathString = "${makeRpath runtimePackages}";
         in
-        nixpkgs.legacyPackages.${system}.writeShellScriptBin "${output-name}" ''
-          ${environment}
+        pkgs.writeShellScriptBin "${output-name}" ''
+          ${config.baseEnvironment}
           export RUSTFLAGS="${rpathString} $RUSTFLAGS"
           exec ${program-path} ${arguments} "$@"
         '';
 
-      makeToolchainWrapper =
+      wrapToolchain =
         {
-          system,
-          rust-toolchain ? self.packages.${system}.unwrapped-stable,
-          runtimePackages ? self.bundles.${system}.runtimePackages,
-          buildPackages ? self.bundles.${system}.buildPackages,
-          config ? self.config,
+          runtimePackages ? thisModule.bundles.runtimePackages,
+          buildPackages ? thisModule.bundles.buildPackages,
+          rust-toolchain ?
+            pkgs.rust-bin.stable.latest.default.override {
+              inherit (config) targets;
+              extensions = [ "rust-src" "rust-analyzer" ];
+            }
         }:
         let
           inherit (config)
             windows macos
             baseEnvironment targetEnvironment
             localFlags crossFlags;
-          pkgs = nixpkgs.legacyPackages.${system};
+
           cargo-wrapper = pkgs.writeShellScriptBin "cargo" ''
             # Check if cargo is being run with '--target', or '--no-wrapper'.
             ARG_COUNT=0
@@ -278,118 +339,77 @@
             '';
             unpackPhase = "true";
           };
-    };
 
-    bundles =
-      self.lib.forSystems self.config.systems (system:
+      bundles =
         let
-          inherit (self.config.linux) runtime;
-          pkgs = nixpkgs.legacyPackages.${system};
+          inherit (config.linux) runtime;
         in rec {
-        runtimePackages =
-          optionals (pkgs.stdenv.isLinux) (
-            (with pkgs; [
-              alsa-lib-with-plugins
-              libxkbcommon
-              udev
-            ])
-            ++ optionals runtime.vulkan.enable [ pkgs.vulkan-loader ]
-            ++ optionals runtime.opengl.enable [ pkgs.libGL ]
-            ++ optionals runtime.wayland.enable [ pkgs.wayland ]
-            ++ optionals runtime.xorg.enable
-              (with pkgs.xorg; [
-                libX11
-                libXcursor
-                libXi
-                libXrandr
+          runtimePackages =
+            optionals (pkgs.stdenv.isLinux) (
+              (with pkgs; [
+                alsa-lib-with-plugins
+                libxkbcommon
+                udev
               ])
-          );
+              ++ optionals runtime.vulkan.enable [ pkgs.vulkan-loader ]
+              ++ optionals runtime.opengl.enable [ pkgs.libGL ]
+              ++ optionals runtime.wayland.enable [ pkgs.wayland ]
+              ++ optionals runtime.xorg.enable
+                (with pkgs.xorg; [
+                  libX11
+                  libXcursor
+                  libXi
+                  libXrandr
+                ])
+            );
 
-        linkers = with pkgs; [
-          cargo-zigbuild
-          cargo-xwin
-        ];
+          linkers = with pkgs; [
+            cargo-zigbuild
+            cargo-xwin
+          ];
 
-        headers =
-          optionals (pkgs.stdenv.isLinux)
-            (with pkgs; [
-              alsa-lib.dev
-              libxkbcommon.dev
-              udev.dev
-              wayland.dev
-            ]);
+          headers =
+            optionals (pkgs.stdenv.isLinux)
+              (with pkgs; [
+                alsa-lib.dev
+                libxkbcommon.dev
+                udev.dev
+                wayland.dev
+              ]);
 
-        buildPackages = [ pkgs.pkg-config ] ++ linkers ++ headers;
+          buildPackages = [ pkgs.pkg-config ] ++ linkers ++ headers;
 
-        all = runtimePackages ++ buildPackages;
-      }
-    );
-
-  packages =
-    forSystems self.config.systems (system:
-      let
-        pkgs = import nixpkgs {
-          inherit system;
-          overlays = [ (import rust-overlay) ];
+          all = runtimePackages ++ buildPackages;
         };
-      in {
-      unwrapped-stable = 
-        pkgs.rust-bin.stable.latest.default.override {
-          inherit (self.config) targets;
-          extensions = [ "rust-src" "rust-analyzer" ];
-        };
-
-      unwrapped-nightly = 
-        pkgs.rust-bin.nightly.latest.default.override {
-          inherit (self.config) targets;
-          extensions = [ "rust-src" "rust-analyzer" ];
-        };
-      
-      wrapped-nightly = self.lib.makeToolchainWrapper {
-        inherit system;
-        config =
-          self.config // {
-            crossFlags =
-              self.config.crossFlags ++ [
-                "-Zlinker-features=-lld"
-                "-Zlocation-detail=none"
-              ];
-          };
-        rust-toolchain = self.packages.${system}.unwrapped-nightly;
-      };
-
-      wrapped-stable = self.lib.makeToolchainWrapper {
-        inherit system;
-        rust-toolchain = self.packages.${system}.unwrapped-stable;
-      };
-
-      dioxus-hot-reload =
-        let
-          dioxus = pkgs.dioxus-cli.override (old: {
-            rustPlatform = old.rustPlatform // {
-              buildRustPackage = args:
-                old.rustPlatform.buildRustPackage (
-                  args // {
-                    src = old.fetchCrate {
-                      pname = "dioxus-cli";
-                      version = "0.7.0-alpha.1";
-                      hash =
-                        "sha256-3b82XlxffgbtYbEYultQMzJRRwY/I36E1wgzrKoS8BU=";
-                    };
-                    cargoHash =
-                      "sha256-r42Z6paBVC2YTlUr4590dSA5RJJEjt5gfKWUl91N/ac=";
-                    cargoPatches = [ ];
-                    buildFeatures = [ ];
-                  }
-                );
-            };
-          });
-        in
-          self.lib.makeRuntimePackagesWrapper {
-            inherit system;
-            program-path = "${dioxus}/bin/dx";
-            output-name = "dx";
-          };
     });
+
+    lib = {
+      # Makes an attribute for each system in a list, in a set. Exposes system.
+      forSystems = systems: f:
+        builtins.listToAttrs (map (system: {
+          name = system;
+          value = f system;
+        }) systems);
+
+      # Calls 'forSystems' on systems in a config, exposes system and config.
+      forConfig = f:
+        makeOverridable (cfg:
+          forSystems cfg.systems (system: f cfg system)
+        ) self.config;
+
+      # Make rustflag that sets rpath to searchpath of input packages.
+      # This is what is used instead of LD_LIBRARY_PATH.
+      makeRpath = packages:
+        "-C link-args=-Wl,-rpath,/usr/lib:${makeLibraryPath
+          (map (p: p.out) packages)
+        }";
+
+      # Puts all strings in a list into a single string, with a space separator.
+      makeFlagString = flags: builtins.concatStringsSep " " flags;
+
+      # Makes a search path for 'pkg-config' made up of every package in a list.
+      makePkgconfigPath = packages:
+        "${makeSearchPath "lib/pkgconfig" packages}:$PKG_CONFIG_PATH";
+    };
   };
 }
