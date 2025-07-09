@@ -148,10 +148,6 @@
           overlays = [ (import rust-overlay) ];
         };
       in {
-        default = pkgs.writeShellScriptBin "cargo" ''
-          exec nix develop ${self}\#default --command cargo "$@"
-        '';
-        
         wrapped-stable = self.module.${system}.wrapToolchain {
           rust-toolchain =
             pkgs.rust-bin.stable.latest.default.override {
@@ -338,7 +334,7 @@
           in
             pkgs.stdenv.mkDerivation {
               name = "bevy-flake-wrapped-toolchain";
-              buildInputs = [ cargo-wrapper rust-toolchain ] ++ buildPackages;
+              buildInputs = [ cargo-wrapper rust-toolchain ];
               propagatedBuildInputs = [ rust-toolchain ] ++ buildPackages;
               installPhase = ''
                 mkdir $out
