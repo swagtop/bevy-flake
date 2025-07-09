@@ -149,17 +149,10 @@
             overlays = [ (import rust-overlay) ];
           };
         in rec {
-        default = pkgs.stdenv.mkDerivation {
-          name = "cargo";
-          buildInputs = [ wrapped-nightly ];
-          installPhase = ''
-            mkdir $out
-            mkdir $out/bin
-            ln -s ${wrapped-nightly}/bin/cargo $out/bin/
-          '';
-          PATH = "${wrapped-nightly.outPath}";
-          unpackPhase = "true";
-        };
+        default = pkgs.writeShellScriptBin "cargo" ''
+          export PATH="${makeLibraryPath wrapped-nightly.propagatedBuildInputs}";
+          exec ${wrapped-nightly}/bin/cargo
+        '';
         
         wrapped-stable = self.module.${system}.wrapToolchain {
           rust-toolchain =
