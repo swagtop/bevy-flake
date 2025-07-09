@@ -154,8 +154,10 @@
           buildInputs = [ wrapped-nightly ];
           installPhase = ''
             mkdir $out
-            ln -s ${wrapped-nightly}/* $out/
+            mkdir $out/bin
+            ln -s ${wrapped-nightly}/bin/cargo $out/bin/
           '';
+          PATH = "${wrapped-nightly.outPath}";
           unpackPhase = "true";
         };
         
