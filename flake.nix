@@ -132,26 +132,24 @@
         };
     });
 
-    packages =
-      forSystems self.config.systems (system:
-        let
-          rust-nightly-module = self.module.override (old: {
-            crossFlags =
-              old.crossFlags ++ [
-                "-Zlocation-detail=none"
-                # Currently required rustflag for nightly toolchain on Nix.
-                # https://github.com/NixOS/nixpkgs/issues/24744
-                "-Zlinker-features=-lld"
-              ];
-          });
-          pkgs = import nixpkgs {
-            inherit system;
-            overlays = [ (import rust-overlay) ];
-          };
-        in rec {
+    packages = forSystems self.config.systems (system:
+      let
+        rust-nightly-module = self.module.override (old: {
+          crossFlags =
+            old.crossFlags ++ [
+              "-Zlocation-detail=none"
+              # Currently required rustflag for nightly toolchain on Nix.
+              # https://github.com/NixOS/nixpkgs/issues/24744
+              "-Zlinker-features=-lld"
+            ];
+        });
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ (import rust-overlay) ];
+        };
+      in {
         default = pkgs.writeShellScriptBin "cargo" ''
-          export PATH="${makeLibraryPath wrapped-nightly.propagatedBuildInputs}";
-          exec ${wrapped-nightly}/bin/cargo
+          exec nix develop ${self}\#default --command cargo "$@"
         '';
         
         wrapped-stable = self.module.${system}.wrapToolchain {
@@ -207,189 +205,192 @@
     #     localFlags = [ "-C link-arg=-fuse-ld=mold" ];
     #   }).${system}.wrapToolchain
     module = forConfig (config: system:
-    let
-      pkgs = nixpkgs.legacyPackages.${system};
-      thisModule = self.module.${system};
-    in {
-      wrapProgram =
-        {
-          program-path,
-          output-name, 
-          runtimePackages ? thisModule.inputs.runtimePackages,
-          arguments ? "",
-        }:
-        let
-          rpathString = "${makeRpath runtimePackages}";
-        in
-        pkgs.writeShellScriptBin "${output-name}" ''
-          ${config.baseEnvironment}
-          export RUSTFLAGS="${rpathString} $RUSTFLAGS"
-          exec ${program-path} ${arguments} "$@"
-        '';
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+        thisModule = self.module.${system};
+      in {
+        wrapProgram =
+          {
+            program-path,
+            output-name, 
+            runtimePackages ? thisModule.inputs.runtimePackages,
+            arguments ? "",
+          }:
+          let
+            rpathString = "${makeRpath runtimePackages}";
+          in
+          pkgs.writeShellScriptBin "${output-name}" ''
+            ${config.baseEnvironment}
+            export RUSTFLAGS="${rpathString} $RUSTFLAGS"
+            exec ${program-path} ${arguments} "$@"
+          '';
 
-      wrapToolchain =
-        {
-          runtimePackages ? thisModule.inputs.runtimePackages,
-          buildPackages ? thisModule.inputs.buildPackages,
-          rust-toolchain ?
-            pkgs.rust-bin.stable.latest.default.override {
-              inherit (config) targets;
-              extensions = [ "rust-src" "rust-analyzer" ];
-            }
-        }:
-        let
-          inherit (config)
-            windows macos
-            baseEnvironment targetEnvironment
-            localFlags crossFlags;
+        wrapToolchain =
+          {
+            runtimePackages ? thisModule.inputs.runtimePackages,
+            buildPackages ? thisModule.inputs.buildPackages,
+            rust-toolchain ?
+              pkgs.rust-bin.stable.latest.default.override {
+                inherit (config) targets;
+                extensions = [ "rust-src" "rust-analyzer" ];
+              }
+          }:
+          let
+            inherit (config)
+              windows macos
+              baseEnvironment targetEnvironment
+              localFlags crossFlags;
 
-          cargo-wrapper = pkgs.writeShellScriptBin "cargo" ''
-            # Check if cargo is being run with '--target', or '--no-wrapper'.
-            ARG_COUNT=0
-            for arg in "$@"; do
-              ARG_COUNT=$((ARG_COUNT + 1))
-              case $arg in
-                --target)
-                  # Save next arg as target.
-                  eval "BEVY_FLAKE_TARGET=\$$((ARG_COUNT + 1))"
+            cargo-wrapper = pkgs.writeShellScriptBin "cargo" ''
+              # Check if cargo is being run with '--target', or '--no-wrapper'.
+              ARG_COUNT=0
+              for arg in "$@"; do
+                ARG_COUNT=$((ARG_COUNT + 1))
+                case $arg in
+                  --target)
+                    # Save next arg as target.
+                    eval "BEVY_FLAKE_TARGET=\$$((ARG_COUNT + 1))"
+                  ;;
+                  --no-wrapper)
+                    # Remove '--no-wrapper' from args, then run unwrapped cargo.
+                    set -- "''${@:1:$((ARG_COUNT-1))}" "''${@:$((ARG_COUNT+1))}"
+                    exec ${rust-toolchain}/bin/cargo "$@"
+                  ;;
+                esac
+              done
+
+              # Set up MacOS SDK.
+              MAC_SDK_DIR="${macos.sdk}"
+
+              # Set up Windows SDK and CRT.
+              ${optionalString (windows.pin) ''
+                export XWIN_CACHE_DIR="${(
+                  if (pkgs.stdenv.isDarwin)
+                    then "$HOME/Library/Caches"
+                    else "\${XDG_CACHE_HOME:-$HOME/.cache}"
+                  )
+                  + "/bevy-flake/xwin/"
+                  + "manifest${windows.manifestVersion}-"
+                  + "sdk${windows.sdkVersion}-"
+                  + "crt${windows.crtVersion}"
+                }"
+                export XWIN_VERSION="${windows.manifestVersion}"
+                export XWIN_SDK_VERSION="${windows.sdkVersion}"
+                export XWIN_CRT_VERSION="${windows.crtVersion}"
+              ''}
+
+              # Make sure first argument of 'cargo' is correct for target.
+              case $BEVY_FLAKE_TARGET in
+                *-apple-darwin)
+                  if [ "$MAC_SDK_DIR" = "" ]; then
+                    printf "%s%s\n" \
+                      "bevy-flake: Building to MacOS target without SDK, " \
+                      "compilation will most likely fail." 1>&2
+                  fi
+                ;&
+                *-unknown-linux-gnu*);&
+                wasm32-unknown-unknown)
+                  if [ "$1" = 'build' ]; then
+                    echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
+                    shift
+                    set -- "zigbuild" "$@"
+                  fi
                 ;;
-                --no-wrapper)
-                  # Remove '--no-wrapper' from args, then run unwrapped cargo.
-                  set -- "''${@:1:$((ARG_COUNT-1))}" "''${@:$((ARG_COUNT+1))}"
-                  exec ${rust-toolchain}/bin/cargo "$@"
+                *-pc-windows-msvc)
+                  if [ "$1" = 'build' ] || [ "$1" = 'run' ]; then
+                    echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
+                    set -- "xwin" "$@"
+                  fi
                 ;;
               esac
-            done
 
-            # Set up MacOS SDK.
-            MAC_SDK_DIR="${macos.sdk}"
+              # Base environment for all targets.
+              export LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
+              ${baseEnvironment}
 
-            # Set up Windows SDK and CRT.
-            ${optionalString (windows.pin) ''
-              export XWIN_CACHE_DIR="${(
-                if (pkgs.stdenv.isDarwin)
-                  then "$HOME/Library/Caches"
-                  else "\${XDG_CACHE_HOME:-$HOME/.cache}"
-                )
-                + "/bevy-flake/xwin/"
-                + "manifest${windows.manifestVersion}-"
-                + "sdk${windows.sdkVersion}-"
-                + "crt${windows.crtVersion}"
-              }"
-              export XWIN_VERSION="${windows.manifestVersion}"
-              export XWIN_SDK_VERSION="${windows.sdkVersion}"
-              export XWIN_CRT_VERSION="${windows.crtVersion}"
-            ''}
+              # Set final environment variables based on target.
+              case $BEVY_FLAKE_TARGET in
+                # No target is local system.
+                "")
+                  if [ "$1" = 'zigbuild' ] || [ "$1 $2" = 'xwin build' ]; then
+                    echo "bevy-flake: Can't use 'cargo $@' without a '--target'"
+                    exit 1
+                  fi
+                  # If on NixOS, add runtimePackages to rpath.
+                  ${optionalString pkgs.stdenv.isLinux ''
+                    RUSTFLAGS="${makeRpath runtimePackages} $RUSTFLAGS"
+                  ''}
+                  RUSTFLAGS="${makeFlagString localFlags} $RUSTFLAGS"
+                ;;
 
-            # Make sure first argument of 'cargo' is correct for target.
-            case $BEVY_FLAKE_TARGET in
-              *-apple-darwin)
-                if [ "$MAC_SDK_DIR" = "" ]; then
-                  printf "%s%s\n" \
-                    "bevy-flake: Building to MacOS target without SDK, " \
-                    "compilation will most likely fail." 1>&2
-                fi
-              ;&
-              *-unknown-linux-gnu*);&
-              wasm32-unknown-unknown)
-                if [ "$1" = 'build' ]; then
-                  echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
-                  shift
-                  set -- "zigbuild" "$@"
-                fi
-              ;;
-              *-pc-windows-msvc)
-                if [ "$1" = 'build' ] || [ "$1" = 'run' ]; then
-                  echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
-                  set -- "xwin" "$@"
-                fi
-              ;;
-            esac
+                ${"\n" + (builtins.concatStringsSep "\n" (
+                    mapAttrsToList (target: env:
+                      "${target})\n${env}\n"
+                    + "RUSTFLAGS=\"${makeFlagString crossFlags} "
+                    + "$RUSTFLAGS\"" + "\n;;\n"
+                    ) targetEnvironment
+                ))}
+              esac
 
-            # Base environment for all targets.
-            export LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
-            ${baseEnvironment}
-
-            # Set final environment variables based on target.
-            case $BEVY_FLAKE_TARGET in
-              # No target is local system.
-              "")
-                if [ "$1" = 'zigbuild' ] || [ "$1 $2" = 'xwin build' ]; then
-                  echo "bevy-flake: Cannot use 'cargo $@' without a '--target'"
-                  exit 1
-                fi
-                # If on NixOS, add runtimePackages to rpath.
-                ${optionalString pkgs.stdenv.isLinux ''
-                  RUSTFLAGS="${makeRpath runtimePackages} $RUSTFLAGS"
-                ''}
-                RUSTFLAGS="${makeFlagString localFlags} $RUSTFLAGS"
-              ;;
-
-              ${"\n" + (builtins.concatStringsSep "\n" (
-                  mapAttrsToList (target: env:
-                    "${target})\n${env}\n"
-                  + "RUSTFLAGS=\"${makeFlagString crossFlags} "
-                  + "$RUSTFLAGS\"" + "\n;;\n"
-                  ) targetEnvironment
-              ))}
-            esac
-
-            # Run cargo with relevant RUSTFLAGS.
-            RUSTFLAGS="$RUSTFLAGS" exec ${rust-toolchain}/bin/cargo "$@"
-          '';
-        in
-          pkgs.stdenv.mkDerivation {
-            name = "bevy-flake-wrapped-toolchain";
-            buildInputs = [ cargo-wrapper rust-toolchain ] ++ buildPackages;
-            propagatedBuildInputs = [ rust-toolchain ] ++ buildPackages;
-            installPhase = ''
-              mkdir $out
-              ln -s ${cargo-wrapper}/* $out/
+              # Run cargo with relevant RUSTFLAGS.
+              RUSTFLAGS="$RUSTFLAGS" exec ${rust-toolchain}/bin/cargo "$@"
             '';
-            unpackPhase = "true";
-          };
+          in
+            pkgs.stdenv.mkDerivation {
+              name = "bevy-flake-wrapped-toolchain";
+              buildInputs = [ cargo-wrapper rust-toolchain ] ++ buildPackages;
+              propagatedBuildInputs = [ rust-toolchain ] ++ buildPackages;
+              installPhase = ''
+                mkdir $out
+                mkdir $out/bin
+                ln -s ${rust-toolchain}/bin/* $out/bin
+                rm $out/bin/cargo
+                ln -s ${cargo-wrapper}/bin/cargo $out/bin/cargo
+              '';
+              unpackPhase = "true";
+            };
 
-      inputs =
-        let
-          inherit (config.linux) runtime;
-        in rec {
-          runtimePackages =
-            optionals (pkgs.stdenv.isLinux) (
-              (with pkgs; [
-                alsa-lib-with-plugins
-                libxkbcommon
-                udev
-              ])
-              ++ optionals runtime.vulkan.enable [ pkgs.vulkan-loader ]
-              ++ optionals runtime.opengl.enable [ pkgs.libGL ]
-              ++ optionals runtime.wayland.enable [ pkgs.wayland ]
-              ++ optionals runtime.xorg.enable
-                (with pkgs.xorg; [
-                  libX11
-                  libXcursor
-                  libXi
-                  libXrandr
+        inputs =
+          let
+            inherit (config.linux) runtime;
+          in rec {
+            runtimePackages =
+              optionals (pkgs.stdenv.isLinux) (
+                (with pkgs; [
+                  alsa-lib-with-plugins
+                  libxkbcommon
+                  udev
                 ])
-            );
+                ++ optionals runtime.vulkan.enable [ pkgs.vulkan-loader ]
+                ++ optionals runtime.opengl.enable [ pkgs.libGL ]
+                ++ optionals runtime.wayland.enable [ pkgs.wayland ]
+                ++ optionals runtime.xorg.enable
+                  (with pkgs.xorg; [
+                    libX11
+                    libXcursor
+                    libXi
+                    libXrandr
+                  ])
+              );
 
-          linkers = with pkgs; [
-            cargo-zigbuild
-            cargo-xwin
-          ];
+            linkers = with pkgs; [
+              cargo-zigbuild
+              cargo-xwin
+            ];
 
-          headers =
-            optionals (pkgs.stdenv.isLinux)
-              (with pkgs; [
-                alsa-lib.dev
-                libxkbcommon.dev
-                udev.dev
-                wayland.dev
-              ]);
+            headers =
+              optionals (pkgs.stdenv.isLinux)
+                (with pkgs; [
+                  alsa-lib.dev
+                  libxkbcommon.dev
+                  udev.dev
+                  wayland.dev
+                ]);
 
-          buildPackages = [ pkgs.pkg-config ] ++ linkers ++ headers;
+            buildPackages = [ pkgs.pkg-config ] ++ linkers ++ headers;
 
-          all = runtimePackages ++ buildPackages;
-        };
+            all = runtimePackages ++ buildPackages;
+          };
     });
 
     lib = {
