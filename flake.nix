@@ -149,7 +149,15 @@
             overlays = [ (import rust-overlay) ];
           };
         in rec {
-        default = wrapped-nightly;
+        default = pkgs.stdenv.mkDerivation {
+          name = "cargo";
+          buildInputs = [ wrapped-nightly ];
+          installPhase = ''
+            mkdir $out
+            ln -s ${wrapped-nightly}/* $out/
+          '';
+          unpackPhase = "true";
+        };
         
         wrapped-stable = self.module.${system}.wrapToolchain {
           rust-toolchain =
@@ -335,29 +343,15 @@
             RUSTFLAGS="$RUSTFLAGS" exec ${rust-toolchain}/bin/cargo "$@"
           '';
         in
-          pkgs.buildEnv {
+          pkgs.stdenv.mkDerivation {
             name = "bevy-flake-wrapped-toolchain";
-            ignoreCollisions = true;
-            paths = [
-              cargo-wrapper
-              rust-toolchain
-            ] ++ buildPackages;
-            # buildInputs = [
-            #   cargo-wrapper
-            #   rust-toolchain
-            # ];
-            # propagatedBuildInputs = [
-            #   rust-toolchain
-            #   thisModule.inputs.packages.buildInputs
-            # ];
-            # installPhase = ''
-            #   mkdir $out/
-            #   mkdir $out/bin
-            #   ln -s ${rust-toolchain}/bin/* $out/bin/
-            #   rm $out/bin/cargo
-            #   ln -s ${cargo-wrapper}/bin/cargo $out/bin/cargo
-            # '';
-            # unpackPhase = "true";
+            buildInputs = [ cargo-wrapper rust-toolchain ] ++ buildPackages;
+            propagatedBuildInputs = [ rust-toolchain ] ++ buildPackages;
+            installPhase = ''
+              mkdir $out
+              ln -s ${cargo-wrapper}/* $out/
+            '';
+            unpackPhase = "true";
           };
 
       inputs =
@@ -400,13 +394,6 @@
           buildPackages = [ pkgs.pkg-config ] ++ linkers ++ headers;
 
           all = runtimePackages ++ buildPackages;
-
-          packages = {
-            buildInputs = pkgs.symlinkJoin {
-              name = "buildInputs";
-              paths = buildPackages;
-            };
-          };
         };
     });
 
