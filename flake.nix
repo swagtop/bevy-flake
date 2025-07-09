@@ -1,5 +1,6 @@
 {
-  description = "A flake for development and distribution of Bevy projects.";
+  description =
+    "A Nix flake for development and distribution of Bevy projects.";
 
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
@@ -65,6 +66,7 @@
 
       # Flags for other platforms, you are cross-compiling to.
       crossFlags = [
+        # Remove your username from the final binary (by way of removing $HOME).
         "--remap-path-prefix=\${HOME}=/build"
       ];
 
@@ -132,20 +134,21 @@
     packages =
       forSystems self.config.systems (system:
         let
-          stable-module = self.module;
-          nightly-module = self.module.override {
+          rust-nightly-module = self.module.override (old: {
             crossFlags =
-              self.config.crossFlags ++ [
-                "-Zlinker-features=-lld"
+              old.crossFlags ++ [
                 "-Zlocation-detail=none"
+                # Currently required rustflag for nightly toolchain on Nix.
+                # https://github.com/NixOS/nixpkgs/issues/24744
+                "-Zlinker-features=-lld"
               ];
-          };
+          });
           pkgs = import nixpkgs {
             inherit system;
             overlays = [ (import rust-overlay) ];
           };
         in {
-        wrapped-stable = stable-module.${system}.wrapToolchain {
+        wrapped-stable = self.module.${system}.wrapToolchain {
           rust-toolchain =
             pkgs.rust-bin.stable.latest.default.override {
               inherit (self.config) targets;
@@ -153,7 +156,7 @@
             };
         };
 
-        wrapped-nightly = nightly-module.${system}.wrapToolchain {
+        wrapped-nightly = rust-nightly-module.${system}.wrapToolchain {
           rust-toolchain =
             pkgs.rust-bin.nightly.latest.default.override {
               inherit (self.config) targets;

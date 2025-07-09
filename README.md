@@ -32,7 +32,7 @@ First, navigate to your Bevy project root:
 cd /path/to/bevy/project
 ```
 
-#### Option 1 (Copy flake)
+#### Option 1: Copy flake (Easy, but inflexible. No `bevy-flake` updates)
 
 Fetch `flake.nix` and `flake.lock`, and add them to the git index:
 
@@ -42,7 +42,7 @@ wget https://github.com/swagtop/bevy-flake/raw/refs/heads/dev/flake.lock
 git add flake.nix flake.lock
 ```
 
-#### Option 2 (Reference flake)
+#### Option 2: Reference flake (Harder, very flexible. Get `bevy-flake` updates)
 
 Create the file `flake.nix` with the following contents, and add it to the git
 index:
