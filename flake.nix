@@ -337,13 +337,21 @@
         in
           pkgs.stdenv.mkDerivation {
             name = "cargo";
-            buildInputs = [ cargo-wrapper rust-toolchain ] ++ buildPackages;
-            # propagatedBuildInputs = [ rust-toolchain ] ++ buildPackages;
+            buildInputs = [
+              cargo-wrapper
+              rust-toolchain
+              
+            ];
+            propagatedBuildInputs = [
+              rust-toolchain
+              thisModule.inputs.packages.buildInputs
+            ];
             installPhase = ''
               mkdir $out/
               mkdir $out/bin
+              ln -s ${rust-toolchain}/bin/* $out/bin/
+              rm $out/bin/cargo
               ln -s ${cargo-wrapper}/bin/cargo $out/bin/cargo
-              ln -s ${rust-toolchain}/bin/rustc $out/bin/rustc
             '';
             unpackPhase = "true";
           };
@@ -388,6 +396,13 @@
           buildPackages = [ pkgs.pkg-config ] ++ linkers ++ headers;
 
           all = runtimePackages ++ buildPackages;
+
+          packages = {
+            buildInputs = pkgs.symlinkJoin {
+              name = "buildInputs";
+              paths = buildPackages;
+            };
+          };
         };
     });
 
