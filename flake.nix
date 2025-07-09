@@ -336,11 +336,18 @@
         in
           pkgs.stdenv.mkDerivation {
             name = "bevy-flake-wrapped-toolchain";
-            buildInputs = [ cargo-wrapper ];
-            propagatedBuildInputs = [ rust-toolchain ] ++ buildPackages;
+            buildInputs = [ cargo-wrapper rust-toolchain ] ++ buildPackages;
+            # propagatedBuildInputs = [ rust-toolchain ] ++ buildPackages;
             installPhase = ''
               mkdir $out
               ln -s ${cargo-wrapper}/* $out/
+
+              for file in ${rust-toolchain}/*; do
+                name=$(basename "$file")
+                [ "$name" = "cargo" ] && continue
+                [ -e "$out/$name" ] && continue
+                ln -s "$file" "$out/$name"
+              done
             '';
             unpackPhase = "true";
           };
