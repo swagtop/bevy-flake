@@ -81,12 +81,12 @@
       targetEnvironment = rec {
         "x86_64-unknown-linux-gnu*" = ''
           export PKG_CONFIG_PATH="${
-            makePkgconfigPath self.module."x86_64-linux".bundles.headers
+            makePkgconfigPath self.module."x86_64-linux".inputs.headers
           }"
         '';
         "aarch64-unknown-linux-gnu*"= ''
           export PKG_CONFIG_PATH="${
-            makePkgconfigPath self.module."aarch64-linux".bundles.headers
+            makePkgconfigPath self.module."aarch64-linux".inputs.headers
           }"
         '';
 
@@ -194,7 +194,7 @@
 
     # Access module attributes with a system, like so:
     #   bevy-flake.module.${system}.wrapProgram
-    #   bevy-flake.module.${system}.bundles.linkers
+    #   bevy-flake.module.${system}.inputs.linkers
     #
     # Override config used in module like so:
     #   (bevy-flake.module.override {
@@ -209,7 +209,7 @@
         {
           program-path,
           output-name, 
-          runtimePackages ? thisModule.bundles.runtimePackages,
+          runtimePackages ? thisModule.inputs.runtimePackages,
           arguments ? "",
         }:
         let
@@ -223,8 +223,8 @@
 
       wrapToolchain =
         {
-          runtimePackages ? thisModule.bundles.runtimePackages,
-          buildPackages ? thisModule.bundles.buildPackages,
+          runtimePackages ? thisModule.inputs.runtimePackages,
+          buildPackages ? thisModule.inputs.buildPackages,
           rust-toolchain ?
             pkgs.rust-bin.stable.latest.default.override {
               inherit (config) targets;
@@ -343,7 +343,7 @@
             unpackPhase = "true";
           };
 
-      bundles =
+      inputs =
         let
           inherit (config.linux) runtime;
         in rec {
