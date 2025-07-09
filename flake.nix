@@ -335,25 +335,29 @@
             RUSTFLAGS="$RUSTFLAGS" exec ${rust-toolchain}/bin/cargo "$@"
           '';
         in
-          pkgs.stdenv.mkDerivation {
-            name = "cargo";
-            buildInputs = [
+          pkgs.buildEnv {
+            name = "bevy-flake-wrapped-toolchain";
+            ignoreCollisions = true;
+            paths = [
               cargo-wrapper
               rust-toolchain
-              
-            ];
-            propagatedBuildInputs = [
-              rust-toolchain
-              thisModule.inputs.packages.buildInputs
-            ];
-            installPhase = ''
-              mkdir $out/
-              mkdir $out/bin
-              ln -s ${rust-toolchain}/bin/* $out/bin/
-              rm $out/bin/cargo
-              ln -s ${cargo-wrapper}/bin/cargo $out/bin/cargo
-            '';
-            unpackPhase = "true";
+            ] ++ buildPackages;
+            # buildInputs = [
+            #   cargo-wrapper
+            #   rust-toolchain
+            # ];
+            # propagatedBuildInputs = [
+            #   rust-toolchain
+            #   thisModule.inputs.packages.buildInputs
+            # ];
+            # installPhase = ''
+            #   mkdir $out/
+            #   mkdir $out/bin
+            #   ln -s ${rust-toolchain}/bin/* $out/bin/
+            #   rm $out/bin/cargo
+            #   ln -s ${cargo-wrapper}/bin/cargo $out/bin/cargo
+            # '';
+            # unpackPhase = "true";
           };
 
       inputs =
