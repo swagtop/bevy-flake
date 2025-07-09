@@ -121,15 +121,14 @@
       };
     };
 
-    devShells =
-      forSystems self.config.systems (system: {
-        default = nixpkgs.legacyPackages.${system}.mkShell {
-          name = "bevy-flake";
-          packages = [
-            self.packages.${system}.wrapped-nightly
-          ];
-          CARGO = "${self.packages.${system}.wrapped-nightly}/bin/cargo";
-        };
+    devShells = forSystems self.config.systems (system: {
+      default = nixpkgs.legacyPackages.${system}.mkShell {
+        name = "bevy-flake";
+        packages = [
+          self.packages.${system}.wrapped-nightly
+        ];
+        CARGO = "${self.packages.${system}.wrapped-nightly}/bin/cargo";
+      };
     });
 
     packages = forSystems self.config.systems (system:
