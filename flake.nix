@@ -48,7 +48,8 @@
       };
 
       windows = {
-        # If you always want the latest SDK and CRT version, set this to false.
+        # If you don't want bevy-flake to manage the Windows SDK and CRT, set
+        # this to false.
         pin = true;
         # Run `xwin list` to list latest versions (not cargo-xwin, but xwin).
         manifestVersion = "16";
@@ -335,19 +336,14 @@
           '';
         in
           pkgs.stdenv.mkDerivation {
-            name = "bevy-flake-wrapped-toolchain";
+            name = "cargo";
             buildInputs = [ cargo-wrapper rust-toolchain ] ++ buildPackages;
             # propagatedBuildInputs = [ rust-toolchain ] ++ buildPackages;
             installPhase = ''
-              mkdir $out
-              ln -s ${cargo-wrapper}/* $out/
-
-              for file in ${rust-toolchain}/*; do
-                name=$(basename "$file")
-                [ "$name" = "cargo" ] && continue
-                [ -e "$out/$name" ] && continue
-                ln -s "$file" "$out/$name"
-              done
+              mkdir $out/
+              mkdir $out/bin
+              ln -s ${cargo-wrapper}/bin/cargo $out/bin/cargo
+              ln -s ${rust-toolchain}/bin/rustc $out/bin/rustc
             '';
             unpackPhase = "true";
           };
