@@ -393,11 +393,13 @@
                 wayland.dev
               ]);
 
-          buildPackages = with pkgs; [
-            pkg-config
-            clangStdenv.cc
-            binutils
-          ] ++ linkers ++ headers;
+          buildPackages = (with pkgs; [
+              pkg-config
+            ]
+            ++ optionals (pkgs.stdenv.isLinux) [ stdenv.cc ]
+            ++ linkers
+            ++ headers
+          );
 
           all = runtimePackages ++ buildPackages;
         };
