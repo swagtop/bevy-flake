@@ -32,7 +32,7 @@ First, navigate to your Bevy project root:
 cd /path/to/bevy/project
 ```
 
-#### Option 1: Copy flake (Easy, but inflexible. No `bevy-flake` updates)
+#### Option 1: Copy flake (Dead easy, but inflexible. No `bevy-flake` updates)
 
 Fetch `flake.nix` and `flake.lock`, and add them to the git index:
 
@@ -42,7 +42,7 @@ wget https://github.com/swagtop/bevy-flake/raw/refs/heads/dev/flake.lock
 git add flake.nix flake.lock
 ```
 
-#### Option 2: Reference flake (Harder, very flexible. Get `bevy-flake` updates)
+#### Option 2: Reference flake (Very flexible. Get `bevy-flake` updates)
 
 Create the file `flake.nix` with the following contents, and add it to the git
 index:
@@ -73,7 +73,7 @@ index:
 git add flake.nix
 ```
 
-Remember to add the generated `flake.lock` file to your git index too.
+Remember to add the generated `flake.lock` file to your git index.
 
 ## How to use
 
@@ -103,8 +103,8 @@ cargo build --target wasm32-unknown-unknown
 > [!NOTE]
 > This flake is still under development, and is not stabilized yet.
 >
-> I'm constantly trying new things to get the smoothest NixOS experience with
-> Bevy possible.
+> I'm constantly trying new things to get the smoothest experience with Bevy on
+> Nix systems as possible.
 
 ```
                                              $ cargo
@@ -120,7 +120,7 @@ cargo build --target wasm32-unknown-unknown
                                   ║  aarch64-apple-darwin/ ◄─────────╯
                                   ╚═════════════════════════════╝
 
-                    (1) Local System:                 (2) Other Systems:
+                    (1) Local Nix System:             (2) Other Systems:
 
                     - RUSTFLAGS += localFlags         - RUSTFLAGS += crossFlags
                     - Runtime packages                - Each targets libraries
