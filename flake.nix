@@ -384,20 +384,21 @@
             cargo-xwin
           ];
 
-          headers =
+          headers = (
             optionals (pkgs.stdenv.isLinux)
               (with pkgs; [
                 alsa-lib.dev
                 libxkbcommon.dev
                 udev.dev
                 wayland.dev
-              ]);
+              ])
+          ++ optionals (pkgs.stdenv.isDarwin) [ pkgs.darwin.libiconv.dev ]
+          );
 
           buildPackages = (with pkgs; [
               pkg-config
             ]
             ++ optionals (pkgs.stdenv.isLinux) [ stdenv.cc ]
-            ++ optionals (pkgs.stdenv.isDarwin) [ libiconv ]
             ++ linkers
             ++ headers
           );
