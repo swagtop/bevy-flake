@@ -196,11 +196,11 @@
     #   bevy-flake.module.${system}.wrapProgram
     #   bevy-flake.module.${system}.inputs.linkers
     #
-    # Override config used in module like so:
+    # Override config used in module (This is also being done with
+    # 'wrapped-nightly' in packages.):
     #   (bevy-flake.module.override {
     #     localFlags = [ "-C link-arg=-fuse-ld=mold" ];
     #   }).${system}.wrapToolchain
-    # See an example of this being done above with the nightly toolchain.
     module = forConfig (config: system:
     let
       pkgs = nixpkgs.legacyPackages.${system};
@@ -225,6 +225,7 @@
       wrapToolchain =
         {
           rust-toolchain,
+          inputs ? thisModule.inputs,
           runtimePackages ? thisModule.inputs.runtimePackages,
           buildPackages ? thisModule.inputs.buildPackages,
         }:
@@ -389,7 +390,7 @@
                 wayland.dev
               ]);
 
-          buildPackages = [ pkgs.pkg-config ] ++ linkers ++ headers;
+          buildPackages = with pkgs; [ pkg-config gcc ] ++ linkers ++ headers;
 
           all = runtimePackages ++ buildPackages;
         };
