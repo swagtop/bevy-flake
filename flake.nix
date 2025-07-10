@@ -397,7 +397,7 @@
               pkg-config
             ]
             ++ optionals (pkgs.stdenv.isLinux) [ stdenv.cc ]
-            ++ optionals (pkgs.stdenv.isDarwin) [ libiconv-darwin ]
+            ++ optionals (pkgs.stdenv.isDarwin) [ libiconv ]
             ++ linkers
             ++ headers
           );
