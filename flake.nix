@@ -396,6 +396,7 @@
           buildPackages = with pkgs; [
             pkg-config
             clangStdenv.cc
+            binutils
           ] ++ linkers ++ headers;
 
           all = runtimePackages ++ buildPackages;
