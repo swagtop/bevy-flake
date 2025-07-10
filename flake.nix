@@ -347,7 +347,10 @@
             postBuild = ''
               wrapProgram $out/bin/cargo \
                 --prefix PATH : \
-                  ${makeBinPath (buildPackages ++ [ rust-toolchain ])} \
+                  ${makeBinPath (buildPackages ++ [
+                    cargo-wrapper
+                    rust-toolchain
+                  ])} \
                 --prefix PKG_CONFIG_PATH : \
                   ${makePkgconfigPath thisModule.inputs.headers}
             '';
@@ -390,7 +393,10 @@
                 wayland.dev
               ]);
 
-          buildPackages = with pkgs; [ pkg-config gcc ] ++ linkers ++ headers;
+          buildPackages = with pkgs; [
+            pkg-config
+            clangStdenv.cc
+          ] ++ linkers ++ headers;
 
           all = runtimePackages ++ buildPackages;
         };
