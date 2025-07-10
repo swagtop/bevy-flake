@@ -79,7 +79,7 @@
       # Flags for other platforms, you are cross-compiling to.
       crossFlags = [
         # Remove your username from the final binary (by way of removing $HOME).
-        "--remap-path-prefix=\${HOME}=/build"
+        "--remap-path-prefix \${HOME}=/build"
       ];
 
       # Base environment for every target to build on.
@@ -193,12 +193,12 @@
     });
 
     # Access module attributes with a system, like so:
-    #   bevy-flake.module.${system}.wrapProgram
-    #   bevy-flake.module.${system}.inputs.linkers
+    #   module.${system}.wrapProgram
+    #   module.${system}.inputs.linkers
     #
     # Override config used in module (This is also being done with
     # 'wrapped-nightly' in packages.):
-    #   (bevy-flake.module.override {
+    #   (module.override {
     #     localFlags = [ "-C link-arg=-fuse-ld=mold" ];
     #   }).${system}.wrapToolchain
     module = forConfig (config: system:
@@ -210,11 +210,11 @@
         {
           program-path,
           output-name, 
-          runtimePackages ? thisModule.inputs.runtimePackages,
           arguments ? "",
+          inputs ? thisModule.inputs,
         }:
         let
-          rpathString = "${makeRpath runtimePackages}";
+          rpathString = "${makeRpath inputs.runtime}";
         in
           pkgs.writeShellScriptBin "${output-name}" ''
             ${config.baseEnvironment}
@@ -226,8 +226,6 @@
         {
           rust-toolchain,
           inputs ? thisModule.inputs,
-          runtimePackages ? thisModule.inputs.runtimePackages,
-          buildPackages ? thisModule.inputs.buildPackages,
         }:
         let
           inherit (config)
@@ -313,7 +311,7 @@
                 fi
                 # If on NixOS, add runtimePackages to rpath.
                 ${optionalString pkgs.stdenv.isLinux ''
-                  RUSTFLAGS="${makeRpath runtimePackages} $RUSTFLAGS"
+                  RUSTFLAGS="${makeRpath inputs.runtime} $RUSTFLAGS"
                 ''}
                 RUSTFLAGS="${makeFlagString localFlags} $RUSTFLAGS"
               ;;
@@ -340,37 +338,37 @@
                 rust-toolchain
                 pkgs.pkg-config
               ]
-            ++ thisModule.inputs.linkers
-            ++ thisModule.inputs.headers
-            ++ thisModule.inputs.runtimePackages
+            ++ inputs.linkers
+            ++ inputs.headers
+            ++ inputs.runtime
             );
             postBuild = ''
               wrapProgram $out/bin/cargo \
                 --prefix PATH : \
-                  ${makeBinPath (buildPackages ++ [
+                  ${makeBinPath (inputs.build ++ [
                     cargo-wrapper
                     rust-toolchain
                   ])} \
                 --prefix PKG_CONFIG_PATH : \
-                  ${makePkgconfigPath thisModule.inputs.headers}
+                  ${makePkgconfigPath inputs.headers}
             '';
           };
 
         inputs =
         let
-          inherit (config.linux) runtime;
+          inherit (config.linux.runtime) vulkan opengl wayland xorg;
         in rec {
-          runtimePackages =
+          runtime =
             optionals (pkgs.stdenv.isLinux) (
               (with pkgs; [
                 alsa-lib-with-plugins
                 libxkbcommon
                 udev
               ])
-              ++ optionals runtime.vulkan.enable [ pkgs.vulkan-loader ]
-              ++ optionals runtime.opengl.enable [ pkgs.libGL ]
-              ++ optionals runtime.wayland.enable [ pkgs.wayland ]
-              ++ optionals runtime.xorg.enable
+              ++ optionals vulkan.enable [ pkgs.vulkan-loader ]
+              ++ optionals opengl.enable [ pkgs.libGL ]
+              ++ optionals wayland.enable [ pkgs.wayland ]
+              ++ optionals xorg.enable
                 (with pkgs.xorg; [
                   libX11
                   libXcursor
@@ -390,20 +388,21 @@
                 alsa-lib.dev
                 libxkbcommon.dev
                 udev.dev
-                wayland.dev
+                pkgs.wayland.dev
               ])
-          ++ optionals (pkgs.stdenv.isDarwin) [ pkgs.darwin.libiconv.dev ]
+              ++ optionals (pkgs.stdenv.isDarwin) [ pkgs.darwin.libiconv.dev ]
           );
 
-          buildPackages = (with pkgs; [
+          build = (
+            (with pkgs; [
               pkg-config
-            ]
-            ++ optionals (pkgs.stdenv.isLinux) [ stdenv.cc ]
+            ])
+            ++ optionals (pkgs.stdenv.isLinux) [ pkgs.stdenv.cc ]
             ++ linkers
             ++ headers
           );
 
-          all = runtimePackages ++ buildPackages;
+          all = runtime ++ build;
         };
     });
 
