@@ -397,6 +397,7 @@
               pkg-config
             ]
             ++ optionals (pkgs.stdenv.isLinux) [ stdenv.cc ]
+            ++ optionals (pkgs.stdenv.isDarwin) [ clang ]
             ++ linkers
             ++ headers
           );
