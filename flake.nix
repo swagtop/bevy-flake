@@ -336,11 +336,8 @@
             buildInputs = ([
                 cargo-wrapper
                 rust-toolchain
-                pkgs.pkg-config
               ]
-            ++ inputs.linkers
-            ++ inputs.headers
-            ++ inputs.runtime
+            ++ inputs.all
             );
             postBuild = ''
               wrapProgram $out/bin/cargo \
@@ -385,7 +382,7 @@
           headers = (
             optionals (pkgs.stdenv.isLinux)
               (with pkgs; [
-                alsa-lib.dev
+                alsa-lib-with-plugins.dev
                 libxkbcommon.dev
                 udev.dev
                 pkgs.wayland.dev
