@@ -420,8 +420,8 @@
       # Make rustflag that sets rpath to searchpath of input packages.
       # This is what is used instead of LD_LIBRARY_PATH.
       makeRpath = packages:
-        "-C link-args=-Wl,-rpath,/usr/lib:${makeLibraryPath
-          (map (p: p.out) packages)
+        "-C link-args=-Wl,-rpath,/usr/lib:${
+          makeLibraryPath (map (p: p.out) packages)
         }";
 
       # Puts all strings in a list into a single string, with a space separator.
