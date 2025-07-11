@@ -147,7 +147,9 @@
             "-Zlinker-features=-lld"
           ];
       });
-    in {
+    in rec {
+      default = wrapped-stable;
+      
       wrapped-stable = self.module.${system}.wrapToolchain {
         rust-toolchain =
           pkgs.rust-bin.stable.latest.default.override {
