@@ -333,6 +333,7 @@
         in
           pkgs.symlinkJoin {
             name = "bevy-flake-wrapped-toolchain";
+            pname = "cargo";
             paths = [ cargo-wrapper ];
             nativeBuildInputs = [ pkgs.makeWrapper ];
             buildInputs = ([
