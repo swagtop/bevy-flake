@@ -93,12 +93,12 @@
       targetEnvironment = rec {
         "x86_64-unknown-linux-gnu*" = ''
           export PKG_CONFIG_PATH="${
-            makePkgconfigPath self.module."x86_64-linux".inputs.headers
+            makePkgconfigPath self.body."x86_64-linux".inputs.headers
           }"
         '';
         "aarch64-unknown-linux-gnu*"= ''
           export PKG_CONFIG_PATH="${
-            makePkgconfigPath self.module."aarch64-linux".inputs.headers
+            makePkgconfigPath self.body."aarch64-linux".inputs.headers
           }"
         '';
 
@@ -138,7 +138,7 @@
         inherit system;
         overlays = [ (import rust-overlay) ];
       };
-      rust-nightly-module = self.module.override (old: {
+      rust-nightly-body = self.body.override (old: {
         crossFlags =
           old.crossFlags ++ [
             "-Zlocation-detail=none"
@@ -148,9 +148,9 @@
           ];
       });
     in rec {
-      default = wrapped-stable;
+      default = wrapped-nightly;
       
-      wrapped-stable = self.module.${system}.wrapToolchain {
+      wrapped-stable = self.body.${system}.wrapToolchain {
         rust-toolchain =
           pkgs.rust-bin.stable.latest.default.override {
             inherit (self.config) targets;
@@ -158,7 +158,7 @@
           };
       };
 
-      wrapped-nightly = rust-nightly-module.${system}.wrapToolchain {
+      wrapped-nightly = rust-nightly-body.${system}.wrapToolchain {
         rust-toolchain =
           pkgs.rust-bin.nightly.latest.default.override {
             inherit (self.config) targets;
@@ -188,32 +188,32 @@
           };
         });
       in
-        self.module.${system}.wrapProgram {
+        self.body.${system}.wrapProgram {
           program-path = "${dioxus}/bin/dx";
           output-name = "dx";
         };
     });
 
-    # Access module attributes with a system, like so:
-    #   module.${system}.wrapProgram
-    #   module.${system}.inputs.linkers
+    # Access body attributes with a system, like so:
+    #   body.${system}.wrapProgram
+    #   body.${system}.inputs.linkers
     #
-    # Override config used in module (This is also being done with
+    # Override config used in body (This is also being done with
     # 'wrapped-nightly' in packages.):
-    #   (module.override {
+    #   (body.override {
     #     localFlags = [ "-C link-arg=-fuse-ld=mold" ];
     #   }).${system}.wrapToolchain
-    module = forConfig (config: system:
+    body = forConfig (config: system:
     let
       pkgs = nixpkgs.legacyPackages.${system};
-      thisModule = self.module.${system};
+      thisBody = self.body.${system};
     in {
       wrapProgram =
         {
           program-path,
           output-name, 
           arguments ? "",
-          inputs ? thisModule.inputs,
+          inputs ? thisBody.inputs,
         }:
         let
           rpathString = "${makeRpath inputs.runtime}";
@@ -227,7 +227,7 @@
       wrapToolchain =
         {
           rust-toolchain,
-          inputs ? thisModule.inputs,
+          inputs ? thisBody.inputs,
         }:
         let
           inherit (config)
@@ -340,7 +340,7 @@
                 cargo-wrapper
                 rust-toolchain
               ]
-            ++ inputs.all
+              ++ inputs.all
             );
             postBuild = ''
               wrapProgram $out/bin/cargo \
@@ -356,7 +356,7 @@
 
         inputs =
         let
-          inherit (config.linux.runtime) vulkan opengl wayland xorg;
+          inherit (config) linux;
         in rec {
           runtime =
             optionals (pkgs.stdenv.isLinux) (
@@ -365,10 +365,10 @@
                 libxkbcommon
                 udev
               ])
-              ++ optionals vulkan.enable [ pkgs.vulkan-loader ]
-              ++ optionals opengl.enable [ pkgs.libGL ]
-              ++ optionals wayland.enable [ pkgs.wayland ]
-              ++ optionals xorg.enable
+              ++ optionals linux.runtime.vulkan.enable [ pkgs.vulkan-loader ]
+              ++ optionals linux.runtime.opengl.enable [ pkgs.libGL ]
+              ++ optionals linux.runtime.wayland.enable [ pkgs.wayland ]
+              ++ optionals linux.runtime.xorg.enable
                 (with pkgs.xorg; [
                   libX11
                   libXcursor
@@ -383,23 +383,23 @@
           ];
 
           headers = (
-            optionals (pkgs.stdenv.isLinux)
+            optionals (pkgs.stdenv.isDarwin) [ pkgs.darwin.libiconv.dev ]
+            ++ optionals (pkgs.stdenv.isLinux)
               (with pkgs; [
                 alsa-lib-with-plugins.dev
                 libxkbcommon.dev
                 udev.dev
-                pkgs.wayland.dev
+                wayland.dev
               ])
-              ++ optionals (pkgs.stdenv.isDarwin) [ pkgs.darwin.libiconv.dev ]
           );
 
           build = (
             (with pkgs; [
               pkg-config
             ])
-            ++ optionals (pkgs.stdenv.isLinux) [ pkgs.stdenv.cc ]
             ++ linkers
             ++ headers
+            ++ optionals (pkgs.stdenv.isLinux) [ pkgs.stdenv.cc ]
           );
 
           all = runtime ++ build;
