@@ -93,12 +93,12 @@
       targetEnvironment = rec {
         "x86_64-unknown-linux-gnu*" = ''
           export PKG_CONFIG_PATH="${
-            makePkgconfigPath self.body."x86_64-linux".inputs.headers
+            makePkgconfigPath self.dependencies."x86_64-linux".headers
           }"
         '';
         "aarch64-unknown-linux-gnu*"= ''
           export PKG_CONFIG_PATH="${
-            makePkgconfigPath self.body."aarch64-linux".inputs.headers
+            makePkgconfigPath self.dependencies."aarch64-linux".headers
           }"
         '';
 
@@ -138,19 +138,10 @@
         inherit system;
         overlays = [ (import rust-overlay) ];
       };
-      rust-nightly-body = self.body.override (old: {
-        crossFlags =
-          old.crossFlags ++ [
-            "-Zlocation-detail=none"
-            # Currently required rustflag for nightly toolchain on Nix.
-            # https://github.com/NixOS/nixpkgs/issues/24744
-            "-Zlinker-features=-lld"
-          ];
-      });
     in rec {
       default = wrapped-nightly;
       
-      wrapped-stable = self.body.${system}.wrapToolchain {
+      wrapped-stable = self.wrappers.${system}.wrapToolchain {
         rust-toolchain =
           pkgs.rust-bin.stable.latest.default.override {
             inherit (self.config) targets;
@@ -158,7 +149,15 @@
           };
       };
 
-      wrapped-nightly = rust-nightly-body.${system}.wrapToolchain {
+      wrapped-nightly = (self.wrappers.override (old: {
+        crossFlags =
+          old.crossFlags ++ [
+            "-Zlocation-detail=none"
+            # Currently required rustflag for nightly toolchain on Nix.
+            # https://github.com/NixOS/nixpkgs/issues/24744
+            "-Zlinker-features=-lld"
+          ];
+      })).${system}.wrapToolchain {
         rust-toolchain =
           pkgs.rust-bin.nightly.latest.default.override {
             inherit (self.config) targets;
@@ -188,35 +187,82 @@
           };
         });
       in
-        self.body.${system}.wrapProgram {
+        self.wrappers.${system}.wrapProgram {
+          inherit (self.wrappers) inputs;
           program-path = "${dioxus}/bin/dx";
           output-name = "dx";
         };
     });
 
-    # Access body attributes with a system, like so:
-    #   body.${system}.wrapProgram
-    #   body.${system}.inputs.linkers
+    dependencies = forConfig self.config (config: system:
+    let
+      inherit (config) linux;
+      pkgs = nixpkgs.legacyPackages.${system};
+    in rec {
+      runtime =
+        optionals (pkgs.stdenv.isLinux) (
+          (with pkgs; [
+            alsa-lib-with-plugins
+            libxkbcommon
+            udev
+          ])
+          ++ optionals linux.runtime.vulkan.enable [ pkgs.vulkan-loader ]
+          ++ optionals linux.runtime.opengl.enable [ pkgs.libGL ]
+          ++ optionals linux.runtime.wayland.enable [ pkgs.wayland ]
+          ++ optionals linux.runtime.xorg.enable
+            (with pkgs.xorg; [
+              libX11
+              libXcursor
+              libXi
+              libXrandr
+            ])
+        );
+
+      headers = (
+        optionals (pkgs.stdenv.isDarwin) [ pkgs.darwin.libiconv.dev ]
+        ++ optionals (pkgs.stdenv.isLinux)
+          (with pkgs; [
+            alsa-lib-with-plugins.dev
+            libxkbcommon.dev
+            openssl.dev
+            udev.dev
+            wayland.dev
+          ])
+      );
+
+      build = (
+        (with pkgs; [
+          pkg-config
+        ])
+        ++ headers
+        ++ optionals (pkgs.stdenv.isLinux) [ pkgs.stdenv.cc ]
+      );
+
+      all = runtime ++ build;
+    });
+
+    # Access wrappers attributes with a system, like so:
+    #   wrappers.${system}.wrapProgram
+    #   wrappers.${system}.inputs.linkers
     #
-    # Override config used in body (This is also being done with
+    # Override config used in wrappers (This is also being done with
     # 'wrapped-nightly' in packages.):
-    #   (body.override {
+    #   (wrappers.override {
     #     localFlags = [ "-C link-arg=-fuse-ld=mold" ];
     #   }).${system}.wrapToolchain
-    body = forConfig (config: system:
+    wrappers = forConfig self.config (config: system:
     let
       pkgs = nixpkgs.legacyPackages.${system};
-      thisBody = self.body.${system};
     in {
       wrapProgram =
         {
           program-path,
           output-name, 
+          dependencies ? (self.dependencies.override config),
           arguments ? "",
-          inputs ? thisBody.inputs,
         }:
         let
-          rpathString = "${makeRpath inputs.runtime}";
+          rpathString = "${makeRpath inputs.${system}.runtime}";
         in
           pkgs.writeShellScriptBin "${output-name}" ''
             ${config.baseEnvironment}
@@ -227,7 +273,7 @@
       wrapToolchain =
         {
           rust-toolchain,
-          inputs ? thisBody.inputs,
+          dependencies ? (self.dependencies.override config),
         }:
         let
           inherit (config)
@@ -313,7 +359,7 @@
                 fi
                 # If on NixOS, add runtimePackages to rpath.
                 ${optionalString pkgs.stdenv.isLinux ''
-                  RUSTFLAGS="${makeRpath inputs.runtime} $RUSTFLAGS"
+                  RUSTFLAGS="${makeRpath dependencies.${system}.runtime} $RUSTFLAGS"
                 ''}
                 RUSTFLAGS="${makeFlagString localFlags} $RUSTFLAGS"
               ;;
@@ -331,79 +377,30 @@
             RUSTFLAGS="$RUSTFLAGS" exec ${rust-toolchain}/bin/cargo "$@"
           '';
         in
-          pkgs.symlinkJoin {
+          pkgs.symlinkJoin rec {
             name = "bevy-flake-wrapped-toolchain";
             pname = "cargo";
-            paths = [ cargo-wrapper ];
+            paths = with pkgs; [
+              cargo-wrapper
+              cargo-zigbuild
+              cargo-xwin
+            ];
             nativeBuildInputs = [ pkgs.makeWrapper ];
-            buildInputs = ([
-                cargo-wrapper
-                rust-toolchain
-              ]
-              ++ inputs.all
-            );
+            buildInputs =
+              [ rust-toolchain ]
+              ++ paths
+              ++ dependencies.${system}.all;
             postBuild = ''
               wrapProgram $out/bin/cargo \
                 --prefix PATH : \
-                  ${makeBinPath (inputs.build ++ [
+                  ${makeBinPath (dependencies.${system}.build ++ [
                     cargo-wrapper
                     rust-toolchain
                   ])} \
                 --prefix PKG_CONFIG_PATH : \
-                  ${makePkgconfigPath inputs.headers}
+                  ${makePkgconfigPath dependencies.${system}.headers}
             '';
           };
-
-        inputs =
-        let
-          inherit (config) linux;
-        in rec {
-          runtime =
-            optionals (pkgs.stdenv.isLinux) (
-              (with pkgs; [
-                alsa-lib-with-plugins
-                libxkbcommon
-                udev
-              ])
-              ++ optionals linux.runtime.vulkan.enable [ pkgs.vulkan-loader ]
-              ++ optionals linux.runtime.opengl.enable [ pkgs.libGL ]
-              ++ optionals linux.runtime.wayland.enable [ pkgs.wayland ]
-              ++ optionals linux.runtime.xorg.enable
-                (with pkgs.xorg; [
-                  libX11
-                  libXcursor
-                  libXi
-                  libXrandr
-                ])
-            );
-
-          linkers = with pkgs; [
-            cargo-zigbuild
-            cargo-xwin
-          ];
-
-          headers = (
-            optionals (pkgs.stdenv.isDarwin) [ pkgs.darwin.libiconv.dev ]
-            ++ optionals (pkgs.stdenv.isLinux)
-              (with pkgs; [
-                alsa-lib-with-plugins.dev
-                libxkbcommon.dev
-                udev.dev
-                wayland.dev
-              ])
-          );
-
-          build = (
-            (with pkgs; [
-              pkg-config
-            ])
-            ++ linkers
-            ++ headers
-            ++ optionals (pkgs.stdenv.isLinux) [ pkgs.stdenv.cc ]
-          );
-
-          all = runtime ++ build;
-        };
     });
 
     lib = {
@@ -415,10 +412,10 @@
         }) systems);
 
       # Calls 'forSystems' on systems in a config, exposes system and config.
-      forConfig = f:
+      forConfig = cfg: f:
         makeOverridable (cfg:
           forSystems cfg.systems (system: f cfg system)
-        ) self.config;
+        ) cfg;
 
       # Make rustflag that sets rpath to searchpath of input packages.
       # This is what is used instead of LD_LIBRARY_PATH.
