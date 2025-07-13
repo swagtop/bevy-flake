@@ -18,6 +18,7 @@
       makeRpath makeFlagString makePkgconfigPath;
     inherit (nixpkgs.lib)
       optionals optionalString mapAttrsToList
+      genAttrs
       makeLibraryPath makeSearchPath makeOverridable makeBinPath;
 
     defaultSystems = [
@@ -27,7 +28,7 @@
       "aarch64-darwin"
     ];
   in rec {
-    devShells = forDefaultSystems (system: {
+    devShells = genAttrs defaultSystems (system: {
       default = nixpkgs.legacyPackages.${system}.mkShell {
         name = "bevy-flake";
         packages = [
@@ -132,7 +133,7 @@
       };
     };
 
-    packages = forDefaultSystems (system:
+    packages = genAttrs defaultSystems (system:
     let
       pkgs = import nixpkgs {
         inherit system;
@@ -149,17 +150,17 @@
           };
       };
 
-      wrapped-nightly = self.body.${system}.wrappers.wrapToolchain.override (old: {
+      wrapped-nightly = self.body.${system}.wrappers.wrapToolchain {
         rust-toolchain =
           pkgs.rust-bin.nightly.latest.default.override (old: {
             inherit (config) targets;
             extensions = [ "rust-src" "rust-analyzer" ];
           });
-        config = old.config // {
-          crossFlags = old.config.crossFlags
+        config = self.config // {
+          crossFlags = self.config.crossFlags
             ++ [ "-Zlinker-features=-lld" ];
         };
-      });
+      };
 
       dioxus-hot-reload =
       let
@@ -189,7 +190,7 @@
         };
     });
 
-    body = forDefaultSystems (system: makeOverridable (config:
+    body = genAttrs defaultSystems (system: makeOverridable (config:
     let
       inherit (config) linux;
       pkgs = nixpkgs.legacyPackages.${system};
@@ -256,14 +257,15 @@
         wrapToolchain = makeOverridable (
           {
             rust-toolchain,
-            config,
-            dependencies,
+            config ? config,
+            dependencies ? {},
           }:
           let
             inherit (config)
               windows macos
               baseEnvironment targetEnvironment
               localFlags crossFlags;
+            dependencies' = _dependencies // dependencies;
 
             cargo-wrapper = pkgs.writeShellScriptBin "cargo" ''
               # Check if cargo is being run with '--target', or '--no-wrapper'.
@@ -343,7 +345,7 @@
                   fi
                   # If on NixOS, add runtimePackages to rpath.
                   ${optionalString pkgs.stdenv.isLinux ''
-                    RUSTFLAGS="${makeRpath dependencies.runtime} $RUSTFLAGS"
+                    RUSTFLAGS="${makeRpath dependencies'.runtime} $RUSTFLAGS"
                   ''}
                   RUSTFLAGS="${makeFlagString localFlags} $RUSTFLAGS"
                 ;;
@@ -373,27 +375,19 @@
               buildInputs =
                 [ rust-toolchain ]
                 ++ paths
-                ++ dependencies.all;
+                ++ dependencies'.all;
               postBuild = ''
                 wrapProgram $out/bin/cargo \
                   --prefix PATH : \
-                    ${makeBinPath (dependencies.build ++ [
+                    ${makeBinPath (dependencies'.build ++ [
                       cargo-wrapper
                       rust-toolchain
                     ])} \
                   --prefix PKG_CONFIG_PATH : \
-                    ${makePkgconfigPath dependencies.headers}
+                    ${makePkgconfigPath dependencies'.headers}
               '';
             }
-          ) {
-            rust-toolchain = 
-              pkgs.rust-bin.stable.latest.default.override {
-                inherit (config) targets;
-                extensions = [ "rust-src" "rust-analyzer" ];
-              };
-            config = self.config;
-            dependencies = (self.body.${system}.override config).dependencies;
-          };
+          );
         };
     in {
       inherit wrappers;
@@ -401,16 +395,10 @@
     }) self.config);
 
     lib = {
-      # Makes an attribute for each system in a list, in a set. Exposes system.
-      forDefaultSystems = f:
-        builtins.foldl' (acc: system:
-          acc // { "${system}" = f system; }
-        ) {} defaultSystems;
-
       # Calls 'forSystems' on systems in a config, exposes system and config.
       forConfig = cfg: f:
         makeOverridable (cfg:
-          forDefaultSystems (system: f cfg system)
+          genAttrs defaultSystems (system: f cfg system)
         ) cfg;
 
       # Make rustflag that sets rpath to searchpath of input packages.
