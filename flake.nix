@@ -13,28 +13,25 @@
   outputs = inputs@{ self, rust-overlay, nixpkgs, ... }: 
   let
     inherit (self.lib)
-      # Check the definitions of these at the bottom of the flake.
-      forDefaultSystems forConfig
       makeRpath makeFlagString makePkgconfigPath;
     inherit (nixpkgs.lib)
-      optionals optionalString mapAttrsToList
-      genAttrs
+      genAttrs mapAttrsToList optionals optionalString
       makeLibraryPath makeSearchPath makeOverridable makeBinPath;
 
-    defaultSystems = [
+    systems = [
       "x86_64-linux"
       "aarch64-linux"
       "x86_64-darwin"
       "aarch64-darwin"
     ];
-  in rec {
-    devShells = genAttrs defaultSystems (system: {
+  in {
+    devShells = genAttrs systems (system: {
       default = nixpkgs.legacyPackages.${system}.mkShell {
         name = "bevy-flake";
         packages = [
-          self.packages.${system}.wrapped-nightly
+          self.packages.${system}.wrapped-stable
         ];
-        CARGO = "${self.packages.${system}.wrapped-nightly}/bin/cargo";
+        # CARGO = "${self.packages.${system}.wrapped-nightly}/bin/cargo";
       };
     });
 
@@ -94,12 +91,12 @@
       targetEnvironment = rec {
         "x86_64-unknown-linux-gnu*" = ''
           export PKG_CONFIG_PATH="${
-            makePkgconfigPath body."x86_64-linux".dependencies.headers
+            makePkgconfigPath self.body."x86_64-linux".dependencies.headers
           }"
         '';
         "aarch64-unknown-linux-gnu*"= ''
           export PKG_CONFIG_PATH="${
-            makePkgconfigPath body."aarch64-linux".dependencies.headers
+            makePkgconfigPath self.body."aarch64-linux".dependencies.headers
           }"
         '';
 
@@ -133,8 +130,9 @@
       };
     };
 
-    packages = genAttrs defaultSystems (system:
+    packages = genAttrs systems (system:
     let
+      inherit (self) config body;
       pkgs = import nixpkgs {
         inherit system;
         overlays = [ (import rust-overlay) ];
@@ -142,7 +140,7 @@
     in rec {
       default = wrapped-nightly;
       
-      wrapped-stable = body.${system}.wrapToolchain {
+      wrapped-stable = self.body.${system}.wrappers.wrapToolchain {
         rust-toolchain =
           pkgs.rust-bin.stable.latest.default.override {
             inherit (config) targets;
@@ -190,11 +188,11 @@
         };
     });
 
-    body = genAttrs defaultSystems (system: makeOverridable (config:
+    body = genAttrs systems (system: makeOverridable (config:
     let
       inherit (config) linux;
-      pkgs = nixpkgs.legacyPackages.${system};
-      _dependencies = rec {
+      pkgs = import nixpkgs { inherit system; };
+      dependencies = rec {
         runtime =
           optionals (pkgs.stdenv.isLinux) (
             (with pkgs; [
@@ -238,15 +236,14 @@
       };
 
       wrappers = {
-        wrapProgram =
+        wrap =
           {
             program-path,
             output-name, 
-            dependencies ? _dependencies,
             arguments ? "",
           }:
           let
-            rpathString = "${makeRpath inputs.${system}.runtime}";
+            rpathString = "${makeRpath dependencies.runtime}";
           in
             pkgs.writeShellScriptBin "${output-name}" ''
               ${config.baseEnvironment}
@@ -257,16 +254,13 @@
         wrapToolchain = makeOverridable (
           {
             rust-toolchain,
-            config ? config,
-            dependencies ? {},
+            extraInputs ? { runtime = []; headers = []; },
           }:
           let
             inherit (config)
               windows macos
               baseEnvironment targetEnvironment
               localFlags crossFlags;
-            dependencies' = _dependencies // dependencies;
-
             cargo-wrapper = pkgs.writeShellScriptBin "cargo" ''
               # Check if cargo is being run with '--target', or '--no-wrapper'.
               ARG_COUNT=0
@@ -345,18 +339,25 @@
                   fi
                   # If on NixOS, add runtimePackages to rpath.
                   ${optionalString pkgs.stdenv.isLinux ''
-                    RUSTFLAGS="${makeRpath dependencies'.runtime} $RUSTFLAGS"
+                    RUSTFLAGS="${
+                      makeRpath (dependencies.runtime ++ extraInputs.runtime)
+                    } $RUSTFLAGS"
                   ''}
                   RUSTFLAGS="${makeFlagString localFlags} $RUSTFLAGS"
                 ;;
 
-                ${"\n" + (builtins.concatStringsSep "\n" (
-                    mapAttrsToList (target: env:
-                      "${target})\n${env}\n"
-                    + "RUSTFLAGS=\"${makeFlagString crossFlags} "
-                    + "$RUSTFLAGS\"" + "\n;;\n"
-                    ) targetEnvironment
-                ))}
+                ${let
+                    setupCrossFlags =
+                      "RUSTFLAGS=\"${makeFlagString crossFlags} $RUSTFLAGS\"";
+                  in
+                  "\n" + builtins.concatStringsSep "\n" (
+                    mapAttrsToList (target: env: ''
+                      ${target})
+                      ${env}
+                      ${setupCrossFlags}
+                      ;;
+                    '') targetEnvironment
+                )}
               esac
 
               # Run cargo with relevant RUSTFLAGS.
@@ -372,35 +373,35 @@
                 cargo-xwin
               ];
               nativeBuildInputs = [ pkgs.makeWrapper ];
-              buildInputs =
-                [ rust-toolchain ]
-                ++ paths
-                ++ dependencies'.all;
+              buildInputs = with pkgs; [
+                rust-toolchain
+                libclang.lib
+              ]
+              ++ paths
+              ++ dependencies.all
+              ++ extraInputs.runtime
+              ++ extraInputs.headers;
               postBuild = ''
                 wrapProgram $out/bin/cargo \
                   --prefix PATH : \
-                    ${makeBinPath (dependencies'.build ++ [
-                      cargo-wrapper
-                      rust-toolchain
-                    ])} \
+                    ${makeBinPath
+                      (dependencies.build ++ [
+                        cargo-wrapper
+                        rust-toolchain
+                      ])} \
                   --prefix PKG_CONFIG_PATH : \
-                    ${makePkgconfigPath dependencies'.headers}
+                    ${makePkgconfigPath
+                      (extraInputs.headers ++ dependencies.headers)
+                    }
               '';
             }
           );
         };
     in {
-      inherit wrappers;
-      dependencies = _dependencies;
+      inherit wrappers dependencies;
     }) self.config);
 
     lib = {
-      # Calls 'forSystems' on systems in a config, exposes system and config.
-      forConfig = cfg: f:
-        makeOverridable (cfg:
-          genAttrs defaultSystems (system: f cfg system)
-        ) cfg;
-
       # Make rustflag that sets rpath to searchpath of input packages.
       # This is what is used instead of LD_LIBRARY_PATH.
       makeRpath = packages:
