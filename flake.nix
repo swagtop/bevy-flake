@@ -149,15 +149,17 @@
           };
       };
 
-      wrapped-nightly = (body.${system}.override (old: {
-        crossFlags = old.crossFlags ++ [ "-Zlinker-features=-lld" ];
-      })).wrappers.wrapToolchain {
+      wrapped-nightly = self.body.${system}.wrappers.wrapToolchain.override (old: {
         rust-toolchain =
-          pkgs.rust-bin.nightly.latest.default.override {
+          pkgs.rust-bin.nightly.latest.default.override (old: {
             inherit (config) targets;
             extensions = [ "rust-src" "rust-analyzer" ];
-          };
-      };
+          });
+        config = old.config // {
+          crossFlags = old.config.crossFlags
+            ++ [ "-Zlinker-features=-lld" ];
+        };
+      });
 
       dioxus-hot-reload =
       let
@@ -251,10 +253,11 @@
               exec ${program-path} ${arguments} "$@"
             '';
 
-        wrapToolchain =
+        wrapToolchain = makeOverridable (
           {
             rust-toolchain,
-            dependencies ? _dependencies,
+            config,
+            dependencies,
           }:
           let
             inherit (config)
@@ -381,7 +384,16 @@
                   --prefix PKG_CONFIG_PATH : \
                     ${makePkgconfigPath dependencies.headers}
               '';
-            };
+            }
+          ) {
+            rust-toolchain = 
+              pkgs.rust-bin.stable.latest.default.override {
+                inherit (config) targets;
+                extensions = [ "rust-src" "rust-analyzer" ];
+              };
+            config = self.config;
+            dependencies = (self.body.${system}.override config).dependencies;
+          };
         };
     in {
       inherit wrappers;
