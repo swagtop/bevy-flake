@@ -15,7 +15,7 @@
     inherit (self.lib)
       makeRpath makeFlagString makePkgconfigPath;
     inherit (nixpkgs.lib)
-      genAttrs mapAttrsToList optionals optionalString recursiveUpdate
+      genAttrs mapAttrsToList optionals optionalString
       makeLibraryPath makeSearchPath makeOverridable makeBinPath;
 
     systems = [
@@ -149,8 +149,8 @@
       };
 
       wrapped-nightly = (body.${system}.override (old: 
-        recursiveUpdate old {
-          crossFlags = old.config.crossFlags ++ [ "-Zlinker-features=-lld" ];
+        old // {
+          crossFlags = old.crossFlags ++ [ "-Zlinker-features=-lld" ];
         }
       )).wrappers.wrapToolchain {
         rust-toolchain =
@@ -382,7 +382,7 @@
               ++ extraInputs.runtime
               ++ extraInputs.headers;
               postBuild = ''
-                wrapProgramPath $out/bin/cargo \
+                wrapProgram $out/bin/cargo \
                   --prefix PATH : \
                     ${makeBinPath
                       (dependencies.build ++ [
