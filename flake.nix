@@ -93,12 +93,12 @@
       targetEnvironment = rec {
         "x86_64-unknown-linux-gnu*" = ''
           export PKG_CONFIG_PATH="${
-            makePkgconfigPath configured."x86_64-linux".dependencies.headers
+            makePkgconfigPath body."x86_64-linux".dependencies.headers
           }"
         '';
         "aarch64-unknown-linux-gnu*"= ''
           export PKG_CONFIG_PATH="${
-            makePkgconfigPath configured."aarch64-linux".dependencies.headers
+            makePkgconfigPath body."aarch64-linux".dependencies.headers
           }"
         '';
 
@@ -141,7 +141,7 @@
     in rec {
       default = wrapped-nightly;
       
-      wrapped-stable = configured.${system}.wrapToolchain {
+      wrapped-stable = body.${system}.wrapToolchain {
         rust-toolchain =
           pkgs.rust-bin.stable.latest.default.override {
             inherit (config) targets;
@@ -149,9 +149,9 @@
           };
       };
 
-      wrapped-nightly = (configured.override (old: {
+      wrapped-nightly = (body.${system}.override (old: {
         crossFlags = old.crossFlags ++ [ "-Zlinker-features=-lld" ];
-      })).${system}.wrappers.wrapToolchain {
+      })).wrappers.wrapToolchain {
         rust-toolchain =
           pkgs.rust-bin.nightly.latest.default.override {
             inherit (config) targets;
@@ -181,13 +181,13 @@
           };
         });
       in
-        configured.${system}.wrappers.wrapProgram {
+        body.${system}.wrappers.wrapProgram {
           program-path = "${dioxus}/bin/dx";
           output-name = "dx";
         };
     });
 
-    configured = forConfig config (config: system:
+    body = forDefaultSystems (system: makeOverridable (config:
     let
       inherit (config) linux;
       pkgs = nixpkgs.legacyPackages.${system};
@@ -386,7 +386,7 @@
     in {
       inherit wrappers;
       dependencies = _dependencies;
-    });
+    }) self.config);
 
     lib = {
       # Makes an attribute for each system in a list, in a set. Exposes system.
