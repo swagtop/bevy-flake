@@ -15,7 +15,7 @@
     inherit (self.lib)
       makeRpath makeFlagString makePkgconfigPath;
     inherit (nixpkgs.lib)
-      genAttrs mapAttrsToList optionals optionalString
+      genAttrs mapAttrsToList optionals optionalString recursiveUpdate
       makeLibraryPath makeSearchPath makeOverridable makeBinPath;
 
     systems = [
@@ -29,7 +29,7 @@
       default = nixpkgs.legacyPackages.${system}.mkShell {
         name = "bevy-flake";
         packages = [
-          self.packages.${system}.wrapped-stable
+          self.packages.${system}.wrapped-nightly
         ];
         # CARGO = "${self.packages.${system}.wrapped-nightly}/bin/cargo";
       };
@@ -140,7 +140,7 @@
     in rec {
       default = wrapped-nightly;
       
-      wrapped-stable = self.body.${system}.wrappers.wrapToolchain {
+      wrapped-stable = body.${system}.wrappers.wrapToolchain {
         rust-toolchain =
           pkgs.rust-bin.stable.latest.default.override {
             inherit (config) targets;
@@ -148,16 +148,16 @@
           };
       };
 
-      wrapped-nightly = self.body.${system}.wrappers.wrapToolchain {
+      wrapped-nightly = (body.${system}.override (old: 
+        recursiveUpdate old {
+          crossFlags = old.config.crossFlags ++ [ "-Zlinker-features=-lld" ];
+        }
+      )).wrappers.wrapToolchain {
         rust-toolchain =
           pkgs.rust-bin.nightly.latest.default.override (old: {
             inherit (config) targets;
             extensions = [ "rust-src" "rust-analyzer" ];
           });
-        config = self.config // {
-          crossFlags = self.config.crossFlags
-            ++ [ "-Zlinker-features=-lld" ];
-        };
       };
 
       dioxus-hot-reload =
@@ -182,7 +182,7 @@
           };
         });
       in
-        body.${system}.wrappers.wrapProgram {
+        body.${system}.wrappers.wrapProgramPath {
           program-path = "${dioxus}/bin/dx";
           output-name = "dx";
         };
@@ -236,7 +236,7 @@
       };
 
       wrappers = {
-        wrap =
+        wrapProgramPath =
           {
             program-path,
             output-name, 
@@ -382,7 +382,7 @@
               ++ extraInputs.runtime
               ++ extraInputs.headers;
               postBuild = ''
-                wrapProgram $out/bin/cargo \
+                wrapProgramPath $out/bin/cargo \
                   --prefix PATH : \
                     ${makeBinPath
                       (dependencies.build ++ [
