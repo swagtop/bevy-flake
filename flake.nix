@@ -91,12 +91,12 @@
       targetEnvironment = rec {
         "x86_64-unknown-linux-gnu*" = ''
           export PKG_CONFIG_PATH="${makePkgconfigPath 
-            self.body."x86_64-linux".dependencies.headers
+            self.body."x86_64-linux".defaultDependencies.headers
           }"
         '';
         "aarch64-unknown-linux-gnu*" = ''
           export PKG_CONFIG_PATH="${makePkgconfigPath 
-            self.body."aarch64-linux".dependencies.headers
+            self.body."aarch64-linux".defaultDependencies.headers
           }"
         '';
 
@@ -189,8 +189,8 @@
 
     body = genAttrs systems (system: 
     let
-      pkgs = import nixpkgs { inherit system; };
-      _dependencies = makeOverridable (config: rec {
+      pkgs = nixpkgs.legacyPackages.${system};
+      configureDependencies = config: rec {
         runtime =
         let
           inherit (config) linux;
@@ -234,13 +234,6 @@
         );
 
         all = runtime ++ build;
-      }) {
-        linux.runtime = {
-          vulkan.enable = true;
-          opengl.enable = true;
-          wayland.enable = true;
-          xorg.enable = true;
-        };
       };
 
       wrappers = {
@@ -249,11 +242,14 @@
             program-path,
             output-name, 
             config ? self.config,
-            dependencies ? self.body.${system}.dependencies,
+            extra ? { runtime = []; headers = []; },
             arguments ? "",
           }:
           let
-            rpathString = "${makeRpath dependencies.runtime}";
+            dependencies = configureDependencies config;
+            rpathString = "${
+              makeRpath (dependencies.runtime ++ extra.runtime)
+            }";
           in
             pkgs.writeShellScriptBin "${output-name}" ''
               ${config.baseEnvironment}
@@ -265,7 +261,6 @@
           {
             rust-toolchain,
             config ? self.config,
-            dependencies ? self.body.${system}.dependencies,
             extra ? { runtime = []; headers = []; },
           }:
           let
@@ -273,6 +268,7 @@
               windows macos
               baseEnvironment targetEnvironment
               localFlags crossFlags;
+            dependencies = configureDependencies config;
             cargo-wrapper = pkgs.writeShellScriptBin "cargo" ''
               # Check if cargo is being run with '--target', or '--no-wrapper'.
               ARG_COUNT=0
@@ -412,7 +408,7 @@
         };
     in {
       inherit wrappers;
-      dependencies = _dependencies;
+      defaultDependencies = makeOverridable configureDependencies self.config;
     });
 
     lib = {
