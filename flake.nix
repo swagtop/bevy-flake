@@ -182,12 +182,14 @@
     body = genAttrs systems (system: 
     let
       pkgs = nixpkgs.legacyPackages.${system};
+      systemIsLinux = pkgs.stdenv.isLinux;
+      systemIsDarwin = pkgs.stdenv.isDarwin;
       configureDependencies = config: rec {
         runtime =
         let
           inherit (config) linux;
         in
-          optionals (pkgs.stdenv.isLinux) (
+          optionals (systemIsLinux) (
             (with pkgs; [
               alsa-lib-with-plugins
               libxkbcommon
@@ -206,8 +208,8 @@
           );
 
         headers = (
-          optionals (pkgs.stdenv.isDarwin) [ pkgs.darwin.libiconv.dev ]
-          ++ optionals (pkgs.stdenv.isLinux)
+          optionals (systemIsDarwin) [ pkgs.darwin.libiconv.dev ]
+          ++ optionals (systemIsLinux)
             (with pkgs; [
               alsa-lib-with-plugins.dev
               libxkbcommon.dev
@@ -221,7 +223,7 @@
           (with pkgs; [
             pkg-config
           ])
-          ++ optionals (pkgs.stdenv.isLinux) [ pkgs.stdenv.cc ]
+          ++ optionals (systemIsLinux) [ pkgs.stdenv.cc ]
         );
 
         all = runtime ++ headers ++ build;
@@ -337,7 +339,7 @@
                     exit 1
                   fi
                   # If on NixOS, add runtimePackages to rpath.
-                  ${optionalString pkgs.stdenv.isLinux ''
+                  ${optionalString systemIsLinux ''
                     RUSTFLAGS="${
                       makeRpath (dependencies.runtime ++ extra.runtime)
                     } $RUSTFLAGS"
