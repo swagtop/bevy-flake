@@ -221,11 +221,10 @@
           (with pkgs; [
             pkg-config
           ])
-          ++ headers
           ++ optionals (pkgs.stdenv.isLinux) [ pkgs.stdenv.cc ]
         );
 
-        all = runtime ++ build;
+        all = runtime ++ headers ++ build;
       };
 
       wrappers = {
