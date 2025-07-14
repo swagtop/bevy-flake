@@ -211,11 +211,11 @@
           optionals (systemIsDarwin) [ pkgs.darwin.libiconv.dev ]
           ++ optionals (systemIsLinux)
             (with pkgs; [
-              alsa-lib.dev
-              libxkbcommon.dev
-              openssl.dev
-              udev.dev
-              wayland.dev
+              # alsa-lib.dev
+              # libxkbcommon.dev
+              # openssl.dev
+              # udev.dev
+              # wayland.dev
             ])
         );
 
