@@ -24,6 +24,16 @@
       "x86_64-darwin"
       "aarch64-darwin"
     ];
+
+    targets = [
+      "wasm32-unknown-unknown"
+      "aarch64-unknown-linux-gnu"
+      "x86_64-unknown-linux-gnu"
+      "aarch64-pc-windows-msvc"
+      "x86_64-pc-windows-msvc"
+      "aarch64-apple-darwin"
+      "x86_64-apple-darwin"
+    ];
   in {
     devShells = genAttrs systems (system: {
       default = nixpkgs.legacyPackages.${system}.mkShell {
@@ -36,16 +46,6 @@
     });
 
     config = {
-      targets = [
-        "wasm32-unknown-unknown"
-        "aarch64-unknown-linux-gnu"
-        "x86_64-unknown-linux-gnu"
-        "aarch64-pc-windows-msvc"
-        "x86_64-pc-windows-msvc"
-        "aarch64-apple-darwin"
-        "x86_64-apple-darwin"
-      ];
-
       linux = {
         # These options do not affect the build, only your dev environment.
         runtime = {
@@ -90,13 +90,13 @@
       # The target names, and bodies should use Bash syntax.
       targetEnvironment = rec {
         "x86_64-unknown-linux-gnu*" = ''
-          export PKG_CONFIG_PATH="${
-            makePkgconfigPath self.body."x86_64-linux".dependencies.headers
+          export PKG_CONFIG_PATH="${makePkgconfigPath 
+            self.body."x86_64-linux".dependencies.headers
           }"
         '';
-        "aarch64-unknown-linux-gnu*"= ''
-          export PKG_CONFIG_PATH="${
-            makePkgconfigPath self.body."aarch64-linux".dependencies.headers
+        "aarch64-unknown-linux-gnu*" = ''
+          export PKG_CONFIG_PATH="${makePkgconfigPath 
+            self.body."aarch64-linux".dependencies.headers
           }"
         '';
 
@@ -132,7 +132,7 @@
 
     packages = genAttrs systems (system:
     let
-      inherit (self) config body;
+      inherit (self) body;
       pkgs = import nixpkgs {
         inherit system;
         overlays = [ (import rust-overlay) ];
@@ -143,19 +143,18 @@
       wrapped-stable = body.${system}.wrappers.wrapToolchain {
         rust-toolchain =
           pkgs.rust-bin.stable.latest.default.override {
-            inherit (config) targets;
+            inherit targets;
             extensions = [ "rust-src" "rust-analyzer" ];
           };
       };
 
-      wrapped-nightly = (body.${system}.override (old: 
-        old // {
-          crossFlags = old.crossFlags ++ [ "-Zlinker-features=-lld" ];
-        }
-      )).wrappers.wrapToolchain {
+      wrapped-nightly = body.${system}.wrappers.wrapToolchain {
+        config = self.config //  {
+          crossFlags = self.config.crossFlags ++ [ "-Zlinker-features=-lld" ];
+        };
         rust-toolchain =
           pkgs.rust-bin.nightly.latest.default.override (old: {
-            inherit (config) targets;
+            inherit targets;
             extensions = [ "rust-src" "rust-analyzer" ];
           });
       };
@@ -188,12 +187,14 @@
         };
     });
 
-    body = genAttrs systems (system: makeOverridable (config:
+    body = genAttrs systems (system: 
     let
-      inherit (config) linux;
       pkgs = import nixpkgs { inherit system; };
-      dependencies = rec {
+      _dependencies = makeOverridable (config: rec {
         runtime =
+        let
+          inherit (config) linux;
+        in
           optionals (pkgs.stdenv.isLinux) (
             (with pkgs; [
               alsa-lib-with-plugins
@@ -233,6 +234,13 @@
         );
 
         all = runtime ++ build;
+      }) {
+        linux.runtime = {
+          vulkan.enable = true;
+          opengl.enable = true;
+          wayland.enable = true;
+          xorg.enable = true;
+        };
       };
 
       wrappers = {
@@ -240,6 +248,8 @@
           {
             program-path,
             output-name, 
+            config ? self.config,
+            dependencies ? self.body.${system}.dependencies,
             arguments ? "",
           }:
           let
@@ -254,7 +264,9 @@
         wrapToolchain = makeOverridable (
           {
             rust-toolchain,
-            extraInputs ? { runtime = []; headers = []; },
+            config ? self.config,
+            dependencies ? self.body.${system}.dependencies,
+            extra ? { runtime = []; headers = []; },
           }:
           let
             inherit (config)
@@ -340,7 +352,7 @@
                   # If on NixOS, add runtimePackages to rpath.
                   ${optionalString pkgs.stdenv.isLinux ''
                     RUSTFLAGS="${
-                      makeRpath (dependencies.runtime ++ extraInputs.runtime)
+                      makeRpath (dependencies.runtime ++ extra.runtime)
                     } $RUSTFLAGS"
                   ''}
                   RUSTFLAGS="${makeFlagString localFlags} $RUSTFLAGS"
@@ -349,15 +361,16 @@
                 ${let
                     setupCrossFlags =
                       "RUSTFLAGS=\"${makeFlagString crossFlags} $RUSTFLAGS\"";
-                  in
-                  "\n" + builtins.concatStringsSep "\n" (
-                    mapAttrsToList (target: env: ''
+
+                    formatted = mapAttrsToList (target: env: ''
                       ${target})
                       ${env}
                       ${setupCrossFlags}
                       ;;
-                    '') targetEnvironment
-                )}
+                    '') targetEnvironment;
+                  in
+                    "\n" + builtins.concatStringsSep "\n" formatted
+                }
               esac
 
               # Run cargo with relevant RUSTFLAGS.
@@ -379,8 +392,8 @@
               ]
               ++ paths
               ++ dependencies.all
-              ++ extraInputs.runtime
-              ++ extraInputs.headers;
+              ++ extra.runtime
+              ++ extra.headers;
               postBuild = ''
                 wrapProgram $out/bin/cargo \
                   --prefix PATH : \
@@ -391,15 +404,16 @@
                       ])} \
                   --prefix PKG_CONFIG_PATH : \
                     ${makePkgconfigPath
-                      (extraInputs.headers ++ dependencies.headers)
+                      (dependencies.headers ++ extra.headers)
                     }
               '';
             }
           );
         };
     in {
-      inherit wrappers dependencies;
-    }) self.config);
+      inherit wrappers;
+      dependencies = _dependencies;
+    });
 
     lib = {
       # Make rustflag that sets rpath to searchpath of input packages.
