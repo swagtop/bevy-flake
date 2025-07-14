@@ -191,27 +191,27 @@
         in
           optionals (systemIsLinux) (
             (with pkgs; [
-              # alsa-lib-with-plugins
+              alsa-lib-with-plugins
               libxkbcommon
               udev
             ])
-            # ++ optionals linux.runtime.vulkan.enable [ pkgs.vulkan-loader ]
-            # ++ optionals linux.runtime.opengl.enable [ pkgs.libGL ]
-            # ++ optionals linux.runtime.wayland.enable [ pkgs.wayland ]
-            # ++ optionals linux.runtime.xorg.enable
-            #   (with pkgs.xorg; [
-            #     libX11
-            #     libXcursor
-            #     libXi
-            #     libXrandr
-            #   ])
+            ++ optionals linux.runtime.vulkan.enable [ pkgs.vulkan-loader ]
+            ++ optionals linux.runtime.opengl.enable [ pkgs.libGL ]
+            ++ optionals linux.runtime.wayland.enable [ pkgs.wayland ]
+            ++ optionals linux.runtime.xorg.enable
+              (with pkgs.xorg; [
+                libX11
+                libXcursor
+                libXi
+                libXrandr
+              ])
           );
 
         headers = (
           optionals (systemIsDarwin) [ pkgs.darwin.libiconv.dev ]
           ++ optionals (systemIsLinux)
             (with pkgs; [
-              alsa-lib-with-plugins.dev
+              alsa-lib.dev
               libxkbcommon.dev
               openssl.dev
               udev.dev
