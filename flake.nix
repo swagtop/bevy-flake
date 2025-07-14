@@ -39,9 +39,9 @@
       default = nixpkgs.legacyPackages.${system}.mkShell {
         name = "bevy-flake";
         packages = [
-          self.packages.${system}.wrapped-nightly
+          # self.packages.${system}.wrapped-nightly
         ];
-        CARGO = "${self.packages.${system}.wrapped-nightly}/bin/cargo";
+        # CARGO = "${self.packages.${system}.wrapped-nightly}/bin/cargo";
       };
     });
 
@@ -151,32 +151,32 @@
           });
       };
 
-      dioxus-hot-reload =
-      let
-        dioxus = pkgs.dioxus-cli.override (old: {
-          rustPlatform = old.rustPlatform // {
-            buildRustPackage = args:
-              old.rustPlatform.buildRustPackage (
-                args // {
-                  src = old.fetchCrate {
-                    pname = "dioxus-cli";
-                    version = "0.7.0-alpha.2";
-                    hash =
-                      "sha256-wPdU0zXx806zkChJ6vPGK9nwtVObEYX98YslK5U74qk=";
-                  };
-                  cargoHash =
-                    "sha256-b4CvC0hpqsOuYSyzHq1ABCE9V1I/+ZhpHFTJGt3gYNM=";
-                  cargoPatches = [ ];
-                  buildFeatures = [ ];
-                }
-              );
-          };
-        });
-      in
-        body.${system}.wrappers.wrapProgramPath {
-          program-path = "${dioxus}/bin/dx";
-          output-name = "dx";
-        };
+      # dioxus-hot-reload =
+      # let
+      #   dioxus = pkgs.dioxus-cli.override (old: {
+      #     rustPlatform = old.rustPlatform // {
+      #       buildRustPackage = args:
+      #         old.rustPlatform.buildRustPackage (
+      #           args // {
+      #             src = old.fetchCrate {
+      #               pname = "dioxus-cli";
+      #               version = "0.7.0-alpha.2";
+      #               hash =
+      #                 "sha256-wPdU0zXx806zkChJ6vPGK9nwtVObEYX98YslK5U74qk=";
+      #             };
+      #             cargoHash =
+      #               "sha256-b4CvC0hpqsOuYSyzHq1ABCE9V1I/+ZhpHFTJGt3gYNM=";
+      #             cargoPatches = [ ];
+      #             buildFeatures = [ ];
+      #           }
+      #         );
+      #     };
+      #   });
+      # in
+      #   body.${system}.wrappers.wrapProgramPath {
+      #     program-path = "${dioxus}/bin/dx";
+      #     output-name = "dx";
+      #   };
     });
 
     body = genAttrs systems (system: 
