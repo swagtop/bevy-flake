@@ -91,12 +91,16 @@
       targetEnvironment = rec {
         "x86_64-unknown-linux-gnu*" = ''
           export PKG_CONFIG_PATH="${makePkgconfigPath 
-            self.body."x86_64-linux".defaultDependencies.headers
+            (self.body."x86_64-linux".configureDependencies
+              self.config
+            ).headers
           }"
         '';
         "aarch64-unknown-linux-gnu*" = ''
           export PKG_CONFIG_PATH="${makePkgconfigPath 
-            self.body."aarch64-linux".defaultDependencies.headers
+            (self.body."aarch64-linux".configureDependencies
+              self.config
+            ).headers
           }"
         '';
 
@@ -407,8 +411,7 @@
           );
         };
     in {
-      inherit wrappers;
-      defaultDependencies = makeOverridable configureDependencies self.config;
+      inherit wrappers configureDependencies;
     });
 
     lib = {
