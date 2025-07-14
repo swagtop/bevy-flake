@@ -41,7 +41,7 @@
         packages = [
           self.packages.${system}.wrapped-nightly
         ];
-        # CARGO = "${self.packages.${system}.wrapped-nightly}/bin/cargo";
+        CARGO = "${self.packages.${system}.wrapped-nightly}/bin/cargo";
       };
     });
 
@@ -211,7 +211,7 @@
           optionals (systemIsDarwin) [ pkgs.darwin.libiconv.dev ]
           ++ optionals (systemIsLinux)
             (with pkgs; [
-              alsa-lib.dev
+              alsa-lib-with-plugins.dev
               libxkbcommon.dev
               openssl.dev
               udev.dev
@@ -239,10 +239,10 @@
             arguments ? "",
           }:
           let
-            dependencies = configureDependencies config;
-            rpathString = "${
-              makeRpath (dependencies.runtime ++ extra.runtime)
-            }";
+            # dependencies = configureDependencies config;
+            rpathString = "";
+              # makeRpath (dependencies.runtime ++ extra.runtime)
+            # }";
           in
             pkgs.writeShellScriptBin "${output-name}" ''
               ${config.baseEnvironment}
