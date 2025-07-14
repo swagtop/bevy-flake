@@ -388,7 +388,6 @@
                   --prefix PATH : \
                     ${makeBinPath
                       (dependencies.build ++ [
-                        cargo-wrapper
                         rust-toolchain
                       ])} \
                   --prefix PKG_CONFIG_PATH : \
