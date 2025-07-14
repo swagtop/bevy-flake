@@ -191,7 +191,7 @@
         in
           optionals (systemIsLinux) (
             (with pkgs; [
-              alsa-lib-with-plugins
+              # alsa-lib-with-plugins
               libxkbcommon
               udev
             ])
@@ -372,8 +372,8 @@
               pname = "cargo";
               paths = with pkgs; [
                 cargo-wrapper
-                cargo-zigbuild
-                cargo-xwin
+                # cargo-zigbuild
+                # cargo-xwin
               ];
               nativeBuildInputs = [ pkgs.makeWrapper ];
               buildInputs = with pkgs; [
