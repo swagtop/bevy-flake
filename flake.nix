@@ -13,7 +13,7 @@
   outputs = inputs@{ self, rust-overlay, nixpkgs, ... }: 
   let
     inherit (self.lib)
-      makeRpath makeFlagString makePkgconfigPath makeSwitchCaseFromEnvironments;
+      makeRpath makeFlagString makePkgconfigPath makeSwitchCases;
     inherit (nixpkgs.lib)
       genAttrs mapAttrsToList optionals optionalString
       makeLibraryPath makeSearchPath makeOverridable makeBinPath;
@@ -89,20 +89,8 @@
       # Environment variables set for individual targets.
       # The target names, and bodies should use Bash syntax.
       targetEnvironment = rec {
-        "x86_64-unknown-linux-gnu*" = ''
-          export PKG_CONFIG_PATH="${makePkgconfigPath 
-            (self.body."x86_64-linux".configureDependencies
-              self.config
-            ).headers
-          }"
-        '';
-        "aarch64-unknown-linux-gnu*" = ''
-          export PKG_CONFIG_PATH="${makePkgconfigPath 
-            (self.body."aarch64-linux".configureDependencies
-              self.config
-            ).headers
-          }"
-        '';
+        "x86_64-unknown-linux-gnu*" = "";
+        "aarch64-unknown-linux-gnu*" = "";
 
         "x86_64-pc-windows-msvc" = "";
         "aarch64-pc-windows-msvc" = "";
@@ -358,7 +346,20 @@
                   RUSTFLAGS="${makeFlagString localFlags} $RUSTFLAGS"
                 ;;
 
-                ${makeSwitchCaseFromEnvironments crossFlags targetEnvironment}
+                ${makeSwitchCases crossFlags (targetEnvironment // {
+                  "x86_64-unknown-linux-gnu*" =
+                    (targetEnvironment."x86_64-unknown-linux-gnu*") + ''
+                      export PKG_CONFIG_PATH="${
+                        makePkgconfigPath dependencies.headers
+                      }"
+                    '';
+                  "aarch64-unknown-linux-gnu*" =
+                    (targetEnvironment."aarch64-unknown-linux-gnu*") + ''
+                      export PKG_CONFIG_PATH="${
+                        makePkgconfigPath dependencies.headers
+                      }"
+                    '';
+                })}
               esac
 
               # Run cargo with relevant RUSTFLAGS.
@@ -418,7 +419,7 @@
         "${makeSearchPath "lib/pkgconfig" packages}";
 
       # Unfolds { target = environment } into 'target) environment crossFlags;;'
-      makeSwitchCaseFromEnvironments = crossFlags: targetEnvironment:
+      makeSwitchCases = crossFlags: targetEnvironment:
       let
         setupCrossFlags =
           "RUSTFLAGS=\"${makeFlagString crossFlags} $RUSTFLAGS\"";
