@@ -211,11 +211,11 @@
           optionals (systemIsDarwin) [ pkgs.darwin.libiconv.dev ]
           ++ optionals (systemIsLinux)
             (with pkgs; [
-              # alsa-lib.dev
-              # libxkbcommon.dev
-              # openssl.dev
-              # udev.dev
-              # wayland.dev
+              alsa-lib.dev
+              libxkbcommon.dev
+              openssl.dev
+              udev.dev
+              wayland.dev
             ])
         );
 
@@ -372,8 +372,8 @@
               pname = "cargo";
               paths = with pkgs; [
                 cargo-wrapper
-                # cargo-zigbuild
-                # cargo-xwin
+                cargo-zigbuild
+                cargo-xwin
               ];
               nativeBuildInputs = [ pkgs.makeWrapper ];
               buildInputs = with pkgs; [
@@ -384,15 +384,15 @@
               ++ dependencies.all
               ++ extra.runtime
               ++ extra.headers;
-              # postBuild = ''
-              #   wrapProgram $out/bin/cargo \
-              #     --prefix PATH : \
-              #       ${makeBinPath (dependencies.build ++ [ rust-toolchain ])} \
-              #     --prefix PKG_CONFIG_PATH : \
-              #       ${makePkgconfigPath
-              #         (dependencies.headers ++ extra.headers)
-              #       }
-              # '';
+              postBuild = ''
+                wrapProgram $out/bin/cargo \
+                  --prefix PATH : \
+                    ${makeBinPath (dependencies.build ++ [ rust-toolchain ])} \
+                  --prefix PKG_CONFIG_PATH : \
+                    ${makePkgconfigPath
+                      (dependencies.headers ++ extra.headers)
+                    }
+              '';
             }
           );
         };
@@ -404,9 +404,7 @@
       # Make rustflag that sets rpath to searchpath of input packages.
       # This is what is used instead of LD_LIBRARY_PATH.
       makeRpath = packages:
-        "-C link-args=-Wl,-rpath,/usr/lib:${
-          makeLibraryPath (map (p: p.out) packages)
-        }";
+        "-C link-args=-Wl,-rpath,${makeLibraryPath packages}";
 
       # Puts all strings in a list into a single string, with a space separator.
       makeFlagString = flags: builtins.concatStringsSep " " flags;
