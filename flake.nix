@@ -382,18 +382,15 @@
               ++ dependencies.all
               ++ extra.runtime
               ++ extra.headers;
-              postBuild = ''
-                wrapProgram $out/bin/cargo \
-                  --prefix PATH : \
-                    ${makeBinPath
-                      (dependencies.build ++ [
-                        rust-toolchain
-                      ])} \
-                  --prefix PKG_CONFIG_PATH : \
-                    ${makePkgconfigPath
-                      (dependencies.headers ++ extra.headers)
-                    }
-              '';
+              # postBuild = ''
+              #   wrapProgram $out/bin/cargo \
+              #     --prefix PATH : \
+              #       ${makeBinPath (dependencies.build ++ [ rust-toolchain ])} \
+              #     --prefix PKG_CONFIG_PATH : \
+              #       ${makePkgconfigPath
+              #         (dependencies.headers ++ extra.headers)
+              #       }
+              # '';
             }
           );
         };
