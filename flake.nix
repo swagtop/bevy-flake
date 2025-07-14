@@ -13,7 +13,7 @@
   outputs = inputs@{ self, rust-overlay, nixpkgs, ... }: 
   let
     inherit (self.lib)
-      makeRpath makeFlagString makePkgconfigPath;
+      makeRpath makeFlagString makePkgconfigPath makeSwitchCaseFromEnvironments;
     inherit (nixpkgs.lib)
       genAttrs mapAttrsToList optionals optionalString
       makeLibraryPath makeSearchPath makeOverridable makeBinPath;
@@ -358,19 +358,7 @@
                   RUSTFLAGS="${makeFlagString localFlags} $RUSTFLAGS"
                 ;;
 
-                ${let
-                    setupCrossFlags =
-                      "RUSTFLAGS=\"${makeFlagString crossFlags} $RUSTFLAGS\"";
-
-                    formatted = mapAttrsToList (target: env: ''
-                      ${target})
-                      ${env}
-                      ${setupCrossFlags}
-                      ;;
-                    '') targetEnvironment;
-                  in
-                    "\n" + builtins.concatStringsSep "\n" formatted
-                }
+                ${makeSwitchCaseFromEnvironments crossFlags targetEnvironment}
               esac
 
               # Run cargo with relevant RUSTFLAGS.
@@ -428,6 +416,21 @@
       # Makes a search path for 'pkg-config' made up of every package in a list.
       makePkgconfigPath = packages:
         "${makeSearchPath "lib/pkgconfig" packages}";
-    };
+
+      # Unfolds { target = environment } into 'target) environment crossFlags;;'
+      makeSwitchCaseFromEnvironments = crossFlags: targetEnvironment:
+      let
+        setupCrossFlags =
+          "RUSTFLAGS=\"${makeFlagString crossFlags} $RUSTFLAGS\"";
+
+        formatted = mapAttrsToList (target: env: ''
+          ${target})
+          ${env}
+          ${setupCrossFlags}
+          ;;
+        '') targetEnvironment;
+      in
+        "\n" + builtins.concatStringsSep "\n" formatted;
+      };
   };
 }
