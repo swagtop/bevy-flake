@@ -35,6 +35,8 @@
       "x86_64-apple-darwin"
     ];
   in {
+    inherit systems targets;
+    
     devShells = genAttrs systems (system: {
       default = nixpkgs.legacyPackages.${system}.mkShell {
         name = "bevy-flake";
@@ -88,37 +90,14 @@
 
       # Environment variables set for individual targets.
       # The target names, and bodies should use Bash syntax.
-      targetEnvironment = rec {
+      targetEnvironment = {
         "x86_64-unknown-linux-gnu*" = "";
         "aarch64-unknown-linux-gnu*" = "";
-
         "x86_64-pc-windows-msvc" = "";
         "aarch64-pc-windows-msvc" = "";
-
-        "x86_64-apple-darwin" = ''
-          FRAMEWORKS="$MACOS_SDK_DIR/System/Library/Frameworks";
-          export SDKROOT="$MACOS_SDK_DIR"
-          export COREAUDIO_SDK_PATH="$FRAMEWORKS/CoreAudio.framework/Headers"
-          export BINDGEN_EXTRA_CLANG_ARGS="${makeFlagString [
-            "--sysroot=$MACOS_SDK_DIR"
-            "-F $FRAMEWORKS"
-            "-I$MACOS_SDK_DIR/usr/include"
-          ]}"
-          RUSTFLAGS="${makeFlagString [
-            "-L $MACOS_SDK_DIR/usr/lib"
-            "-L framework=$FRAMEWORKS"
-            "$RUSTFLAGS"
-          ]}"
-        '';
-        "aarch64-apple-darwin" = x86_64-apple-darwin;
-
-        "wasm32-unknown-unknown" = ''
-          RUSTFLAGS="${makeFlagString [
-            # https://docs.rs/getrandom/latest/getrandom/#webassembly-support
-            "--cfg getrandom_backend=\\\"wasm_js\\\""
-            "$RUSTFLAGS"
-          ]}"
-        '';
+        "x86_64-apple-darwin" = "";
+        "aarch64-apple-darwin" = "";
+        "wasm32-unknown-unknown" = "";
       };
     };
 
@@ -142,7 +121,7 @@
 
       wrapped-nightly = wrappers.${system}.wrapToolchain {
         config = self.config //  {
-          crossFlags = self.config.crossFlags ++ [ "-Zlinker-features=-lld" ];
+          # crossFlags = self.config.crossFlags ++ [ "-Zlinker-features=-lld" ];
         };
         rust-toolchain =
           pkgs.rust-bin.nightly.latest.default.override (old: {
@@ -182,24 +161,23 @@
     wrappers = genAttrs systems (system: 
     let
       pkgs = nixpkgs.legacyPackages.${system};
-      systemIsLinux = pkgs.stdenv.isLinux;
-      systemIsDarwin = pkgs.stdenv.isDarwin;
-      configureDependencies = config: rec {
+      configureDependencies = targetSystem: config:
+      let
+        inherit (config) linux;
+        targetPkgs = nixpkgs.legacyPackages.${targetSystem};
+      in rec {
         runtime =
-        let
-          inherit (config) linux;
-        in
-          optionals (systemIsLinux) (
-            (with pkgs; [
+          optionals (targetPkgs.stdenv.isLinux) (
+            (with targetPkgs; [
               alsa-lib-with-plugins
               libxkbcommon
               udev
             ])
-            ++ optionals linux.runtime.vulkan.enable [ pkgs.vulkan-loader ]
-            ++ optionals linux.runtime.opengl.enable [ pkgs.libGL ]
-            ++ optionals linux.runtime.wayland.enable [ pkgs.wayland ]
+            ++ optionals linux.runtime.vulkan.enable [ targetPkgs.vulkan-loader ]
+            ++ optionals linux.runtime.opengl.enable [ targetPkgs.libGL ]
+            ++ optionals linux.runtime.wayland.enable [ targetPkgs.wayland ]
             ++ optionals linux.runtime.xorg.enable
-              (with pkgs.xorg; [
+              (with targetPkgs.xorg; [
                 libX11
                 libXcursor
                 libXi
@@ -208,9 +186,10 @@
           );
 
         headers = (
-          optionals (systemIsDarwin) [ pkgs.darwin.libiconv.dev ]
-          ++ optionals (systemIsLinux)
-            (with pkgs; [
+          optionals (targetPkgs.stdenv.isDarwin)
+            [ targetPkgs.darwin.libiconv.dev ]
+          ++ optionals (targetPkgs.stdenv.isLinux)
+            (with targetPkgs; [
               alsa-lib-with-plugins.dev
               libxkbcommon.dev
               openssl.dev
@@ -220,10 +199,7 @@
         );
 
         build = (
-          (with pkgs; [
-            pkg-config
-          ])
-          ++ optionals (systemIsLinux) [ pkgs.stdenv.cc ]
+          optionals (pkgs.stdenv.isLinux) [ pkgs.stdenv.cc ]
         );
 
         all = runtime ++ headers ++ build;
@@ -260,7 +236,7 @@
             windows macos
             baseEnvironment targetEnvironment
             localFlags crossFlags;
-          dependencies = configureDependencies config;
+          systemDependencies = configureDependencies system config;
           cargo-wrapper = pkgs.writeShellScriptBin "cargo" ''
             # Check if cargo is being run with '--target', or '--no-wrapper'.
             ARG_COUNT=0
@@ -284,19 +260,19 @@
 
             # Set up Windows SDK and CRT.
             ${optionalString (windows.pin) ''
-              export XWIN_CACHE_DIR="${(
-                if (pkgs.stdenv.isDarwin)
-                  then "$HOME/Library/Caches/"
-                  else "\${XDG_CACHE_HOME:-$HOME/.cache}/"
-                )
-                + "bevy-flake/xwin/"
-                + "manifest${windows.manifestVersion}-"
-                + "sdk${windows.sdkVersion}-"
-                + "crt${windows.crtVersion}"
-              }"
-              export XWIN_VERSION="${windows.manifestVersion}"
-              export XWIN_SDK_VERSION="${windows.sdkVersion}"
-              export XWIN_CRT_VERSION="${windows.crtVersion}"
+                export XWIN_CACHE_DIR="${(
+                  if (pkgs.stdenv.isDarwin)
+                    then "$HOME/Library/Caches/"
+                    else "\${XDG_CACHE_HOME:-$HOME/.cache}/"
+                  )
+                  + "bevy-flake/xwin/"
+                  + "manifest${windows.manifestVersion}-"
+                  + "sdk${windows.sdkVersion}-"
+                  + "crt${windows.crtVersion}"
+                }"
+                export XWIN_VERSION="${windows.manifestVersion}"
+                export XWIN_SDK_VERSION="${windows.sdkVersion}"
+                export XWIN_CRT_VERSION="${windows.crtVersion}"
             ''}
 
             # Make sure first argument of 'cargo' is correct for target.
@@ -338,28 +314,65 @@
                   exit 1
                 fi
                 # If on NixOS, add runtimePackages to rpath.
-                ${optionalString systemIsLinux ''
+                ${optionalString pkgs.stdenv.isLinux ''
+                  export PKG_CONFIG_PATH="${
+                    makePkgconfigPath (
+                      configureDependencies system config
+                    ).headers
+                  }"
                   RUSTFLAGS="${
-                    makeRpath (dependencies.runtime ++ extra.runtime)
+                    makeRpath (systemDependencies.runtime ++ extra.runtime)
                   } $RUSTFLAGS"
                 ''}
                 RUSTFLAGS="${makeFlagString localFlags} $RUSTFLAGS"
               ;;
 
-              ${makeSwitchCases crossFlags (targetEnvironment // {
-                "x86_64-unknown-linux-gnu*" =
-                  (targetEnvironment."x86_64-unknown-linux-gnu*") + ''
-                    export PKG_CONFIG_PATH="${
-                      makePkgconfigPath dependencies.headers
-                    }"
+              # Unfold targetEnvironment set into cases.
+              ${let
+                  macosBase = ''
+                    FRAMEWORKS="$MACOS_SDK_DIR/System/Library/Frameworks";
+                    export SDKROOT="$MACOS_SDK_DIR"
+                    export COREAUDIO_SDK_PATH=\
+                      "$FRAMEWORKS/CoreAudio.framework/Headers"
+                    export BINDGEN_EXTRA_CLANG_ARGS="${makeFlagString [
+                      "--sysroot=$MACOS_SDK_DIR"
+                      "-F $FRAMEWORKS"
+                      "-I$MACOS_SDK_DIR/usr/include"
+                    ]}"
+                    RUSTFLAGS="${makeFlagString [
+                      "-L $MACOS_SDK_DIR/usr/lib"
+                      "-L framework=$FRAMEWORKS"
+                      "$RUSTFLAGS"
+                    ]}"
                   '';
-                "aarch64-unknown-linux-gnu*" =
-                  (targetEnvironment."aarch64-unknown-linux-gnu*") + ''
+                in
+                  # Set up default bases for environments.
+                  makeSwitchCases crossFlags (targetEnvironment // {
+                  "x86_64-unknown-linux-gnu*" = ''
                     export PKG_CONFIG_PATH="${
-                      makePkgconfigPath dependencies.headers
+                      makePkgconfigPath (
+                        configureDependencies "x86_64-linux" config
+                      ).headers
                     }"
-                  '';
-              })}
+                  '' + (targetEnvironment."x86_64-unknown-linux-gnu*");
+                  "aarch64-unknown-linux-gnu*" = ''
+                    export PKG_CONFIG_PATH="${
+                      makePkgconfigPath (
+                        configureDependencies "aarch64-linux" config
+                      ).headers
+                    }"
+                  '' + (targetEnvironment."aarch64-unknown-linux-gnu*");
+                  "x86_64-apple-darwin" =
+                    macosBase + (targetEnvironment."x86_64-apple-darwin");
+                  "aarch64-apple-darwin" =
+                    macosBase + (targetEnvironment."aarch64-apple-darwin");
+                  "wasm32-unknown-unknown" = ''
+                    RUSTFLAGS="${makeFlagString [
+                      "--cfg getrandom_backend=\\\"wasm_js\\\""
+                      "$RUSTFLAGS"
+                    ]}"
+                  '' + (targetEnvironment.wasm32-unknown-unknown);
+                })}
             esac
 
             # Run cargo with relevant RUSTFLAGS.
@@ -373,24 +386,21 @@
               cargo-wrapper
               cargo-zigbuild
               cargo-xwin
+              pkg-config
             ];
             nativeBuildInputs = [ pkgs.makeWrapper ];
             buildInputs = with pkgs; [
               rust-toolchain
               libclang.lib
-            ]
-            ++ paths
-            ++ dependencies.all
-            ++ extra.runtime
-            ++ extra.headers;
+            ];
+            # ++ paths
+            # ++ systemDependencies.all
+            # ++ extra.runtime
+            # ++ extra.headers;
             postBuild = ''
               wrapProgram $out/bin/cargo \
                 --prefix PATH : \
-                  ${makeBinPath (dependencies.build ++ [ rust-toolchain ])} \
-                --prefix PKG_CONFIG_PATH : \
-                  ${makePkgconfigPath
-                    (dependencies.headers ++ extra.headers)
-                  }
+                  ${makeBinPath (systemDependencies.build ++ [ rust-toolchain ])}
             '';
           }
         );
