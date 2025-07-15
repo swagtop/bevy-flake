@@ -161,6 +161,21 @@
     wrappers = genAttrs systems (system: 
     let
       pkgs = nixpkgs.legacyPackages.${system};
+      headersForSystem = system:
+      let
+        systemPkgs = nixpkgs.legacyPackages.${system};
+      in (
+          optionals (systemPkgs.stdenv.isDarwin)
+            [ systemPkgs.darwin.libiconv.dev ]
+          ++ optionals (systemPkgs.stdenv.isLinux)
+            (with systemPkgs; [
+              alsa-lib-with-plugins.dev
+              libxkbcommon.dev
+              openssl.dev
+              udev.dev
+              wayland.dev
+            ])
+        );
       configureDependencies = targetSystem: config:
       let
         inherit (config) linux;
@@ -185,24 +200,12 @@
               ])
           );
 
-        headers = (
-          optionals (targetPkgs.stdenv.isDarwin)
-            [ targetPkgs.darwin.libiconv.dev ]
-          ++ optionals (targetPkgs.stdenv.isLinux)
-            (with targetPkgs; [
-              alsa-lib-with-plugins.dev
-              libxkbcommon.dev
-              openssl.dev
-              udev.dev
-              wayland.dev
-            ])
-        );
 
         build = (
           optionals (pkgs.stdenv.isLinux) [ pkgs.stdenv.cc ]
         );
 
-        all = runtime ++ headers ++ build;
+        all = runtime ++ build;
       };
 
       wrapProgramPath =
@@ -316,9 +319,7 @@
                 # If on NixOS, add runtimePackages to rpath.
                 ${optionalString pkgs.stdenv.isLinux ''
                   export PKG_CONFIG_PATH="${
-                    makePkgconfigPath (
-                      configureDependencies system config
-                    ).headers
+                    makePkgconfigPath (headersForSystem system)
                   }"
                   RUSTFLAGS="${
                     makeRpath (systemDependencies.runtime ++ extra.runtime)
@@ -350,16 +351,12 @@
                   makeSwitchCases crossFlags (targetEnvironment // {
                   "x86_64-unknown-linux-gnu*" = ''
                     export PKG_CONFIG_PATH="${
-                      makePkgconfigPath (
-                        configureDependencies "x86_64-linux" config
-                      ).headers
+                      makePkgconfigPath (headersForSystem "x86_64-linux")
                     }"
                   '' + (targetEnvironment."x86_64-unknown-linux-gnu*");
                   "aarch64-unknown-linux-gnu*" = ''
                     export PKG_CONFIG_PATH="${
-                      makePkgconfigPath (
-                        configureDependencies "aarch64-linux" config
-                      ).headers
+                      makePkgconfigPath (headersForSystem "aarch64-linux")
                     }"
                   '' + (targetEnvironment."aarch64-unknown-linux-gnu*");
                   "x86_64-apple-darwin" =
