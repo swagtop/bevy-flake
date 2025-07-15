@@ -333,8 +333,7 @@
                   macosBase = ''
                     FRAMEWORKS="$MACOS_SDK_DIR/System/Library/Frameworks";
                     export SDKROOT="$MACOS_SDK_DIR"
-                    export COREAUDIO_SDK_PATH=\
-                      "$FRAMEWORKS/CoreAudio.framework/Headers"
+                    export COREAUDIO_SDK_PATH="$FRAMEWORKS/CoreAudio.framework/Headers"
                     export BINDGEN_EXTRA_CLANG_ARGS="${makeFlagString [
                       "--sysroot=$MACOS_SDK_DIR"
                       "-F $FRAMEWORKS"
