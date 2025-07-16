@@ -117,18 +117,22 @@
           };
     });
 
-    lib = {
+    lib = rec {
+      makeSearchPathLite = path: list:
+        "${builtins.concatStringsSep "/${path}:"
+            (map (package: package.outPath) list)}/${path}";
+      
       # Make rustflag that sets rpath to searchpath of input packages.
       # This is what is used instead of LD_LIBRARY_PATH.
       makeRpath = packages:
-        "-C link-args=-Wl,-rpath,${makeLibraryPath packages}";
+        "-C link-args=-Wl,-rpath,${makeSearchPathLite "lib" packages}";
 
       # Puts all strings in a list into a single string, with a space separator.
       makeFlagString = flags: builtins.concatStringsSep " " flags;
 
       # Makes a search path for 'pkg-config' made up of every package in a list.
       makePkgconfigPath = packages:
-        "${makeSearchPath "lib/pkgconfig" packages}";
+        "${makeSearchPathLite "lib/pkgconfig" packages}";
 
       # Unfolds { target = environment } into 'target) environment crossFlags;;'
       makeSwitchCases = crossFlags: targetEnvironment:
@@ -185,7 +189,7 @@
       {
         rust-toolchain,
         config ? self.config,
-        extra ? { runtime = []; build = []; },
+        extra ? { runtime = []; build = []; headers = []; },
       }:
       let
         inherit (config)
@@ -273,7 +277,10 @@
               fi
               # If on NixOS, add runtimePackages to rpath.
               ${optionalString pkgs.stdenv.isLinux ''
-                  RUSTFLAGS="${makeRpath runtime} $RUSTFLAGS"
+                  export PKG_CONFIG_PATH="${
+                    makePkgconfigPath ((headersFor system) ++ extra.headers)
+                  }"
+                  RUSTFLAGS="${makeRpath (runtime ++ extra.runtime)} $RUSTFLAGS"
               ''}
               RUSTFLAGS="${makeFlagString localFlags} $RUSTFLAGS"
             ;;
@@ -339,16 +346,13 @@
             rust-toolchain
             libclang.lib
           ];
-          # ++ paths
-          # ++ systemDependencies.all
-          # ++ extra.runtime
-          # ++ extra.headers;
           postBuild = ''
             wrapProgram $out/bin/cargo \
               --prefix PATH : \
                 ${makeBinPath (
                     [ rust-toolchain ]
                     ++ optionals (pkgs.stdenv.isLinux) [ pkgs.stdenv.cc ]
+                    ++ extra.build
                 )} \
               --prefix PKG_CONFIG_PATH : \
                 ${makePkgconfigPath
