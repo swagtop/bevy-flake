@@ -13,8 +13,8 @@
   outputs = inputs@{ self, rust-overlay, nixpkgs, ... }: 
   let
     inherit (self.lib)
-      configureRuntime wrapToolchain headersFor
-      makeRpath makeFlagString makePkgconfigPath makeSwitchCases;
+      headersFor makeRuntime makeSearchPathLite
+      makeRpath makeFlagString makePkgconfigPath makeSwitchCases ;
     inherit (nixpkgs.lib)
       genAttrs mapAttrsToList optionals optionalString
       makeLibraryPath makeSearchPath makeOverridable makeBinPath;
@@ -92,13 +92,13 @@
       # Environment variables set for individual targets.
       # The target names, and bodies should use Bash syntax.
       targetEnvironment = {
-        "x86_64-unknown-linux-gnu*" = "";
-        "aarch64-unknown-linux-gnu*" = "";
-        "x86_64-pc-windows-msvc" = "";
-        "aarch64-pc-windows-msvc" = "";
-        "x86_64-apple-darwin" = "";
-        "aarch64-apple-darwin" = "";
-        "wasm32-unknown-unknown" = "";
+        "x86_64-unknown-linux-gnu*" = '''';
+        "aarch64-unknown-linux-gnu*" = '''';
+        "x86_64-pc-windows-msvc" = '''';
+        "aarch64-pc-windows-msvc" = '''';
+        "x86_64-apple-darwin" = '''';
+        "aarch64-apple-darwin" = '''';
+        "wasm32-unknown-unknown" = '''';
       };
     };
 
@@ -110,7 +110,7 @@
             overlays = [ (import rust-overlay) ];
           };
         in
-          wrapToolchain {
+          self.wrapToolchain {
             rust-toolchain = 
               pkgs.rust-bin.nightly.latest.default.override (old: {
                 inherit targets;
@@ -118,74 +118,6 @@
               });
           };
     });
-
-    lib = rec {
-      makeSearchPathLite = path: list:
-        "${builtins.concatStringsSep "/${path}:"
-            (map (package: package.outPath) list)}/${path}";
-      
-      # Make rustflag that sets rpath to searchpath of input packages.
-      # This is what is used instead of LD_LIBRARY_PATH.
-      makeRpath = packages:
-        "-C link-args=-Wl,-rpath,${makeSearchPathLite "lib" packages}";
-
-      # Puts all strings in a list into a single string, with a space separator.
-      makeFlagString = flags: builtins.concatStringsSep " " flags;
-
-      # Makes a search path for 'pkg-config' made up of every package in a list.
-      makePkgconfigPath = packages:
-        "${makeSearchPathLite "lib/pkgconfig" packages}";
-
-      # Unfolds { target = environment } into 'target) environment crossFlags;;'
-      makeSwitchCases = crossFlags: targetEnvironment:
-      let
-        setupCrossFlags =
-          "RUSTFLAGS=\"${makeFlagString crossFlags} $RUSTFLAGS\"";
-
-        formatted = mapAttrsToList (target: env: ''
-          ${target})
-          ${env}
-          ${setupCrossFlags}
-          ;;
-        '') targetEnvironment;
-      in
-        "\n" + builtins.concatStringsSep "\n" formatted;
-
-      configureRuntime = config: system: extra:
-      let
-        inherit (config) linux;
-        pkgs = nixpkgs.legacyPackages.${system};
-      in
-        optionals (pkgs.stdenv.isLinux) (
-          (with pkgs; [
-            alsa-lib-with-plugins
-            libxkbcommon
-            udev
-          ])
-          ++ optionals linux.runtime.vulkan.enable [ pkgs.vulkan-loader ]
-          ++ optionals linux.runtime.opengl.enable [ pkgs.libGL ]
-          ++ optionals linux.runtime.wayland.enable [ pkgs.wayland ]
-          ++ optionals linux.runtime.xorg.enable
-            (with pkgs.xorg; [
-              libX11
-              libXcursor
-              libXi
-              libXrandr
-            ])
-        )
-        ++ extra.runtime;
-
-      headersFor = system:
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
-      in
-        (with pkgs; [
-          alsa-lib-with-plugins.dev
-          libxkbcommon.dev
-          openssl.dev
-          udev.dev
-          wayland.dev
-        ]);
 
     wrapToolchain =
       {
@@ -200,7 +132,7 @@
           localFlags crossFlags;
         system = rust-toolchain.system;
         pkgs = nixpkgs.legacyPackages.${system};
-        runtime = configureRuntime config system extra;
+        runtime = makeRuntime config system extra;
         cargo-wrapper = pkgs.writeShellScriptBin "cargo" ''
           # Check if cargo is being run with '--target', or '--no-wrapper'.
           ARG_COUNT=0
@@ -351,7 +283,7 @@
           postBuild = ''
             wrapProgram $out/bin/cargo \
               --prefix PATH : \
-                ${makeBinPath (
+                ${makeSearchPathLite "bin" (
                     [ rust-toolchain ]
                     ++ optionals (pkgs.stdenv.isLinux) [ pkgs.stdenv.cc ]
                     ++ extra.build
@@ -362,6 +294,74 @@
                 }
           '';
         };
+
+    lib = {
+      makeSearchPathLite = path: list:
+        "${builtins.concatStringsSep "/${path}:"
+            (map (package: package.outPath) list)}/${path}";
+      
+      # Make rustflag that sets rpath to searchpath of input packages.
+      # This is what is used instead of LD_LIBRARY_PATH.
+      makeRpath = packages:
+        "-C link-args=-Wl,-rpath,${makeSearchPathLite "lib" packages}";
+
+      # Puts all strings in a list into a single string, with a space separator.
+      makeFlagString = flags: builtins.concatStringsSep " " flags;
+
+      # Makes a search path for 'pkg-config' made up of every package in a list.
+      makePkgconfigPath = packages:
+        "${makeSearchPathLite "lib/pkgconfig" packages}";
+
+      # Unfolds { target = environment } into 'target) environment crossFlags;;'
+      makeSwitchCases = crossFlags: targetEnvironment:
+      let
+        setupCrossFlags =
+          "RUSTFLAGS=\"${makeFlagString crossFlags} $RUSTFLAGS\"";
+
+        formatted = mapAttrsToList (target: env: ''
+          ${target})
+          ${env}
+          ${setupCrossFlags}
+          ;;
+        '') targetEnvironment;
+      in
+        "\n" + builtins.concatStringsSep "\n" formatted;
+
+      makeRuntime = config: system: extra:
+      let
+        inherit (config) linux;
+        pkgs = nixpkgs.legacyPackages.${system};
+      in
+        optionals (pkgs.stdenv.isLinux) (
+          (with pkgs; [
+            alsa-lib-with-plugins
+            libxkbcommon
+            udev
+          ])
+          ++ optionals linux.runtime.vulkan.enable [ pkgs.vulkan-loader ]
+          ++ optionals linux.runtime.opengl.enable [ pkgs.libGL ]
+          ++ optionals linux.runtime.wayland.enable [ pkgs.wayland ]
+          ++ optionals linux.runtime.xorg.enable
+            (with pkgs.xorg; [
+              libX11
+              libXcursor
+              libXi
+              libXrandr
+            ])
+        )
+        ++ extra.runtime;
+
+      headersFor = system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+      in
+        (with pkgs; [
+          alsa-lib-with-plugins.dev
+          libxkbcommon.dev
+          openssl.dev
+          udev.dev
+          wayland.dev
+        ]);
     };
   };
 }
