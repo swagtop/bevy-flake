@@ -36,6 +36,8 @@
       "x86_64-apple-darwin"
     ];
   in {
+    inherit systems targets; 
+
     devShells = genAttrs systems (system: {
       default = nixpkgs.legacyPackages.${system}.mkShell {
         name = "bevy-flake";
