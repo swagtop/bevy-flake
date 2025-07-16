@@ -38,13 +38,36 @@
   in {
     inherit systems targets; 
 
-    devShells = genAttrs systems (system: {
-      default = nixpkgs.legacyPackages.${system}.mkShell {
+    devShells = genAttrs systems (system:
+    let
+      pkgs = nixpkgs.legacyPackages.${system};
+    in {
+      default = pkgs.mkShell {
         name = "bevy-flake";
         packages = [
-          self.packages.${system}.default
+          # self.packages.${system}.default
+          pkgs.cargo
+          (pkgs.dioxus-cli.override (old: {
+            rustPlatform = old.rustPlatform // {
+              buildRustPackage = args:
+                old.rustPlatform.buildRustPackage (
+                  args // {
+                    src = old.fetchCrate {
+                      pname = "dioxus-cli";
+                      version = "0.7.0-alpha.1";
+                      hash =
+                        "sha256-3b82XlxffgbtYbEYultQMzJRRwY/I36E1wgzrKoS8BU=";
+                    };
+                    cargoHash =
+                      "sha256-r42Z6paBVC2YTlUr4590dSA5RJJEjt5gfKWUl91N/ac=";
+                    cargoPatches = [ ];
+                    buildFeatures = [ ];
+                  }
+                );
+            };
+          }))
         ];
-        # CARGO = "${self.packages.${system}.wrapped-nightly}/bin/cargo";
+        # CARGO = "${self.packages.${system}.default}/bin/cargo";
       };
     });
 
