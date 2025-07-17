@@ -157,7 +157,7 @@
       }:
       let
         inherit (config)
-          baseEnvironment;
+          localFlags baseEnvironment;
         system = package.system;
         pkgs = nixpkgs.legacyPackages.${system};
         runtime = makeRuntime config system extra;
@@ -165,14 +165,15 @@
         pkgs.writeShellScriptBin "${if alias != null then alias else name}" ''
           ${optionalString pkgs.stdenv.isLinux ''
             export RUSTFLAGS="-Clinker-features=-lld $RUSTFLAGS"
-          ''}
-          ${baseEnvironment}
-          ${optionalString (pkgs.stdenv.isLinux) ''
             export PKG_CONFIG_PATH="${
               makePkgconfigPath ((headersFor system) ++ extra.headers)
             }"
-            export RUSTFLAGS="${makeRpath (runtime ++ extra.runtime)} $RUSTFLAGS"
+            export RUSTFLAGS="${
+              makeRpath (runtime ++ extra.runtime)
+            } $RUSTFLAGS"
           ''}
+          ${baseEnvironment}
+          export RUSTFLAGS="${makeFlagString localFlags} $RUSTFLAGS"
           exec ${package}/bin/${name} "$@"
         '';
       
