@@ -120,6 +120,8 @@
                 extensions = [ "rust-src" "rust-analyzer" ];
               });
           };
+
+      # Does not currently work properly on MacOS systems.
       dioxus-cli = self.wrapPackageBinPath (
         let
           dx = nixpkgs.legacyPackages.${system}.dioxus-cli.override (old: {
@@ -273,11 +275,11 @@
               fi
               # If on NixOS, add runtimePackages to rpath.
               ${optionalString pkgs.stdenv.isLinux ''
-                  export PKG_CONFIG_PATH="${
-                    makePkgconfigPath ((headersFor system) ++ extra.headers)
-                  }"
                   RUSTFLAGS="${makeRpath (runtime ++ extra.runtime)} $RUSTFLAGS"
               ''}
+              export PKG_CONFIG_PATH="${
+                makePkgconfigPath ((headersFor system) ++ extra.headers)
+              }"
               RUSTFLAGS="${makeFlagString localFlags} $RUSTFLAGS"
             ;;
 
