@@ -115,7 +115,7 @@
         in
           self.wrapToolchain {
             rust-toolchain = 
-              pkgs.rust-bin.nightly.latest.default.override (old: {
+              pkgs.rust-bin.stable.latest.default.override (old: {
                 inherit targets;
                 extensions = [ "rust-src" "rust-analyzer" ];
               });
@@ -260,9 +260,6 @@
           # Base environment for all targets.
           export PKG_CONFIG_ALLOW_CROSS="1"
           export LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
-          ${optionalString pkgs.stdenv.isLinux ''
-            export RUSTFLAGS="-Clinker-features=-lld $RUSTFLAGS"
-          ''}
           ${baseEnvironment}
 
           # Set final environment variables based on target.
@@ -350,7 +347,7 @@
             wrapProgram $out/bin/cargo \
               --prefix PATH : \
                 ${makeSearchPathLite "bin" (
-                    [ rust-toolchain ]
+                    [ rust-toolchain pkgs.cargo-zigbuild pkgs.cargo-xwin ]
                     ++ optionals (pkgs.stdenv.isLinux) [ pkgs.stdenv.cc ]
                     ++ extra.build
                 )} \
