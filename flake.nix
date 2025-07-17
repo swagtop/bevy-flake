@@ -163,7 +163,9 @@
         runtime = makeRuntime config system extra;
       in
         pkgs.writeShellScriptBin "${if alias != null then alias else name}" ''
-          export RUSTFLAGS="-Clinker-features=-lld $RUSTFLAGS"
+          ${optionalString pkgs.stdenv.isLinux ''
+            export RUSTFLAGS="-Clinker-features=-lld $RUSTFLAGS"
+          ''}
           ${baseEnvironment}
           ${optionalString (pkgs.stdenv.isLinux) ''
             export PKG_CONFIG_PATH="${
@@ -255,7 +257,9 @@
           # Base environment for all targets.
           export PKG_CONFIG_ALLOW_CROSS="1"
           export LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
-          export RUSTFLAGS="-Clinker-features=-lld $RUSTFLAGS"
+          ${optionalString pkgs.stdenv.isLinux ''
+            export RUSTFLAGS="-Clinker-features=-lld $RUSTFLAGS"
+          ''}
           ${baseEnvironment}
 
           # Set final environment variables based on target.
