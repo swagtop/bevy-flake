@@ -155,16 +155,20 @@
       {
         package,
         name,
+        alias ? null,
         config ? self.config,
         extra ? { runtime = []; build = []; headers = []; },
       }:
       let
+        inherit (config)
+          baseEnvironment;
         system = package.system;
         pkgs = nixpkgs.legacyPackages.${system};
         runtime = makeRuntime config system extra;
       in
-        pkgs.writeShellScriptBin "${name}" ''
-          ${config.baseEnvironment}
+        pkgs.writeShellScriptBin "${if alias != null then alias else name}" ''
+          export RUSTFLAGS="-Clinker-features=-lld $RUSTFLAGS"
+          ${baseEnvironment}
           ${optionalString (pkgs.stdenv.isLinux) ''
             export PKG_CONFIG_PATH="${
               makePkgconfigPath ((headersFor system) ++ extra.headers)
@@ -255,6 +259,7 @@
           # Base environment for all targets.
           export PKG_CONFIG_ALLOW_CROSS="1"
           export LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
+          export RUSTFLAGS="-Clinker-features=-lld $RUSTFLAGS"
           ${baseEnvironment}
 
           # Set final environment variables based on target.
