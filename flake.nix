@@ -45,29 +45,38 @@
       default = pkgs.mkShell {
         name = "bevy-flake";
         packages = [
-          # self.packages.${system}.default
-          pkgs.cargo
-          (pkgs.dioxus-cli.override (old: {
-            rustPlatform = old.rustPlatform // {
-              buildRustPackage = args:
-                old.rustPlatform.buildRustPackage (
-                  args // {
-                    src = old.fetchCrate {
-                      pname = "dioxus-cli";
-                      version = "0.7.0-alpha.1";
-                      hash =
-                        "sha256-3b82XlxffgbtYbEYultQMzJRRwY/I36E1wgzrKoS8BU=";
-                    };
-                    cargoHash =
-                      "sha256-r42Z6paBVC2YTlUr4590dSA5RJJEjt5gfKWUl91N/ac=";
-                    cargoPatches = [ ];
-                    buildFeatures = [ ];
-                  }
-                );
-            };
+          self.packages.${system}.default
+          # (self.wrapToolchain {
+          #   rust-toolchain = pkgs.cargo;
+          # })
+          (self.wrapPackageBinPath (
+          let
+            dx = 
+              (pkgs.dioxus-cli.override (old: {
+                rustPlatform = old.rustPlatform // {
+                  buildRustPackage = args:
+                    old.rustPlatform.buildRustPackage (
+                      args // {
+                        src = old.fetchCrate {
+                          pname = "dioxus-cli";
+                          version = "0.7.0-alpha.3";
+                          hash =
+                            "sha256-ibEniOqI0IW9ME+k/rCYUgOpYS16wpzPXFxgn0XAzQo=";
+                        };
+                        cargoHash =
+                          "sha256-t5umDmhU8IC5Rau5ssyW0bZnnBI7JxL8A5qlW4WEDOg=";
+                        cargoPatches = [ ];
+                        buildFeatures = [ ];
+                      }
+                    );
+                };
+              }));
+          in {
+            package = dx;
+            name = "dx";
           }))
         ];
-        # CARGO = "${self.packages.${system}.default}/bin/cargo";
+        CARGO = "${self.packages.${system}.default}/bin/cargo";
       };
     });
 
@@ -141,6 +150,30 @@
               });
           };
     });
+
+    wrapPackageBinPath =
+      {
+        package,
+        name,
+        config ? self.config,
+        extra ? { runtime = []; build = []; headers = []; },
+      }:
+      let
+        system = package.system;
+        pkgs = nixpkgs.legacyPackages.${system};
+        runtime = makeRuntime config system extra;
+      in
+        pkgs.writeShellScriptBin "${name}" ''
+          ${config.baseEnvironment}
+          ${optionalString (pkgs.stdenv.isLinux) ''
+            export PKG_CONFIG_PATH="${
+              makePkgconfigPath ((headersFor system) ++ extra.headers)
+            }"
+            export RUSTFLAGS="${makeRpath (runtime ++ extra.runtime)} $RUSTFLAGS"
+          ''}
+          exec ${package}/bin/${name} "$@"
+        '';
+      
 
     wrapToolchain =
       {
@@ -289,14 +322,16 @@
           RUSTFLAGS="$RUSTFLAGS" exec ${rust-toolchain}/bin/cargo "$@"
         '';
       in
-        pkgs.symlinkJoin rec {
+        pkgs.symlinkJoin {
           name = "bevy-flake-wrapped-toolchain";
           pname = "cargo";
+          ignoreCollisions = true;
           paths = with pkgs; [
             cargo-wrapper
             cargo-zigbuild
             cargo-xwin
             pkg-config
+            rust-toolchain
           ];
           nativeBuildInputs = [ pkgs.makeWrapper ];
           buildInputs = with pkgs; [
