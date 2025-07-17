@@ -46,37 +46,8 @@
         name = "bevy-flake";
         packages = [
           self.packages.${system}.default
-          # (self.wrapToolchain {
-          #   rust-toolchain = pkgs.cargo;
-          # })
-          (self.wrapPackageBinPath (
-          let
-            dx = 
-              (pkgs.dioxus-cli.override (old: {
-                rustPlatform = old.rustPlatform // {
-                  buildRustPackage = args:
-                    old.rustPlatform.buildRustPackage (
-                      args // {
-                        src = old.fetchCrate {
-                          pname = "dioxus-cli";
-                          version = "0.7.0-alpha.3";
-                          hash =
-                            "sha256-ibEniOqI0IW9ME+k/rCYUgOpYS16wpzPXFxgn0XAzQo=";
-                        };
-                        cargoHash =
-                          "sha256-t5umDmhU8IC5Rau5ssyW0bZnnBI7JxL8A5qlW4WEDOg=";
-                        cargoPatches = [ ];
-                        buildFeatures = [ ];
-                      }
-                    );
-                };
-              }));
-          in {
-            package = dx;
-            name = "dx";
-          }))
+          self.packages.${system}.dioxus-cli
         ];
-        CARGO = "${self.packages.${system}.default}/bin/cargo";
       };
     });
 
@@ -149,6 +120,31 @@
                 extensions = [ "rust-src" "rust-analyzer" ];
               });
           };
+      dioxus-cli = self.wrapPackageBinPath (
+        let
+          dx = nixpkgs.legacyPackages.${system}.dioxus-cli.override (old: {
+            rustPlatform = old.rustPlatform // {
+              buildRustPackage = args:
+                old.rustPlatform.buildRustPackage (
+                  args // {
+                    src = old.fetchCrate {
+                      pname = "dioxus-cli";
+                      version = "0.7.0-alpha.3";
+                      hash =
+                        "sha256-ibEniOqI0IW9ME+k/rCYUgOpYS16wpzPXFxgn0XAzQo=";
+                    };
+                    cargoHash =
+                      "sha256-t5umDmhU8IC5Rau5ssyW0bZnnBI7JxL8A5qlW4WEDOg=";
+                    cargoPatches = [ ];
+                    buildFeatures = [ ];
+                  }
+                );
+            };
+          });
+        in {
+          package = dx;
+          name = "dx";
+        });
     });
 
     wrapPackageBinPath =
