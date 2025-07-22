@@ -443,13 +443,14 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
       in
-        (with pkgs; [
-          alsa-lib-with-plugins.dev
-          libxkbcommon.dev
-          openssl.dev
-          udev.dev
-          wayland.dev
-        ]);
+        optionals (pkgs.stdenv.isLinux)
+          (with pkgs; [
+            alsa-lib-with-plugins.dev
+            libxkbcommon.dev
+            openssl.dev
+            udev.dev
+            wayland.dev
+          ]);
     };
   };
 }
