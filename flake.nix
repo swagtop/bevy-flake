@@ -35,10 +35,12 @@
       "aarch64-apple-darwin"
       "x86_64-apple-darwin"
     ];
-  in {
-    inherit systems targets; 
 
-    devShells = genAttrs systems (system:
+    eachSystem = genAttrs systems;
+  in {
+    inherit systems targets eachSystem; 
+
+    devShells = eachSystem (system:
     let
       pkgs = nixpkgs.legacyPackages.${system};
     in {
@@ -105,7 +107,7 @@
       };
     };
 
-    packages = genAttrs systems (system: rec {
+    packages = eachSystem (system: rec {
       default =
         let
           pkgs = import nixpkgs {
@@ -299,28 +301,34 @@
                 '';
               in
                 # Set up default bases for environments.
-                makeSwitchCases crossFlags (targetEnvironment // {
-                "x86_64-unknown-linux-gnu*" = ''
-                  export PKG_CONFIG_PATH="${
-                    makePkgconfigPath (headersFor "x86_64-linux")
-                  }"
-                '' + (targetEnvironment."x86_64-unknown-linux-gnu*");
-                "aarch64-unknown-linux-gnu*" = ''
-                  export PKG_CONFIG_PATH="${
-                    makePkgconfigPath (headersFor "aarch64-linux")
-                  }"
-                '' + (targetEnvironment."aarch64-unknown-linux-gnu*");
-                "x86_64-apple-darwin" =
-                  macosBase + (targetEnvironment."x86_64-apple-darwin");
-                "aarch64-apple-darwin" =
-                  macosBase + (targetEnvironment."aarch64-apple-darwin");
-                "wasm32-unknown-unknown" = ''
-                  RUSTFLAGS="${makeFlagString [
-                    "--cfg getrandom_backend=\\\"wasm_js\\\""
-                    "$RUSTFLAGS"
-                  ]}"
-                '' + (targetEnvironment.wasm32-unknown-unknown);
-              })}
+                makeSwitchCases crossFlags (
+                  nixpkgs.lib.zipAttrsWith (name: values:
+                    builtins.concatStringsSep "\n"
+                      (nixpkgs.lib.lists.reverseList values)
+                  ) [
+                    targetEnvironment
+                    ({
+                      "x86_64-unknown-linux-gnu*" = ''
+                        export PKG_CONFIG_PATH="${
+                          makePkgconfigPath (headersFor "x86_64-linux")
+                        }"
+                      '';
+                      "aarch64-unknown-linux-gnu*" = ''
+                        export PKG_CONFIG_PATH="${
+                          makePkgconfigPath (headersFor "aarch64-linux")
+                        }"
+                      '';
+                      "x86_64-apple-darwin" = macosBase;
+                      "aarch64-apple-darwin" = macosBase;
+                      "wasm32-unknown-unknown" = ''
+                        RUSTFLAGS="${makeFlagString [
+                          "--cfg getrandom_backend=\\\"wasm_js\\\""
+                          "$RUSTFLAGS"
+                        ]}"
+                      '';
+                    })
+                  ]
+                )}
           esac
 
           # Run cargo with relevant RUSTFLAGS.
