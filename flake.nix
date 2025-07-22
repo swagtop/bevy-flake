@@ -55,8 +55,7 @@
 
     config = {
       linux = {
-        # These options do not affect the build, only your dev environment.
-        runtime = {
+        devRuntime = {
           vulkan.enable = true;
           opengl.enable = true;
           wayland.enable = true && (builtins.getEnv "NO_WAYLAND" != "1");
@@ -97,8 +96,8 @@
       # Environment variables set for individual targets.
       # The target names, and bodies should use Bash syntax.
       targetEnvironment = {
-        "x86_64-unknown-linux-gnu*" = '''';
-        "aarch64-unknown-linux-gnu*" = '''';
+        "x86_64-unknown-linux-gnu" = '''';
+        "aarch64-unknown-linux-gnu" = '''';
         "x86_64-pc-windows-msvc" = '''';
         "aarch64-pc-windows-msvc" = '''';
         "x86_64-apple-darwin" = '''';
@@ -168,7 +167,6 @@
       in
         pkgs.writeShellScriptBin "${if alias != null then alias else name}" ''
           ${optionalString pkgs.stdenv.isLinux ''
-            export RUSTFLAGS="-Clinker-features=-lld $RUSTFLAGS"
             export PKG_CONFIG_PATH="${
               makePkgconfigPath ((headersFor system) ++ extra.headers)
             }"
@@ -195,6 +193,7 @@
           localFlags crossFlags;
         system = rust-toolchain.system;
         pkgs = nixpkgs.legacyPackages.${system};
+        devHeadersPath = makePkgconfigPath (headersFor system);
         runtime = makeRuntime config system extra;
         cargo-wrapper = pkgs.writeShellScriptBin "cargo" ''
           # Check if cargo is being run with '--target', or '--no-wrapper'.
@@ -234,16 +233,17 @@
               export XWIN_CRT_VERSION="${windows.crtVersion}"
           ''}
 
-          # Make sure first argument of 'cargo' is correct for target.
+          # Make sure right linker is used for target..
           case $BEVY_FLAKE_TARGET in
-            *-apple-darwin)
-              if [ "$MACOS_SDK_DIR" = "" ]; then
-                printf "%s%s\n" \
-                  "bevy-flake: Building to MacOS target without SDK, " \
-                  "compilation will most likely fail." 1>&2
+            *-unknown-linux-gnu*)
+              # Clean glibc version from BEVY_FLAKE_TARGET string.
+              if [[ "$BEVY_FLAKE_TARGET" =~ 'aarch64' ]]; then
+                BEVY_FLAKE_TARGET="aarch64-unknown-linux-gnu"
+              elif [[ "$BEVY_FLAKE_TARGET" =~ 'x86_64' ]]; then
+                BEVY_FLAKE_TARGET="x86_64-unknown-linux-gnu"
               fi
             ;&
-            *-unknown-linux-gnu*);&
+            *-apple-darwin);&
             wasm32-unknown-unknown)
               if [ "$1" = 'build' ]; then
                 echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
@@ -277,7 +277,7 @@
                   RUSTFLAGS="${makeRpath (runtime ++ extra.runtime)} $RUSTFLAGS"
               ''}
               export PKG_CONFIG_PATH="${
-                makePkgconfigPath ((headersFor system) ++ extra.headers)
+                devHeadersPath + ":" + (makePkgconfigPath extra.headers)
               }"
               RUSTFLAGS="${makeFlagString localFlags} $RUSTFLAGS"
             ;;
@@ -285,37 +285,50 @@
             # Unfold targetEnvironment set into cases.
             ${let
                 macosBase = ''
+                  if [ "$MACOS_SDK_DIR" = "" ]; then
+                    printf "%s%s\n" \
+                      "bevy-flake: Building to MacOS target without SDK, " \
+                      "compilation will most likely fail." 1>&2
+                  fi
                   FRAMEWORKS="$MACOS_SDK_DIR/System/Library/Frameworks";
                   export SDKROOT="$MACOS_SDK_DIR"
                   export COREAUDIO_SDK_PATH="$FRAMEWORKS/CoreAudio.framework/Headers"
-                  export BINDGEN_EXTRA_CLANG_ARGS="${makeFlagString [
-                    "--sysroot=$MACOS_SDK_DIR"
-                    "-F $FRAMEWORKS"
-                    "-I$MACOS_SDK_DIR/usr/include"
-                  ]}"
-                  RUSTFLAGS="${makeFlagString [
-                    "-L $MACOS_SDK_DIR/usr/lib"
-                    "-L framework=$FRAMEWORKS"
-                    "$RUSTFLAGS"
-                  ]}"
+                  export BINDGEN_EXTRA_CLANG_ARGS="${
+                    makeFlagString [
+                      "--sysroot=$MACOS_SDK_DIR"
+                      "-F $FRAMEWORKS"
+                      "-I$MACOS_SDK_DIR/usr/include"
+                    ]
+                  }"
+                  RUSTFLAGS="${
+                    makeFlagString [
+                      "-L $MACOS_SDK_DIR/usr/lib"
+                      "-L framework=$FRAMEWORKS"
+                      "$RUSTFLAGS"
+                    ]
+                  }"
                 '';
               in
                 # Set up default bases for environments.
                 makeSwitchCases crossFlags (
                   nixpkgs.lib.zipAttrsWith (name: values:
-                    builtins.concatStringsSep "\n"
-                      (nixpkgs.lib.lists.reverseList values)
+                    builtins.concatStringsSep "\n" values
                   ) [
-                    targetEnvironment
-                    ({
-                      "x86_64-unknown-linux-gnu*" = ''
+                    {
+                      "x86_64-unknown-linux-gnu" = ''
                         export PKG_CONFIG_PATH="${
-                          makePkgconfigPath (headersFor "x86_64-linux")
+                          if (system == "x86_64-linux") then
+                            devHeadersPath
+                          else
+                            makePkgconfigPath (headersFor "x86_64-linux")
                         }"
                       '';
-                      "aarch64-unknown-linux-gnu*" = ''
+                      "aarch64-unknown-linux-gnu" = ''
                         export PKG_CONFIG_PATH="${
-                          makePkgconfigPath (headersFor "aarch64-linux")
+                          if (system == "aarch64-linux") then
+                            devHeadersPath
+                          else
+                            makePkgconfigPath (headersFor "aarch64-linux")
                         }"
                       '';
                       "x86_64-apple-darwin" = macosBase;
@@ -326,7 +339,8 @@
                           "$RUSTFLAGS"
                         ]}"
                       '';
-                    })
+                    }
+                    targetEnvironment
                   ]
                 )}
           esac
@@ -353,15 +367,18 @@
           ];
           postBuild = ''
             wrapProgram $out/bin/cargo \
-              --prefix PATH : \
-                ${makeSearchPathLite "bin" (
-                    [ rust-toolchain pkgs.cargo-zigbuild pkgs.cargo-xwin ]
-                    ++ optionals (pkgs.stdenv.isLinux) [ pkgs.stdenv.cc ]
-                    ++ extra.build
+              --prefix PATH : \ ${
+                  makeSearchPathLite "bin" ([
+                    rust-toolchain
+                    pkgs.cargo-zigbuild
+                    pkgs.cargo-xwin
+                  ]
+                  ++ optionals (pkgs.stdenv.isLinux) [ pkgs.stdenv.cc ]
+                  ++ extra.build
                 )} \
-              --prefix PKG_CONFIG_PATH : \
-                ${makePkgconfigPath
-                  (optionals pkgs.stdenv.isDarwin [ pkgs.darwin.libiconv.dev ])
+              --prefix PKG_CONFIG_PATH : \ ${
+                 makePkgconfigPath
+                   (optionals pkgs.stdenv.isDarwin [ pkgs.darwin.libiconv.dev ])
                 }
           '';
         };
@@ -369,7 +386,7 @@
     lib = {
       makeSearchPathLite = path: list:
         "${builtins.concatStringsSep "/${path}:"
-            (map (package: package.outPath) list)}/${path}";
+          (map (package: package.outPath) list)}/${path}";
       
       # Make rustflag that sets rpath to searchpath of input packages.
       # This is what is used instead of LD_LIBRARY_PATH.
@@ -409,10 +426,10 @@
             libxkbcommon
             udev
           ])
-          ++ optionals linux.runtime.vulkan.enable [ pkgs.vulkan-loader ]
-          ++ optionals linux.runtime.opengl.enable [ pkgs.libGL ]
-          ++ optionals linux.runtime.wayland.enable [ pkgs.wayland ]
-          ++ optionals linux.runtime.xorg.enable
+          ++ optionals linux.devRuntime.vulkan.enable [ pkgs.vulkan-loader ]
+          ++ optionals linux.devRuntime.opengl.enable [ pkgs.libGL ]
+          ++ optionals linux.devRuntime.wayland.enable [ pkgs.wayland ]
+          ++ optionals linux.devRuntime.xorg.enable
             (with pkgs.xorg; [
               libX11
               libXcursor
