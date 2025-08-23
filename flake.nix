@@ -125,14 +125,16 @@
       # Does not currently work properly on MacOS systems.
       dioxus-cli = self.wrapPackageBinPath (
         let
+          version = "0.7.0-rc.0";
           dx = nixpkgs.legacyPackages.${system}.dioxus-cli.override (old: {
             rustPlatform = old.rustPlatform // {
               buildRustPackage = args:
                 old.rustPlatform.buildRustPackage (
                   args // {
+                    inherit version;
                     src = old.fetchCrate {
+                      inherit version;
                       pname = "dioxus-cli";
-                      version = "0.7.0-rc.0";
                       hash =
                         "sha256-xt/DJhcZz3TZLodfJTaFE2cBX3hedo+typHM5UezS94=";
                     };
