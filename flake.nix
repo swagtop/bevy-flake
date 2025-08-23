@@ -132,12 +132,12 @@
                   args // {
                     src = old.fetchCrate {
                       pname = "dioxus-cli";
-                      version = "0.7.0-alpha.3";
+                      version = "0.7.0-rc.0";
                       hash =
-                        "sha256-ibEniOqI0IW9ME+k/rCYUgOpYS16wpzPXFxgn0XAzQo=";
+                        "sha256-xt/DJhcZz3TZLodfJTaFE2cBX3hedo+typHM5UezS94=";
                     };
                     cargoHash =
-                      "sha256-t5umDmhU8IC5Rau5ssyW0bZnnBI7JxL8A5qlW4WEDOg=";
+                      "sha256-UVt4vZyh+w+8Z1Bp1emFOJqPXU1zzy7FzNcA5oQsM8U=";
                     cargoPatches = [ ];
                     buildFeatures = [ ];
                   }
