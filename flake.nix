@@ -13,8 +13,8 @@
   outputs = inputs@{ self, rust-overlay, nixpkgs, ... }:
   let
     inherit (nixpkgs.lib)
-      genAttrs optionalString optionals makeSearchPath mapAttrsToList
-      zipAttrsWith;
+      optionals optionalString makeSearchPath 
+      genAttrs mapAttrsToList zipAttrsWith;
 
     systems = [
       "x86_64-linux"
@@ -32,8 +32,11 @@
       "aarch64-apple-darwin"
       "x86_64-apple-darwin"
     ];
+
+    eachSystem = genAttrs systems;
+    concatWithSpace = list: builtins.concatStringsSep " " list;
   in {
-    inherit systems targets;
+    inherit systems targets eachSystem;
 
     config = {
       linux = { };
@@ -70,7 +73,7 @@
       targetSpecificEnvironment = { };
     };
 
-    devShells = genAttrs systems (system: {
+    devShells = eachSystem (system: {
       default =
       let
         pkgs = nixpkgs.legacyPackages.${system};
@@ -83,7 +86,7 @@
         };
     });
 
-    packages = genAttrs systems (system: {
+    packages = eachSystem (system: {
       default =
       let
         pkgs = import nixpkgs {
@@ -174,9 +177,9 @@
         case $BEVY_FLAKE_TARGET in
           "")
             export PKG_CONFIG_PATH="${headers}:$PKG_CONFIG_PATH"
-            RUSTFLAGS="${builtins.concatStringsSep " " [
+            RUSTFLAGS="${concatWithSpace [
               "-C link-args=-Wl,-rpath,${makeSearchPath "lib" runtime}"
-              "${builtins.concatStringsSep " " config.localDevRustflags}"
+              "${concatWithSpace config.localDevRustflags}"
               "$RUSTFLAGS"
             ]}"
           ;;
@@ -185,7 +188,7 @@
             "${target}")
             ${env}
             RUSTFLAGS="${
-              builtins.concatStringsSep " " config.crossPlatformRustflags
+              concatWithSpace config.crossPlatformRustflags
             } $RUSTFLAGS"
             ;;
           '') (zipAttrsWith (name: values:
@@ -291,14 +294,14 @@
         export SDKROOT="$MACOS_SDK_DIR"
         export COREAUDIO_SDK_PATH="$FRAMEWORKS/CoreAudio.framework/Headers"
         export BINDGEN_EXTRA_CLANG_ARGS="${
-          builtins.concatStringsSep " " [
+          concatWithSpace [
             "--sysroot=$MACOS_SDK_DIR"
             "-F $FRAMEWORKS"
             "-I$MACOS_SDK_DIR/usr/include"
           ]
         }"
         RUSTFLAGS="${
-          builtins.concatStringsSep " " [
+          concatWithSpace [
             "-L $MACOS_SDK_DIR/usr/lib"
             "-L framework=$FRAMEWORKS"
             "$RUSTFLAGS"
@@ -307,7 +310,7 @@
       '';
       "aarch64-apple-darwin" = x86_64-apple-darwin;
       "wasm32-unknown-unknown" = ''
-        RUSTFLAGS="${builtins.concatStringsSep " " [
+        RUSTFLAGS="${concatWithSpace [
           "--cfg getrandom_backend=\\\"wasm_js\\\""
           "$RUSTFLAGS"
         ]}"
