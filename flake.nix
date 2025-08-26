@@ -216,7 +216,8 @@
           "")
             export PKG_CONFIG_PATH="${headers}:$PKG_CONFIG_PATH"
             RUSTFLAGS="${concatWithSpace [
-              "-C link-args=-Wl,-rpath,${makeSearchPath "lib" runtime}"
+              (optionals (runtime != [])
+                "-C link-args=-Wl,-rpath,${makeSearchPath "lib" runtime}")
               "${concatWithSpace config.localDevRustflags}"
               "$RUSTFLAGS"
             ]}"
