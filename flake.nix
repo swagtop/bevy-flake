@@ -82,37 +82,68 @@
           name = "bevy-flake";
           packages = [
             self.packages.${system}.default
+            self.packages.${system}.dioxus-cli
           ];
         };
     });
 
-    packages = eachSystem (system: {
-      default =
+    packages = eachSystem (system:
       let
         pkgs = import nixpkgs {
           inherit system;
           overlays = [ (import rust-overlay) ];
         };
-      in
-        self.wrapToolchain {
-          runtime = with pkgs; [
-            alsa-lib-with-plugins
-            libxkbcommon
-            udev
-            vulkan-loader
-            libGL
-            wayland
-            xorg.libX11
-            xorg.libXcursor
-            xorg.libXi
-            xorg.libXrandr
-          ];
+        runtime = with pkgs; [
+          alsa-lib-with-plugins
+          libxkbcommon
+          udev
+          vulkan-loader
+          libGL
+          wayland
+          xorg.libX11
+          xorg.libXcursor
+          xorg.libXi
+          xorg.libXrandr
+        ];
+      in {
+        default = self.wrapToolchain {
+          inherit runtime;
           rust-toolchain = 
             pkgs.rust-bin.stable.latest.default.override (old: {
               inherit targets;
               extensions = [ "rust-src" "rust-analyzer" ];
             });
         };
+
+        dioxus-cli =
+        let
+          version = "0.7.0-rc.0";
+          dx = nixpkgs.legacyPackages.${system}.dioxus-cli.override (old: {
+            rustPlatform = old.rustPlatform // {
+              buildRustPackage = args:
+                old.rustPlatform.buildRustPackage (
+                  args // {
+                    inherit version;
+                    src = old.fetchCrate {
+                      inherit version;
+                      pname = "dioxus-cli";
+                      hash =
+                        "sha256-xt/DJhcZz3TZLodfJTaFE2cBX3hedo+typHM5UezS94=";
+                    };
+                    cargoHash =
+                      "sha256-UVt4vZyh+w+8Z1Bp1emFOJqPXU1zzy7FzNcA5oQsM8U=";
+                    cargoPatches = [ ];
+                    buildFeatures = [ ];
+                  }
+                );
+            };
+          });
+        in
+          self.wrapInEnvironmentAdapter {
+            inherit system runtime;
+            execPath = "${dx}/bin/dx";
+            name = "dx";
+          };
     });
 
     wrapInEnvironmentAdapter = {
@@ -197,7 +228,6 @@
               self.targetNeccesaryEnvironment
             ]
           ))}
-
         esac
 
         export RUSTFLAGS="$RUSTFLAGS"
@@ -225,7 +255,7 @@
         case $BEVY_FLAKE_TARGET in
           *-unknown-linux-gnu*);&
           *-apple-darwin);&
-          wasm32-unknown-unknown)
+          "wasm32-unknown-unknown")
             if [ "$1" = 'build' ]; then
               echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
               shift
@@ -255,7 +285,8 @@
         pname = "cargo";
         ignoreCollisions = true;
         paths = [ linker-adapter-wrapped ] ++ dependencies;
-        buildInputs = [ linker-adapter-wrapped pkgs.libclang.lib ]
+        buildInputs =
+          [ linker-adapter-wrapped pkgs.libclang.lib ]
           ++ dependencies
           ++ runtime;
       };
