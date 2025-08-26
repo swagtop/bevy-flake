@@ -94,18 +94,20 @@
           inherit system;
           overlays = [ (import rust-overlay) ];
         };
-        runtime = with pkgs; [
-          alsa-lib-with-plugins
-          libxkbcommon
-          udev
-          vulkan-loader
-          libGL
-          wayland
-          xorg.libX11
-          xorg.libXcursor
-          xorg.libXi
-          xorg.libXrandr
-        ];
+        runtime =
+          optionals (pkgs.stdenv.isLinux)
+            (with pkgs; [
+              alsa-lib-with-plugins
+              libxkbcommon
+              udev
+              vulkan-loader
+              libGL
+              wayland
+              xorg.libX11
+              xorg.libXcursor
+              xorg.libXi
+              xorg.libXrandr
+            ]);
       in rec {
         default = wrapped-rust-toolchain;
 
@@ -331,14 +333,14 @@
         export SDKROOT="$MACOS_SDK_DIR"
         export COREAUDIO_SDK_PATH="$FRAMEWORKS/CoreAudio.framework/Headers"
         export BINDGEN_EXTRA_CLANG_ARGS="${concatWithSpace [
-            "--sysroot=$MACOS_SDK_DIR"
-            "-F $FRAMEWORKS"
-            "-I$MACOS_SDK_DIR/usr/include"
+          "--sysroot=$MACOS_SDK_DIR"
+          "-F $FRAMEWORKS"
+          "-I$MACOS_SDK_DIR/usr/include"
         ]}"
         RUSTFLAGS="${concatWithSpace [
-            "-L $MACOS_SDK_DIR/usr/lib"
-            "-L framework=$FRAMEWORKS"
-            "$RUSTFLAGS"
+          "-L $MACOS_SDK_DIR/usr/lib"
+          "-L framework=$FRAMEWORKS"
+          "$RUSTFLAGS"
         ]}"
       '';
       "aarch64-apple-darwin" = x86_64-apple-darwin;
