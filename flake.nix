@@ -13,7 +13,8 @@
   outputs = inputs@{ self, rust-overlay, nixpkgs, ... }:
   let
     inherit (nixpkgs.lib)
-      optionals optionalString makeSearchPath 
+      optionals optionalString
+      makeSearchPath makeOverridable
       genAttrs mapAttrsToList zipAttrsWith;
 
     systems = [
@@ -63,7 +64,7 @@
       ];
 
       # Base environment for every target to build on.
-      environment = ''
+      sharedEnvironment = ''
         # Stops 'blake3' crate from messing up.
         export CARGO_FEATURE_PURE=1
       '';
@@ -81,8 +82,8 @@
         pkgs.mkShell {
           name = "bevy-flake";
           packages = [
-            self.packages.${system}.default
-            self.packages.${system}.dioxus-cli
+            self.packages.${system}.wrapped-rust-toolchain
+            self.packages.${system}.wrapped-dioxus-cli
           ];
         };
     });
@@ -105,9 +106,12 @@
           xorg.libXi
           xorg.libXrandr
         ];
-      in {
-        default = self.wrapToolchain {
+      in rec {
+        default = wrapped-rust-toolchain;
+
+        wrapped-rust-toolchain = makeOverridable self.wrapToolchain {
           inherit runtime;
+          inherit (self) config;
           rust-toolchain = 
             pkgs.rust-bin.stable.latest.default.override (old: {
               inherit targets;
@@ -115,7 +119,7 @@
             });
         };
 
-        dioxus-cli =
+        wrapped-dioxus-cli =
         let
           version = "0.7.0-rc.0";
           dx = nixpkgs.legacyPackages.${system}.dioxus-cli.override (old: {
@@ -139,8 +143,9 @@
             };
           });
         in
-          self.wrapInEnvironmentAdapter {
+          makeOverridable self.wrapInEnvironmentAdapter {
             inherit system runtime;
+            inherit (self) config;
             execPath = "${dx}/bin/dx";
             name = "dx";
           };
@@ -151,14 +156,14 @@
       execPath,
       name,
       runtime,
-      config ? self.config,
+      config,
     }:
     let
       pkgs = nixpkgs.legacyPackages.${system};
       headers = self.lib.headersFor system;
     in
       pkgs.writeShellScriptBin "${name}" ''
-         # Check if cargo is being run with '--target', or '--no-wrapper'.
+        # Check if cargo is being run with '--target', or '--no-wrapper'.
         ARG_COUNT=0
         for arg in "$@"; do
           ARG_COUNT=$((ARG_COUNT + 1))
@@ -203,7 +208,7 @@
             else "$PKG_CONFIG_PATH"
         }"
         export LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
-        ${config.environment}
+        ${config.sharedEnvironment}
 
         case $BEVY_FLAKE_TARGET in
           "")
@@ -216,7 +221,7 @@
           ;;
 
           ${builtins.concatStringsSep "\n" (mapAttrsToList (target: env: ''
-            "${target}")
+            ${target}*)
             ${env}
             RUSTFLAGS="${
               concatWithSpace config.crossPlatformRustflags
@@ -225,7 +230,7 @@
           '') (zipAttrsWith (name: values:
             builtins.concatStringsSep "\n" values) [
               config.targetSpecificEnvironment
-              self.targetNeccesaryEnvironment
+              self.baseTargetSpecificEnvironment
             ]
           ))}
         esac
@@ -239,7 +244,8 @@
     wrapToolchain = {
       rust-toolchain,
       runtime,
-      config ? self.config }:
+      config,
+    }:
     let
       pkgs = nixpkgs.legacyPackages.${rust-toolchain.system};
       dependencies = (with pkgs; [
@@ -286,7 +292,7 @@
         ignoreCollisions = true;
         paths = [ linker-adapter-wrapped ] ++ dependencies;
         buildInputs =
-          [ linker-adapter-wrapped pkgs.libclang.lib ]
+          [ linker-adapter linker-adapter-wrapped pkgs.libclang.lib ]
           ++ dependencies
           ++ runtime;
       };
@@ -308,7 +314,7 @@
         );
     };
 
-    targetNeccesaryEnvironment = rec {
+    baseTargetSpecificEnvironment = rec {
       "x86_64-unknown-linux-gnu" = ''
         export PKG_CONFIG_PATH="${self.lib.headersFor "x86_64-linux"}"
       '';
@@ -324,20 +330,16 @@
         FRAMEWORKS="$MACOS_SDK_DIR/System/Library/Frameworks";
         export SDKROOT="$MACOS_SDK_DIR"
         export COREAUDIO_SDK_PATH="$FRAMEWORKS/CoreAudio.framework/Headers"
-        export BINDGEN_EXTRA_CLANG_ARGS="${
-          concatWithSpace [
+        export BINDGEN_EXTRA_CLANG_ARGS="${concatWithSpace [
             "--sysroot=$MACOS_SDK_DIR"
             "-F $FRAMEWORKS"
             "-I$MACOS_SDK_DIR/usr/include"
-          ]
-        }"
-        RUSTFLAGS="${
-          concatWithSpace [
+        ]}"
+        RUSTFLAGS="${concatWithSpace [
             "-L $MACOS_SDK_DIR/usr/lib"
             "-L framework=$FRAMEWORKS"
             "$RUSTFLAGS"
-          ]
-        }"
+        ]}"
       '';
       "aarch64-apple-darwin" = x86_64-apple-darwin;
       "wasm32-unknown-unknown" = ''
