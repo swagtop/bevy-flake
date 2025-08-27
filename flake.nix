@@ -163,8 +163,13 @@
     let
       pkgs = nixpkgs.legacyPackages.${system};
       headers = self.lib.headersFor system;
-    in
-      pkgs.writeShellScriptBin "${name}" ''
+      dependencies = with pkgs; [
+        pkg-config
+        stdenv.cc
+      ];
+      environment-adapter = pkgs.writeShellScriptBin "${name}" ''
+        export PATH="${makeSearchPath "bin" dependencies}:$PATH"
+
         # Check if cargo is being run with '--target', or '--no-wrapper'.
         ARG_COUNT=0
         for arg in "$@"; do
@@ -243,6 +248,14 @@
 
         exec ${execPath} "$@"
       '';
+    in
+      pkgs.symlinkJoin {
+        name = "${name}-environment-adapter";
+        pname = "${name}";
+        ignoreCollisions = true;
+        paths = [ environment-adapter ] ++ dependencies;
+        buildInputs = [ environment-adapter pkgs.libclang.lib ] ++ dependencies;
+      };
 
     wrapToolchain = {
       rust-toolchain,
@@ -254,9 +267,7 @@
       dependencies = (with pkgs; [
         cargo-zigbuild
         cargo-xwin
-        pkg-config
         rust-toolchain
-        stdenv.cc
       ]);
       linker-adapter = pkgs.writeShellScriptBin "cargo" ''
         export PATH="${makeSearchPath "bin" dependencies}"
@@ -295,7 +306,7 @@
         ignoreCollisions = true;
         paths = [ linker-adapter-wrapped ] ++ dependencies;
         buildInputs =
-          [ linker-adapter linker-adapter-wrapped pkgs.libclang.lib ]
+          [ linker-adapter linker-adapter-wrapped ]
           ++ dependencies
           ++ runtime;
       };
