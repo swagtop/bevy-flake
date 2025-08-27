@@ -285,6 +285,7 @@
           ;;
         esac
 
+        ${optionalString (pkgs.stdenv.isDarwin) "ulimit -n 4096"}
         exec ${rust-toolchain}/bin/cargo "$@"
       '';
       linker-adapter-wrapped = 
