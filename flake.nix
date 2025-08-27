@@ -270,7 +270,7 @@
         rust-toolchain
       ]);
       linker-adapter = pkgs.writeShellScriptBin "cargo" ''
-        export PATH="${makeSearchPath "bin" dependencies}"
+        export PATH="${makeSearchPath "bin" dependencies}:$PATH"
 
         case $BEVY_FLAKE_TARGET in
           *-unknown-linux-gnu*);&
