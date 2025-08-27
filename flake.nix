@@ -158,6 +158,7 @@
       execPath,
       name,
       runtime,
+      extraDependencies ? [],
       config,
     }:
     let
@@ -167,6 +168,7 @@
         pkg-config
         stdenv.cc
       ]
+      ++ extraDependencies
       ++ optionals (pkgs.stdenv.isDarwin) [ pkgs.libiconv ];
       environment-adapter = pkgs.writeShellScriptBin "${name}" ''
         # Check if cargo is being run with '--target', or '--no-wrapper'.
@@ -257,6 +259,7 @@
     wrapToolchain = {
       rust-toolchain,
       runtime,
+      extraDependencies ? [],
       config,
     }:
     let
@@ -290,7 +293,7 @@
       '';
       linker-adapter-wrapped = 
         self.wrapInEnvironmentAdapter {
-          inherit runtime config;
+          inherit runtime config extraDependencies;
           system = rust-toolchain.system;
           execPath = "${linker-adapter}/bin/cargo";
           name = "cargo";
@@ -354,7 +357,7 @@
       "aarch64-apple-darwin" = x86_64-apple-darwin;
       "wasm32-unknown-unknown" = ''
         RUSTFLAGS="${concatWithSpace [
-          "--cfg getrandom_backend=\\\"wasm_js\\\""
+          ''--cfg getrandom_backend=\"wasm_js\"''
           "$RUSTFLAGS"
         ]}"
       '';
