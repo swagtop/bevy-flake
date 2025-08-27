@@ -216,6 +216,7 @@
             else "$PKG_CONFIG_PATH"
         }"
         export RUSTFLAGS="-L native=${pkgs.libiconv}/lib $RUSTFLAGS"
+        export LIBRARY_PATH="${pkgs.libiconv}/lib:$LIBRARY_PATH"
         export LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
         ${config.sharedEnvironment}
 
