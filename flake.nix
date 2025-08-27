@@ -166,7 +166,8 @@
       dependencies = with pkgs; [
         pkg-config
         stdenv.cc
-      ];
+      ]
+      ++ optionals (pkgs.stdenv.isDarwin) [ pkgs.libiconv ];
       environment-adapter = pkgs.writeShellScriptBin "${name}" ''
         export PATH="${makeSearchPath "bin" dependencies}:$PATH"
 
