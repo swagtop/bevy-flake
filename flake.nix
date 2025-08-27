@@ -169,8 +169,6 @@
       ]
       ++ optionals (pkgs.stdenv.isDarwin) [ pkgs.libiconv ];
       environment-adapter = pkgs.writeShellScriptBin "${name}" ''
-        export PATH="${makeSearchPath "bin" dependencies}:$PATH"
-
         # Check if cargo is being run with '--target', or '--no-wrapper'.
         ARG_COUNT=0
         for arg in "$@"; do
@@ -210,13 +208,9 @@
 
         # Base environment for all targets.
         export PKG_CONFIG_ALLOW_CROSS="1"
-        export PKG_CONFIG_PATH="${
-          if pkgs.stdenv.isDarwin
-            then "${pkgs.darwin.libiconv.dev}/lib/pkgconfig:$PKG_CONFIG_PATH"
-            else "$PKG_CONFIG_PATH"
-        }"
-        export RUSTFLAGS="-L native=${pkgs.libiconv}/lib $RUSTFLAGS"
-        export LIBRARY_PATH="${pkgs.libiconv}/lib:$LIBRARY_PATH"
+        export LIBRARY_PATH="${
+          optionalString (pkgs.stdenv.isDarwin) "${pkgs.libiconv}/lib"
+        }:$LIBRARY_PATH"
         export LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
         ${config.sharedEnvironment}
 
@@ -273,8 +267,6 @@
         rust-toolchain
       ]);
       linker-adapter = pkgs.writeShellScriptBin "cargo" ''
-        export PATH="${makeSearchPath "bin" dependencies}:$PATH"
-
         case $BEVY_FLAKE_TARGET in
           *-unknown-linux-gnu*);&
           *-apple-darwin);&
