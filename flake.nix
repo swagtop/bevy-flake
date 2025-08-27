@@ -215,6 +215,7 @@
             then "${pkgs.darwin.libiconv.dev}/lib/pkgconfig:$PKG_CONFIG_PATH"
             else "$PKG_CONFIG_PATH"
         }"
+        export RUSTFLAGS="-L native=${pkgs.libiconv}/lib $RUSTFLAGS"
         export LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
         ${config.sharedEnvironment}
 
