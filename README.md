@@ -78,7 +78,16 @@ index:
     };
   };
   outputs = { nixpkgs, bevy-flake, ... }: {
-    devShells = bevy-flake.devShells;
+    devShells = bevy-flake.eachSystem (system:
+      let
+        pkgs = import nixpkgs {};
+        bfPkgs = bevy-flake.packages.${system};
+      in pkgs.mkShell {
+        packages = [
+          bfPkgs.wrapped-rust-toolchain
+        ];
+      }  
+    );
   };
 }
 ```
