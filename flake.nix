@@ -39,10 +39,8 @@
       linux = { };
 
       windows = {
-        # If you don't want bevy-flake to manage the Windows SDK and CRT, set
-        # this to false.
+        # Set to false if you don't want bevy-flake to manage cargo-xwin.
         pin = true;
-        # Run `xwin list` to list latest versions (not cargo-xwin, but xwin).
         manifestVersion = "17";
         sdkVersion = "10.0.22621";
         crtVersion = "14.44.17.14";
@@ -157,7 +155,7 @@
       name,
       runtime,
       extraDependencies ? [],
-      config,
+      config ? self.config,
     }:
       let
         pkgs = nixpkgs.legacyPackages.${system};
@@ -180,7 +178,7 @@
               ;;
               "--no-wrapper")
                 # Remove '--no-wrapper' from args, then run unwrapped cargo.
-                set -- "''${@:1:$((ARG_COUNT-1))}" "''${@:$((ARG_COUNT+1))}"
+                set -- "''${@:1:$((ARG_COUNT - 1))}" "''${@:$((ARG_COUNT + 1))}"
                 exec ${execPath} "$@"
               ;;
             esac
@@ -260,7 +258,7 @@
       rust-toolchain,
       runtime,
       extraDependencies ? [],
-      config,
+      config ? self.config,
     }:
       let
         pkgs = nixpkgs.legacyPackages.${rust-toolchain.system};
@@ -330,11 +328,11 @@
     templates = {
       rust-overlay = {
         path = ./templates/rust-overlay;
-        description = "Using oxalica's rust overlay.";
+        description = "Get the rust toolchain through oxalica's rust-overlay.";
       };
       fenix = {
         path = ./templates/fenix;
-        description = "Using nix-community's rust overlay.";
+        description = "Get the rust toolchain through nix-community's fenix.";
       };
     };
 

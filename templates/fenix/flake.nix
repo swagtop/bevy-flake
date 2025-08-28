@@ -14,17 +14,22 @@
   outputs = { nixpkgs, bevy-flake, fenix, ... }: {
     devShells = bevy-flake.eachSystem (system:
       let
-        pkgs = import nixpkgs { inherit system; };
-        fx = fenix.packages.${system};
-        bf = bevy-flake.packages.${system};
-        wrapped-rust-toolchain = bf.wrapped-rust-toolchain.override {
-          rust-toolchain = fx.combine ([
-            fx.stable.toolchain
-          ]
-          ++ map (target: fx.targets.${target}.stable.rust-std)
-            bevy-flake.targets
-          );
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ (fenix.overlays.default) ];
         };
+        bf = bevy-flake.packages.${system};
+        wrapped-rust-toolchain =
+          let
+            channel = "stable";
+          in bf.wrapped-rust-toolchain.override {
+            rust-toolchain = pkgs.fenix.combine ([
+              pkgs.fenix.${channel}.toolchain
+            ]
+            ++ map (target: pkgs.fenix.targets.${target}.${channel}.rust-std)
+              bevy-flake.targets
+            );
+          };
       in {
         default = pkgs.mkShell {
           name = "bevy-flake-fenix";
