@@ -10,6 +10,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
+
   outputs = { nixpkgs, bevy-flake, rust-overlay, ... }: {
     devShells = bevy-flake.eachSystem (system:
       let
@@ -18,7 +19,7 @@
           overlays = [ (import rust-overlay ) ];
         };
         bf = bevy-flake.packages.${system};
-        rust-toolchain = bf.wrapped-rust-toolchain.override {
+        wrapped-rust-toolchain = bf.wrapped-rust-toolchain.override {
           rust-toolchain = pkgs.rust-bin.stable.latest.default.override (old: {
               inherit (bevy-flake) targets;
               extensions = [ "rust-src" "rust-analyzer" ];
@@ -28,7 +29,7 @@
         default = pkgs.mkShell {
           name = "bevy-flake-rust-overlay";
           packages = [
-            rust-toolchain
+            wrapped-rust-toolchain
           ];
         };
       }

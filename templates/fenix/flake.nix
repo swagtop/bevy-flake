@@ -10,13 +10,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
+
   outputs = { nixpkgs, bevy-flake, fenix, ... }: {
     devShells = bevy-flake.eachSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
         fx = fenix.packages.${system};
         bf = bevy-flake.packages.${system};
-        rust-toolchain = bf.wrapped-rust-toolchain.override {
+        wrapped-rust-toolchain = bf.wrapped-rust-toolchain.override {
           rust-toolchain = fx.combine ([
             fx.stable.toolchain
           ]
@@ -28,7 +29,7 @@
         default = pkgs.mkShell {
           name = "bevy-flake-fenix";
           packages = [
-            rust-toolchain
+            wrapped-rust-toolchain
           ];
         };
       }  
