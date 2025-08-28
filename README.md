@@ -5,6 +5,20 @@
 A simple and easy-to-edit Nix development flake, for painless [Bevy][bevy]
 development and cross-compilation on Linux, MacOS and NixOS.
 
+This flake provides the following:
+
+1) A preconfigured wrapper for `cargo`, with all dependencies and environment
+   variables needed for Bevy development on NixOS/Linux/MacOS preconfigured.
+
+2) Cross-compilation to the `*-pc-windows-msvc` targets, with
+   the ability to pin the version of the Windows SDK and CRT versions.
+
+3) Cross-compilation to the `*-apple-darwin` targets, when provided with MacOS
+   SDK.
+
+4) Cross-compilation to the `*-unknown-linux-gnu` targets, with non-store linked
+   dynamic loaders, allowing for non-Nix Linux systems to run the binaries.
+
 ```sh
 nix develop github:swagtop/bevy-flake/dev
 ```
