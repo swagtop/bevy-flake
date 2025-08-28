@@ -80,7 +80,7 @@ index:
   outputs = { nixpkgs, bevy-flake, ... }: {
     devShells = bevy-flake.eachSystem (system:
       let
-        pkgs = import nixpkgs {};
+        pkgs = import nixpkgs { inherit system; };
         bfPkgs = bevy-flake.packages.${system};
       in pkgs.mkShell {
         packages = [
