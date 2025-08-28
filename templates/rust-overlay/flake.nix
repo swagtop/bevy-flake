@@ -20,10 +20,10 @@
         };
         bf = bevy-flake.packages.${system};
         wrapped-rust-toolchain = bf.wrapped-rust-toolchain.override {
-          rust-toolchain = pkgs.rust-bin.stable.latest.default.override (old: {
-              inherit (bevy-flake) targets;
-              extensions = [ "rust-src" "rust-analyzer" ];
-            });
+          rust-toolchain = pkgs.rust-bin.stable.latest.default.override {
+            inherit (bevy-flake) targets;
+            extensions = [ "rust-src" "rust-analyzer" ];
+          };
         };
       in {
         default = pkgs.mkShell {
