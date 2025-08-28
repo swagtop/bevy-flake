@@ -4,13 +4,9 @@
 
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
-    rust-overlay = {
-      url = "github:oxalica/rust-overlay";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
   
-  outputs = inputs@{ self, rust-overlay, nixpkgs, ... }:
+  outputs = inputs@{ self, nixpkgs, ... }:
   let
     inherit (nixpkgs.lib)
       optionals optionalString
@@ -90,10 +86,7 @@
 
     packages = eachSystem (system:
       let
-        pkgs = import nixpkgs {
-          inherit system;
-          overlays = [ (import rust-overlay) ];
-        };
+        pkgs = nixpkgs.legacyPackages.${system};
         runtime =
           optionals (pkgs.stdenv.isLinux)
             (with pkgs; [
@@ -115,10 +108,15 @@
           inherit runtime;
           inherit (self) config;
           rust-toolchain = 
-            pkgs.rust-bin.stable.latest.default.override (old: {
-              inherit targets;
-              extensions = [ "rust-src" "rust-analyzer" ];
-            });
+            pkgs.symlinkJoin {
+              name = "bevy-flake-base-rust-toolchain";
+              pname = "cargo";
+              paths = [
+                pkgs.cargo
+                pkgs.rustc
+                pkgs.rust-analyzer
+              ];
+            };
         };
 
         wrapped-dioxus-cli =
@@ -325,6 +323,17 @@
               wayland.dev
             ])
         );
+    };
+
+    templates = {
+      rust-overlay = {
+        path = ./templates/rust-overlay.nix;
+        description = "Using oxalica's rust overlay.";
+      };
+      fenix = {
+        path = ./templates/fenix;
+        description = "Using nix-community's rust overlay.";
+      };
     };
 
     baseTargetSpecificEnvironment = rec {
