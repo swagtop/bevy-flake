@@ -3,7 +3,7 @@
     nixpkgs.url = "nixpkgs/nixos-unstable";
     bevy-flake = {
       url = "github:swagtop/bevy-flake/dev";
-      inpupts.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     fenix = {
       url = "github:nix-community/fenix";
@@ -24,10 +24,13 @@
             bevy-flake.targets
           );
         };
-      in pkgs.mkShell {
-        packages = [
-          rust-toolchain
-        ];
+      in {
+        default = pkgs.mkShell {
+          name = "bevy-flake-fenix";
+          packages = [
+            rust-toolchain
+          ];
+        };
       }  
     );
   };

@@ -3,7 +3,7 @@
     nixpkgs.url = "nixpkgs/nixos-unstable";
     bevy-flake = {
       url = "github:swagtop/bevy-flake/dev";
-      inpupts.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
@@ -24,11 +24,14 @@
               extensions = [ "rust-src" "rust-analyzer" ];
             });
         };
-      in pkgs.mkShell {
-        packages = [
-          rust-toolchain
-        ];
-      }  
+      in {
+        default = pkgs.mkShell {
+          name = "bevy-flake-rust-overlay";
+          packages = [
+            rust-toolchain
+          ];
+        };
+      }
     );
   };
 }
