@@ -327,7 +327,7 @@
 
     templates = {
       rust-overlay = {
-        path = ./templates/rust-overlay.nix;
+        path = ./templates/rust-overlay;
         description = "Using oxalica's rust overlay.";
       };
       fenix = {
