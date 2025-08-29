@@ -63,6 +63,7 @@ nix flake init --template github:swagtop/bevy-flake/dev#fenix
       (bevy-flake.packages.${system}.wrapped-toolchain.override {
         rust-toolchain = existing-rust-toolchain;
       })
+      # ...
     ];
   };
 ```
@@ -117,10 +118,10 @@ cargo build --target wasm32-unknown-unknown
                              │     ╔════════════target/═══════════╗     │
                              ├──────► debug/                      ║     │
                              ╰──────► release/                    ║     │
-                                  ║  x86_64-unknown-linux-gnu/ ◄────────┤
-                                  ║  x86_64-pc-windows-msvc/ ◄──────────┤
-                                  ║  aarch64-apple-darwin/ ◄────────────╯
-                                  ╚══════════════════════════════╝
+                                   ║  x86_64-unknown-linux-gnu/ ◄───────┤
+                                   ║  x86_64-pc-windows-msvc/ ◄─────────┤
+                                   ║  aarch64-apple-darwin/ ◄───────────╯
+                                   ╚══════════════════════════════╝
 
                     (1) Local Nix System:             (2) Other Systems:
 
