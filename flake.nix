@@ -93,7 +93,7 @@
           runtime = [ runtime-bundle ];
           rust-toolchain = 
             pkgs.symlinkJoin {
-              name = "bevy-flake-base-rust-toolchain";
+              name = "bevy-flake-default-toolchain";
               pname = "cargo";
               paths = [
                 pkgs.cargo
