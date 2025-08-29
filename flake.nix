@@ -89,7 +89,8 @@
         default = wrapped-rust-toolchain;
 
         wrapped-rust-toolchain = makeOverridable self.wrapToolchain {
-          inherit (self) runtime config;
+          inherit (self) config;
+          runtime = [ runtime-bundle ];
           rust-toolchain = 
             pkgs.symlinkJoin {
               name = "bevy-flake-base-rust-toolchain";
@@ -128,17 +129,36 @@
           in
             makeOverridable self.wrapInEnvironmentAdapter {
               inherit system;
-              inherit (self) runtime config;
+              inherit (self) config;
+              runtime = [ runtime-bundle ];
               execPath = "${dx}/bin/dx";
               name = "dx";
             };
+
+        runtime-bundle = pkgs.symlinkJoin {
+          name = "bevy-flake-runtime-bundle";
+          paths =
+            optionals (pkgs.stdenv.isLinux)
+              (with pkgs; [
+                alsa-lib-with-plugins
+                libxkbcommon
+                udev
+                vulkan-loader
+                libGL
+                wayland
+                xorg.libX11
+                xorg.libXcursor
+                xorg.libXi
+                xorg.libXrandr
+              ]);
+        };
     });
 
     wrapInEnvironmentAdapter = {
       system,
       execPath,
       name,
-      runtime ? self.runtime,
+      runtime ? [],
       config ? self.config
     }:
     let
@@ -146,7 +166,7 @@
     in
       pkgs.writeShellApplication {
         inherit name;
-        runtimeInputs = runtime.${system} ++ (with pkgs; [
+        runtimeInputs = runtime ++ (with pkgs; [
           pkg-config
           stdenv.cc
         ]);
@@ -200,9 +220,7 @@
               export PKG_CONFIG_PATH="${self.lib.headersFor system}:$PKG_CONFIG_PATH"
               RUSTFLAGS="${concatWithSpace [
                 (optionalString (runtime != [])
-                  "-C link-args=-Wl,-rpath,${
-                    makeSearchPath "lib" runtime.${system}
-                  }")
+                  "-C link-args=-Wl,-rpath,${makeSearchPath "lib" runtime}")
                 "${concatWithSpace config.localDevRustflags}"
                 "$RUSTFLAGS"
               ]}"
@@ -232,7 +250,7 @@
 
     wrapToolchain = {
       rust-toolchain,
-      runtime ? self.runtime,
+      runtime ? [],
       config ? self.config,
     }:
       let
@@ -240,7 +258,7 @@
         pkgs = nixpkgs.legacyPackages.${system};
         linker-adapter = pkgs.writeShellApplication {
           name = "cargo";
-          runtimeInputs = runtime.${system} ++ (with pkgs; [
+          runtimeInputs = runtime ++ (with pkgs; [
             cargo-zigbuild
             cargo-xwin
             rust-toolchain
@@ -271,7 +289,7 @@
         };
         linker-adapter-wrapped = 
           self.wrapInEnvironmentAdapter {
-            inherit runtime config;
+            inherit config runtime;
             system = rust-toolchain.system;
             execPath = "${linker-adapter}/bin/cargo";
             name = "cargo";
@@ -282,7 +300,6 @@
           pname = "cargo";
           ignoreCollisions = true;
           paths = [ linker-adapter-wrapped rust-toolchain ];
-          buildInputs = [ linker-adapter linker-adapter-wrapped ];
         };
 
     lib = {
@@ -348,24 +365,5 @@
         ]}"
       '';
     };
-
-    runtime = eachSystem (system:
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
-      in
-        optionals (pkgs.stdenv.isLinux)
-          (with pkgs; [
-            alsa-lib-with-plugins
-            libxkbcommon
-            udev
-            vulkan-loader
-            libGL
-            wayland
-            xorg.libX11
-            xorg.libXcursor
-            xorg.libXi
-            xorg.libXrandr
-          ])
-      );
   };
 }
