@@ -59,10 +59,7 @@ nix flake init --template github:swagtop/bevy-flake/dev#fenix
   pkgs.mkShell {
     # ...
     packages = [
-      # Use the `wrapToolchain` function to wrap your existing toolchain.
-      (bevy-flake.wrapToolchain { rust-toolchain = existing-rust-toolchain; })
-
-      # ... or override the `wrapped-rust-toolchain` package.
+      # Override the `wrapped-rust-toolchain` package.
       (bevy-flake.packages.${system}.wrapped-toolchain.override {
         rust-toolchain = existing-rust-toolchain;
       })
@@ -114,15 +111,15 @@ cargo build --target wasm32-unknown-unknown
 ```
                                              $ cargo
                                                  ▼
-                             ╭───1───╴ wrapped-rust-toolchain ╶───2───╮
-                             │                                        │
-                             │                                        │
-                             │    ╔════════════target/═══════════╗    │
-                             ├─────► debug/                      ║    │
-                             ╰─────► release/                    ║    │
-                                  ║  x86_64-unknown-linux-gnu/ ◄──────┤
-                                  ║  x86_64-pc-windows-msvc/ ◄────────┤
-                                  ║  aarch64-apple-darwin/ ◄──────────╯
+                             ╭────1───╴ wrapped-rust-toolchain ╶────2───╮
+                             │                                          │
+                             │                                          │
+                             │     ╔════════════target/═══════════╗     │
+                             ├──────► debug/                      ║     │
+                             ╰──────► release/                    ║     │
+                                  ║  x86_64-unknown-linux-gnu/ ◄────────┤
+                                  ║  x86_64-pc-windows-msvc/ ◄──────────┤
+                                  ║  aarch64-apple-darwin/ ◄────────────╯
                                   ╚══════════════════════════════╝
 
                     (1) Local Nix System:             (2) Other Systems:
