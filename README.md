@@ -3,9 +3,9 @@
 # bevy-flake
 
 A simple and easy-to-edit Nix development flake, for painless [Bevy][bevy]
-development and cross-compilation on Linux, MacOS and NixOS.
+development and cross-compilation from Linux, MacOS and NixOS.
 
-```bash
+```sh
 nix develop github:swagtop/bevy-flake/dev
 ```
 
@@ -28,12 +28,12 @@ cross-compilation.*
 
 First, navigate to your Bevy project root:
 
-```bash
+```sh
 cd /path/to/bevy/project
 ```
 #### Option 1: Use the template with your preferred rust toolchain provider.
 
-```bash
+```sh
 nix flake init --template github:swagtop/bevy-flake/dev#rust-overlay
 # ... or ...
 nix flake init --template github:swagtop/bevy-flake/dev#fenix
@@ -41,15 +41,35 @@ nix flake init --template github:swagtop/bevy-flake/dev#fenix
 
 #### Option 2: Wrap the toolchain used in your existing flake.
 
-```bash
-  
+```nix
+{
+  # Add bevy-flake to inputs.
+  inputs = {
+    # ...
+    bevy-flake = {
+      url = "github:swagtop/bevy-flake/dev";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+  # ...
+}
+```
+
+```nix
+  # Use the `wrapToolchain` function to wrap your existing toolchain.
+  pkgs.mkShell {
+    # ...
+    programs = [
+      (bevy-flake.wrapToolchain { rust-toolchain = existing-rust-toolchain; })
+    ];
+  };
 ```
 
 #### Option 3: Copy flake.
 
 Fetch `flake.nix` and `flake.lock`, and add them to the git index:
 
-```bash
+```sh
 wget https://github.com/swagtop/bevy-flake/raw/refs/heads/dev/flake.nix
 wget https://github.com/swagtop/bevy-flake/raw/refs/heads/dev/flake.lock
 git add flake.nix flake.lock
@@ -59,7 +79,7 @@ git add flake.nix flake.lock
 
 Enter the development shell, and then run or compile your Bevy program:
 
-```bash
+```sh
 nix develop
 
 # Your Nix system
@@ -89,16 +109,16 @@ cargo build --target wasm32-unknown-unknown
 ```
                                              $ cargo
                                                  ▼
-                             ╭──1────╴ wrapped-rust-toolchain ╶───2──╮
-                             │                                       │
-                             │                                       │
-                             │    ╔═══════════target/═══════════╗    │
-                             ├─────► debug/                     ║    │
-                             ╰─────► release/                   ║    │
-                                  ║  x86_64-unknown-linux-gnu/ ◄─────┤
-                                  ║  x86_64-pc-windows-msvc/ ◄───────┤
-                                  ║  aarch64-apple-darwin/ ◄─────────╯
-                                  ╚═════════════════════════════╝
+                             ╭───1───╴ wrapped-rust-toolchain ╶───2───╮
+                             │                                        │
+                             │                                        │
+                             │    ╔════════════target/═══════════╗    │
+                             ├─────► debug/                      ║    │
+                             ╰─────► release/                    ║    │
+                                  ║  x86_64-unknown-linux-gnu/ ◄──────┤
+                                  ║  x86_64-pc-windows-msvc/ ◄────────┤
+                                  ║  aarch64-apple-darwin/ ◄──────────╯
+                                  ╚══════════════════════════════╝
 
                     (1) Local Nix System:             (2) Other Systems:
 

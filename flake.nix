@@ -85,20 +85,7 @@
     packages = eachSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        runtime =
-          optionals (pkgs.stdenv.isLinux)
-            (with pkgs; [
-              alsa-lib-with-plugins
-              libxkbcommon
-              udev
-              vulkan-loader
-              libGL
-              wayland
-              xorg.libX11
-              xorg.libXcursor
-              xorg.libXi
-              xorg.libXrandr
-            ]);
+        runtime = self.runtime;
       in rec {
         default = wrapped-rust-toolchain;
 
@@ -153,8 +140,8 @@
       system,
       execPath,
       name,
-      runtime,
       extraDependencies ? [],
+      runtime ? self.runtime,
       config ? self.config,
     }:
       let
@@ -256,8 +243,8 @@
 
     wrapToolchain = {
       rust-toolchain,
-      runtime,
       extraDependencies ? [],
+      runtime ? self.runtime,
       config ? self.config,
     }:
       let
@@ -371,5 +358,24 @@
         ]}"
       '';
     };
+
+    runtime = eachSystem (system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+      in
+        optionals (pkgs.stdenv.isLinux)
+          (with pkgs; [
+            alsa-lib-with-plugins
+            libxkbcommon
+            udev
+            vulkan-loader
+            libGL
+            wayland
+            xorg.libX11
+            xorg.libXcursor
+            xorg.libXi
+            xorg.libXrandr
+          ])
+      );
   };
 }
