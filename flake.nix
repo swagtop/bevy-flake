@@ -85,13 +85,11 @@
     packages = eachSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        runtime = self.runtime;
       in rec {
         default = wrapped-rust-toolchain;
 
         wrapped-rust-toolchain = makeOverridable self.wrapToolchain {
-          inherit runtime;
-          inherit (self) config;
+          inherit (self) runtime config;
           rust-toolchain = 
             pkgs.symlinkJoin {
               name = "bevy-flake-base-rust-toolchain";
@@ -129,8 +127,8 @@
             });
           in
             makeOverridable self.wrapInEnvironmentAdapter {
-              inherit system runtime;
-              inherit (self) config;
+              inherit system;
+              inherit (self) runtime config;
               execPath = "${dx}/bin/dx";
               name = "dx";
             };
@@ -140,20 +138,22 @@
       system,
       execPath,
       name,
-      extraDependencies ? [],
       runtime ? self.runtime,
-      config ? self.config,
+      config ? self.config
     }:
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
-        headers = self.lib.headersFor system;
-        dependencies = with pkgs; [
+    let
+      pkgs = nixpkgs.legacyPackages.${system};
+    in
+      pkgs.writeShellApplication {
+        inherit name;
+        runtimeInputs = runtime.${system} ++ (with pkgs; [
+          libclang
+          libiconv
           pkg-config
           stdenv.cc
-        ]
-        ++ extraDependencies
-        ++ optionals (pkgs.stdenv.isDarwin) [ pkgs.libiconv ];
-        environment-adapter = pkgs.writeShellScriptBin "${name}" ''
+        ]);
+        bashOptions = [ "errexit" "pipefail" ];
+        text = ''
           # Check if cargo is being run with '--target', or '--no-wrapper'.
           ARG_COUNT=0
           for arg in "$@"; do
@@ -193,15 +193,13 @@
 
           # Base environment for all targets.
           export PKG_CONFIG_ALLOW_CROSS="1"
-          export LIBRARY_PATH="${
-            optionalString (pkgs.stdenv.isDarwin) "${pkgs.libiconv}/lib"
-          }:$LIBRARY_PATH"
           export LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
+          export LIBRARY_PATH="${pkgs.libiconv}/lib"
           ${config.sharedEnvironment}
 
           case $BEVY_FLAKE_TARGET in
             "")
-              export PKG_CONFIG_PATH="${headers}:$PKG_CONFIG_PATH"
+              export PKG_CONFIG_PATH="${self.lib.headersFor system}:$PKG_CONFIG_PATH"
               RUSTFLAGS="${concatWithSpace [
                 (optionalString (runtime != [])
                   "-C link-args=-Wl,-rpath,${
@@ -232,55 +230,50 @@
 
           exec ${execPath} "$@"
         '';
-      in
-        pkgs.symlinkJoin {
-          name = "${name}-environment-adapter";
-          pname = "${name}";
-          ignoreCollisions = true;
-          paths = [ environment-adapter ] ++ dependencies;
-          buildInputs =
-            [ environment-adapter pkgs.libclang.lib ]
-            ++ dependencies;
-        };
+      };
 
     wrapToolchain = {
       rust-toolchain,
-      extraDependencies ? [],
       runtime ? self.runtime,
       config ? self.config,
     }:
       let
-        pkgs = nixpkgs.legacyPackages.${rust-toolchain.system};
-        dependencies = (with pkgs; [
-          cargo-zigbuild
-          cargo-xwin
-          rust-toolchain
-        ]);
-        linker-adapter = pkgs.writeShellScriptBin "cargo" ''
-          case $BEVY_FLAKE_TARGET in
-            *-unknown-linux-gnu*);&
-            *-apple-darwin);&
-            "wasm32-unknown-unknown")
-              if [ "$1" = 'build' ]; then
-                echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
-                shift
-                set -- "zigbuild" "$@"
-              fi
-            ;;
-            *-pc-windows-msvc)
-              if [ "$1" = 'build' ] || [ "$1" = 'run' ]; then
-                echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
-                set -- "xwin" "$@"
-              fi
-            ;;
-          esac
+        system = rust-toolchain.system;
+        pkgs = nixpkgs.legacyPackages.${system};
+        linker-adapter = pkgs.writeShellApplication {
+          name = "cargo";
+          runtimeInputs = runtime.${system} ++ (with pkgs; [
+            cargo-zigbuild
+            cargo-xwin
+            rust-toolchain
+          ]);
+          bashOptions = [ "errexit" "pipefail" ];
+          text =  ''
+            case $BEVY_FLAKE_TARGET in
+              *-unknown-linux-gnu*);&
+              *-apple-darwin);&
+              "wasm32-unknown-unknown")
+                if [ "$1" = 'build' ]; then
+                  echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
+                  shift
+                  set -- "zigbuild" "$@"
+                fi
+              ;;
+              *-pc-windows-msvc)
+                if [ "$1" = 'build' ] || [ "$1" = 'run' ]; then
+                  echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
+                  set -- "xwin" "$@"
+                fi
+              ;;
+            esac
 
-          ${optionalString (pkgs.stdenv.isDarwin) "ulimit -n 4096"}
-          exec ${rust-toolchain}/bin/cargo "$@"
-        '';
+            ${optionalString (pkgs.stdenv.isDarwin) "ulimit -n 4096"}
+            exec ${rust-toolchain}/bin/cargo "$@"
+          '';
+        };
         linker-adapter-wrapped = 
           self.wrapInEnvironmentAdapter {
-            inherit runtime config extraDependencies;
+            inherit runtime config;
             system = rust-toolchain.system;
             execPath = "${linker-adapter}/bin/cargo";
             name = "cargo";
@@ -290,11 +283,8 @@
           name = "bevy-flake-wrapped-toolchain";
           pname = "cargo";
           ignoreCollisions = true;
-          paths = [ linker-adapter-wrapped ] ++ dependencies;
-          buildInputs =
-            [ linker-adapter linker-adapter-wrapped ]
-            ++ dependencies
-            ++ runtime.${pkgs.system};
+          paths = [ linker-adapter-wrapped rust-toolchain ];
+          buildInputs = [ linker-adapter linker-adapter-wrapped ];
         };
 
     lib = {
