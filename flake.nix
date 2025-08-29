@@ -147,8 +147,6 @@
       pkgs.writeShellApplication {
         inherit name;
         runtimeInputs = runtime.${system} ++ (with pkgs; [
-          libclang
-          libiconv
           pkg-config
           stdenv.cc
         ]);
