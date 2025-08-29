@@ -5,21 +5,7 @@
 A simple and easy-to-edit Nix development flake, for painless [Bevy][bevy]
 development and cross-compilation on Linux, MacOS and NixOS.
 
-This flake provides the following:
-
-1) A preconfigured wrapper for `cargo`, with all dependencies and environment
-   variables needed for Bevy development on NixOS/Linux/MacOS preconfigured.
-
-2) Cross-compilation to the `*-pc-windows-msvc` targets, with
-   the ability to pin the version of the Windows SDK and CRT versions.
-
-3) Cross-compilation to the `*-apple-darwin` targets, when provided with MacOS
-   SDK.
-
-4) Cross-compilation to the `*-unknown-linux-gnu` targets, with non-store linked
-   dynamic loaders, allowing for non-Nix Linux systems to run the binaries.
-
-```sh
+```bash
 nix develop github:swagtop/bevy-flake/dev
 ```
 
@@ -42,12 +28,12 @@ cross-compilation.*
 
 First, navigate to your Bevy project root:
 
-```sh
+```bash
 cd /path/to/bevy/project
 ```
 #### Option 1: Use the template with your preferred rust toolchain provider.
 
-```sh
+```bash
 nix flake init --template github:swagtop/bevy-flake/dev#rust-overlay
 # ... or ...
 nix flake init --template github:swagtop/bevy-flake/dev#fenix
@@ -55,7 +41,7 @@ nix flake init --template github:swagtop/bevy-flake/dev#fenix
 
 #### Option 2: Wrap the toolchain used in your existing flake.
 
-```sh
+```bash
   
 ```
 
@@ -63,23 +49,17 @@ nix flake init --template github:swagtop/bevy-flake/dev#fenix
 
 Fetch `flake.nix` and `flake.lock`, and add them to the git index:
 
-```sh
+```bash
 wget https://github.com/swagtop/bevy-flake/raw/refs/heads/dev/flake.nix
 wget https://github.com/swagtop/bevy-flake/raw/refs/heads/dev/flake.lock
 git add flake.nix flake.lock
 ```
 
-```sh
-git add flake.nix
-```
-
-Remember to add the generated `flake.lock` file to your git index.
-
 ## How to use
 
 Enter the development shell, and then run or compile your Bevy program:
 
-```sh
+```bash
 nix develop
 
 # Your Nix system
@@ -109,7 +89,7 @@ cargo build --target wasm32-unknown-unknown
 ```
                                              $ cargo
                                                  ▼
-                             ╭──1───╴ wrapped-cargo-toolchain ╶───2──╮
+                             ╭──1────╴ wrapped-rust-toolchain ╶───2──╮
                              │                                       │
                              │                                       │
                              │    ╔═══════════target/═══════════╗    │
