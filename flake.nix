@@ -204,7 +204,9 @@
               export PKG_CONFIG_PATH="${headers}:$PKG_CONFIG_PATH"
               RUSTFLAGS="${concatWithSpace [
                 (optionalString (runtime != [])
-                  "-C link-args=-Wl,-rpath,${makeSearchPath "lib" runtime}")
+                  "-C link-args=-Wl,-rpath,${
+                    makeSearchPath "lib" runtime.${system}
+                  }")
                 "${concatWithSpace config.localDevRustflags}"
                 "$RUSTFLAGS"
               ]}"
@@ -292,7 +294,7 @@
           buildInputs =
             [ linker-adapter linker-adapter-wrapped ]
             ++ dependencies
-            ++ runtime;
+            ++ runtime.${pkgs.system};
         };
 
     lib = {

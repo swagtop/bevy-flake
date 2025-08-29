@@ -31,7 +31,7 @@ First, navigate to your Bevy project root:
 ```sh
 cd /path/to/bevy/project
 ```
-#### Option 1: Use the template with your preferred rust toolchain provider.
+#### Option 1: Use the template with your preferred rust toolchain provider
 
 ```sh
 nix flake init --template github:swagtop/bevy-flake/dev#rust-overlay
@@ -39,7 +39,7 @@ nix flake init --template github:swagtop/bevy-flake/dev#rust-overlay
 nix flake init --template github:swagtop/bevy-flake/dev#fenix
 ```
 
-#### Option 2: Wrap the toolchain used in your existing flake.
+#### Option 2: Wrap the toolchain used in your existing flake
 
 ```nix
 {
@@ -56,16 +56,21 @@ nix flake init --template github:swagtop/bevy-flake/dev#fenix
 ```
 
 ```nix
-  # Use the `wrapToolchain` function to wrap your existing toolchain.
   pkgs.mkShell {
     # ...
-    programs = [
+    packages = [
+      # Use the `wrapToolchain` function to wrap your existing toolchain.
       (bevy-flake.wrapToolchain { rust-toolchain = existing-rust-toolchain; })
+
+      # ... or override the `wrapped-rust-toolchain` package.
+      (bevy-flake.packages.${system}.wrapped-toolchain.override {
+        rust-toolchain = existing-rust-toolchain;
+      })
     ];
   };
 ```
 
-#### Option 3: Copy flake.
+#### Option 3: Copy flake
 
 Fetch `flake.nix` and `flake.lock`, and add them to the git index:
 
