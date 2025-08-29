@@ -45,8 +45,21 @@ First, navigate to your Bevy project root:
 ```sh
 cd /path/to/bevy/project
 ```
+#### Option 1: Use the template with your preferred rust toolchain provider.
 
-#### Option 1: Copy flake (Dead easy, but inflexible. No `bevy-flake` updates)
+```sh
+nix flake init --template github:swagtop/bevy-flake/dev#rust-overlay
+# ... or ...
+nix flake init --template github:swagtop/bevy-flake/dev#fenix
+```
+
+#### Option 2: Wrap the toolchain used in your existing flake.
+
+```sh
+  
+```
+
+#### Option 3: Copy flake.
 
 Fetch `flake.nix` and `flake.lock`, and add them to the git index:
 
@@ -54,42 +67,6 @@ Fetch `flake.nix` and `flake.lock`, and add them to the git index:
 wget https://github.com/swagtop/bevy-flake/raw/refs/heads/dev/flake.nix
 wget https://github.com/swagtop/bevy-flake/raw/refs/heads/dev/flake.lock
 git add flake.nix flake.lock
-```
-
-#### Option 2: Reference flake (Very flexible. Get `bevy-flake` updates)
-
-Create the file `flake.nix` with the following contents, and add it to the git
-index:
-
-```nix
-{
-  inputs = {
-    nixpkgs.url = "nixpkgs/nixos-unstable";
-    rust-overlay = {
-      url = "github:oxalica/rust-overlay";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    bevy-flake = {
-      url = "github:swagtop/bevy-flake/dev";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        rust-overlay.follows = "rust-overlay";
-      };
-    };
-  };
-  outputs = { nixpkgs, bevy-flake, ... }: {
-    devShells = bevy-flake.eachSystem (system:
-      let
-        pkgs = import nixpkgs { inherit system; };
-        bfPkgs = bevy-flake.packages.${system};
-      in pkgs.mkShell {
-        packages = [
-          bfPkgs.wrapped-rust-toolchain
-        ];
-      }  
-    );
-  };
-}
 ```
 
 ```sh
@@ -132,7 +109,7 @@ cargo build --target wasm32-unknown-unknown
 ```
                                              $ cargo
                                                  ▼
-                             ╭─────1─────╴ cargo-wrapper ╶─────2─────╮
+                             ╭──1───╴ wrapped-cargo-toolchain ╶───2──╮
                              │                                       │
                              │                                       │
                              │    ╔═══════════target/═══════════╗    │
