@@ -9,8 +9,8 @@
   outputs = inputs@{ self, nixpkgs, ... }:
   let
     inherit (nixpkgs.lib)
-      optionals optionalString
-      makeSearchPath makeOverridable
+      optionals optionalString 
+      makeSearchPath makeOverridable recursiveUpdate
       genAttrs mapAttrsToList zipAttrsWith;
 
     systems = [
@@ -317,6 +317,8 @@
                 wayland.dev
               ])
           );
+
+      editConfig = changes: recursiveUpdate self.config changes;
     };
 
     templates = {
