@@ -112,7 +112,7 @@ cargo build --target wasm32-unknown-unknown
 ```
                                              $ cargo
                                                  ▼
-                             ╭────1───╴ wrapped-rust-toolchain ╶────2───╮
+                             ╭────1───╴ wrapped-rust-toolchain ╶───2────╮
                              │                                          │
                              │                                          │
                              │     ╔════════════target/═══════════╗     │
