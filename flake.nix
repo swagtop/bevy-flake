@@ -318,7 +318,7 @@
               ])
           );
 
-      editConfig = changes: recursiveUpdate self.config changes;
+      editDefaultConfig = changes: recursiveUpdate self.config changes;
     };
 
     templates = {
