@@ -5,14 +5,14 @@
 A flake for painless evelopment and distribution of [Bevy][bevy] programs from
 NixOS/MacOS systems, with the following features:
 
-1) Develop on NixOS/MacOS without any extra configuration/libraries needed.
+* Develop on NixOS/MacOS without any extra configuration/libraries needed.
 
-2) Compile for Linux platforms, with binaries that do not need to be patched to
-   work on non-Nix systems.
+* Compile for Linux targets, with binaries that do not need to be patched to
+  work on non-Nix systems.
 
-3) Compile for MacOS platforms from NixOS, if you provide a MacOS SDK.
+* Compile for MacOS targets from NixOS, if you provide a MacOS SDK.
 
-4) Compile for Windows-MSVC platforms, with the ability to pin the SDK and CRT
+* Compile for Windows-MSVC targets, with the ability to pin the SDK and CRT
    versions.
 
 [bevy]: https://github.com/bevyengine/bevy
