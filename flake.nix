@@ -81,10 +81,12 @@
             pkgs.symlinkJoin {
               name = "bevy-flake-default-toolchain";
               pname = "cargo";
-              paths = [
-                pkgs.cargo
-                pkgs.rustc
-                pkgs.rust-analyzer
+              paths = with pkgs; [
+                cargo
+                clippy
+                rust-analyzer
+                rustc
+                rustfmt
               ];
             };
         };
