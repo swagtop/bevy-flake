@@ -2,18 +2,18 @@
 
 # bevy-flake
 
-A flake for painless evelopment and distribution of [Bevy][bevy] programs from
+A flake for painless development and distribution of [Bevy][bevy] programs from
 NixOS/MacOS systems, with the following features:
 
-* Develop on NixOS/MacOS without any extra configuration/libraries needed.
+* _Develop on NixOS/MacOS without any extra configuration/libraries needed._
 
-* Compile for Linux targets, with binaries that do not need to be patched to
-  work on non-Nix systems.
+* _Cross-compile for Linux targets, with binaries that do not need to be patched
+  to work on non-Nix systems._
 
-* Compile for MacOS targets from NixOS, if you provide a MacOS SDK.
+* _Cross-compile for MacOS targets from NixOS, if you provide a MacOS SDK._
 
-* Compile for Windows-MSVC targets, with the ability to pin the SDK and CRT
-   versions.
+* _Cross-compile for Windows-MSVC targets, with the ability to pin the SDK and
+  CRT versions._
 
 [bevy]: https://github.com/bevyengine/bevy
 
