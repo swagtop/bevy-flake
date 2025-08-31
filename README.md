@@ -5,18 +5,20 @@
 A simple and easy-to-edit Nix development flake, for painless [Bevy][bevy]
 development and cross-compilation from Linux, MacOS and NixOS.
 
-```sh
-nix develop github:swagtop/bevy-flake/dev
-```
+A flake for painless evelopment and distribution of [Bevy][bevy] programs from
+NixOS/MacOS systems, with the following features:
 
-*Using [rust-overlay][overlay] for the rust toolchain,
-and [cargo-zigbuild][zigbuild], [cargo-xwin][xwin] to assist in
-cross-compilation.*
+1) Develop on NixOS/MacOS without any extra configuration/libraries needed.
+
+2) Compile for Linux platforms, with binaries that do not need to be patched to
+   work on non-Nix systems.
+
+3) Compile for MacOS platforms from NixOS, if you provide a MacOS SDK.
+
+4) Compile for Windows-MSVC platforms, with the ability to pin the SDK and CRT
+   versions.
 
 [bevy]: https://github.com/bevyengine/bevy
-[overlay]: https://github.com/oxalica/rust-overlay/
-[zigbuild]: https://github.com/rust-cross/cargo-zigbuild
-[xwin]: https://github.com/rust-cross/cargo-xwin
 
 > [!NOTE]
 > By fetching the Windows SDK and CRT, and compiling to the `*-pc-windows-msvc`
