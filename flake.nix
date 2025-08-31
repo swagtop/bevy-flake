@@ -68,20 +68,6 @@
       targetSpecificEnvironment = { };
     };
 
-    devShells = eachSystem (system: {
-      default =
-        let
-          pkgs = nixpkgs.legacyPackages.${system};
-        in
-          pkgs.mkShell {
-            name = "bevy-flake";
-            packages = [
-              self.packages.${system}.wrapped-rust-toolchain
-              self.packages.${system}.wrapped-dioxus-cli
-            ];
-          };
-    });
-
     packages = eachSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
@@ -154,11 +140,25 @@
         };
     });
 
+    devShells = eachSystem (system: {
+      default =
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+          pkgs.mkShell {
+            name = "bevy-flake";
+            packages = [
+              self.packages.${system}.wrapped-rust-toolchain
+              self.packages.${system}.wrapped-dioxus-cli
+            ];
+          };
+    });
+
     wrapInEnvironmentAdapter = {
       system,
       execPath,
       name,
-      runtime ? [],
+      runtime,
       config ? self.config
     }:
     let
@@ -217,7 +217,10 @@
 
           case $BEVY_FLAKE_TARGET in
             "")
-              export PKG_CONFIG_PATH="${self.lib.headersFor system}:$PKG_CONFIG_PATH"
+              export PKG_CONFIG_PATH="${
+                makeSearchPath "lib/pkgconfig"
+                  (self.lib.headersFor system)
+              }:$PKG_CONFIG_PATH"
               RUSTFLAGS="${concatWithSpace [
                 (optionalString (runtime != [])
                   "-C link-args=-Wl,-rpath,${makeSearchPath "lib" runtime}")
@@ -226,19 +229,60 @@
               ]}"
             ;;
 
-            ${builtins.concatStringsSep "\n" (mapAttrsToList (target: env: ''
-              ${target}*)
-              ${env}
-              RUSTFLAGS="${
-                concatWithSpace config.crossPlatformRustflags
-              } $RUSTFLAGS"
-              ;;
-            '') (zipAttrsWith (name: values:
-              builtins.concatStringsSep "\n" values) [
-                config.targetSpecificEnvironment
-                self.baseTargetSpecificEnvironment
-              ]
-            ))}
+          ${builtins.concatStringsSep "\n" (mapAttrsToList (target: env: ''
+            ${target}*)
+            ${env}
+            RUSTFLAGS="${
+              concatWithSpace config.crossPlatformRustflags
+            } $RUSTFLAGS"
+            ;;
+          '') (zipAttrsWith (name: values:
+            builtins.concatStringsSep "\n" values) [
+              config.targetSpecificEnvironment
+              (rec {
+                "x86_64-unknown-linux-gnu" = ''
+                  export PKG_CONFIG_PATH="${
+                    makeSearchPath "lib/pkgconfig"
+                      (self.lib.headersFor "x86_64-linux")
+                  }:$PKG_CONFIG_PATH"
+                '';
+                "aarch64-unknown-linux-gnu" = ''
+                  export PKG_CONFIG_PATH="${
+                    makeSearchPath "lib/pkgconfig"
+                      (self.lib.headersFor "aarch64-linux")
+                  }:$PKG_CONFIG_THEME"
+                '';
+                "x86_64-apple-darwin" = ''
+                  if [ "$MACOS_SDK_DIR" = "" ]; then
+                    printf "%s%s\n" \
+                      "bevy-flake: Building to MacOS target without SDK, " \
+                      "compilation will most likely fail." 1>&2
+                  fi
+                  FRAMEWORKS="$MACOS_SDK_DIR/System/Library/Frameworks";
+                  export SDKROOT="$MACOS_SDK_DIR"
+                  export COREAUDIO_SDK_PATH="$FRAMEWORKS/CoreAudio.framework/Headers"
+                  export BINDGEN_EXTRA_CLANG_ARGS="${concatWithSpace [
+                    "--sysroot=$MACOS_SDK_DIR"
+                    "-F $FRAMEWORKS"
+                    "-I$MACOS_SDK_DIR/usr/include"
+                    "$BINDGEN_EXTRA_CLANG_ARGS"
+                  ]}"
+                  RUSTFLAGS="${concatWithSpace [
+                    "-L $MACOS_SDK_DIR/usr/lib"
+                    "-L framework=$FRAMEWORKS"
+                    "$RUSTFLAGS"
+                  ]}"
+                '';
+                "aarch64-apple-darwin" = x86_64-apple-darwin;
+                "wasm32-unknown-unknown" = ''
+                  RUSTFLAGS="${concatWithSpace [
+                    ''--cfg getrandom_backend=\"wasm_js\"''
+                    "$RUSTFLAGS"
+                  ]}"
+                '';
+              })
+            ]
+          ))}
           esac
 
           export RUSTFLAGS="$RUSTFLAGS"
@@ -250,7 +294,7 @@
 
     wrapToolchain = {
       rust-toolchain,
-      runtime ? [],
+      runtime,
       config ? self.config,
     }:
       let
@@ -307,16 +351,14 @@
         let
           pkgs = nixpkgs.legacyPackages.${system};
         in
-          makeSearchPath "lib/pkgconfig" (
-            optionals (pkgs.stdenv.isLinux)
-              (with pkgs; [
-                alsa-lib-with-plugins.dev
-                libxkbcommon.dev
-                openssl.dev
-                udev.dev
-                wayland.dev
-              ])
-          );
+          optionals (pkgs.stdenv.isLinux)
+            (with pkgs; [
+              alsa-lib-with-plugins.dev
+              libxkbcommon.dev
+              openssl.dev
+              udev.dev
+              wayland.dev
+            ]);
 
       editDefaultConfig = changes: recursiveUpdate self.config changes;
     };
@@ -330,42 +372,6 @@
         path = ./templates/fenix;
         description = "Get the rust toolchain through nix-community's fenix.";
       };
-    };
-
-    baseTargetSpecificEnvironment = rec {
-      "x86_64-unknown-linux-gnu" = ''
-        export PKG_CONFIG_PATH="${self.lib.headersFor "x86_64-linux"}"
-      '';
-      "aarch64-unknown-linux-gnu" = ''
-        export PKG_CONFIG_PATH="${self.lib.headersFor "aarch64-linux"}"
-      '';
-      "x86_64-apple-darwin" = ''
-        if [ "$MACOS_SDK_DIR" = "" ]; then
-          printf "%s%s\n" \
-            "bevy-flake: Building to MacOS target without SDK, " \
-            "compilation will most likely fail." 1>&2
-        fi
-        FRAMEWORKS="$MACOS_SDK_DIR/System/Library/Frameworks";
-        export SDKROOT="$MACOS_SDK_DIR"
-        export COREAUDIO_SDK_PATH="$FRAMEWORKS/CoreAudio.framework/Headers"
-        export BINDGEN_EXTRA_CLANG_ARGS="${concatWithSpace [
-          "--sysroot=$MACOS_SDK_DIR"
-          "-F $FRAMEWORKS"
-          "-I$MACOS_SDK_DIR/usr/include"
-        ]}"
-        RUSTFLAGS="${concatWithSpace [
-          "-L $MACOS_SDK_DIR/usr/lib"
-          "-L framework=$FRAMEWORKS"
-          "$RUSTFLAGS"
-        ]}"
-      '';
-      "aarch64-apple-darwin" = x86_64-apple-darwin;
-      "wasm32-unknown-unknown" = ''
-        RUSTFLAGS="${concatWithSpace [
-          ''--cfg getrandom_backend=\"wasm_js\"''
-          "$RUSTFLAGS"
-        ]}"
-      '';
     };
   };
 }
