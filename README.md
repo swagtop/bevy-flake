@@ -5,12 +5,12 @@
 A flake for painless development and distribution of [Bevy][bevy] programs from
 NixOS/MacOS systems, with the following features:
 
-- _Develop on NixOS/MacOS without any extra configuration/libraries needed._
-- _Cross-compile for Linux targets, with binaries that do not need to be patched
-  to work on non-Nix systems._
-- _Cross-compile for MacOS targets from NixOS, if you provide a MacOS SDK._
-- _Cross-compile for Windows-MSVC targets, with the ability to pin the SDK and
-  CRT versions._
+ 1. Develop on NixOS/MacOS without any extra configuration/libraries needed.
+ 2. Cross-compile for Linux targets, with binaries that do not need to be patched
+    to work on non-Nix systems.
+ 3. Cross-compile for MacOS targets from NixOS, if you provide a MacOS SDK.
+ 4. Cross-compile for Windows-MSVC targets, with the ability to pin the SDK and
+   CRT versions.
 
 [bevy]: https://github.com/bevyengine/bevy
 
