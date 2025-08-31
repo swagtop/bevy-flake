@@ -2,9 +2,6 @@
 
 # bevy-flake
 
-A simple and easy-to-edit Nix development flake, for painless [Bevy][bevy]
-development and cross-compilation from Linux, MacOS and NixOS.
-
 A flake for painless evelopment and distribution of [Bevy][bevy] programs from
 NixOS/MacOS systems, with the following features:
 
