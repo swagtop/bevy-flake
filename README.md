@@ -106,18 +106,18 @@ cargo build --target wasm32-unknown-unknown
 > Nix systems as possible.
 
 ```
-                                             $ cargo
-                                                 ▼
-                             ╭────1───╴ wrapped-rust-toolchain ╶───2────╮
-                             │                                          │
-                             │                                          │
-                             │     ╔════════════target/═══════════╗     │
-                             ├──────► debug/                      ║     │
-                             ╰──────► release/                    ║     │
-                                   ║  x86_64-unknown-linux-gnu/ ◄───────┤
-                                   ║  x86_64-pc-windows-msvc/ ◄─────────┤
-                                   ║  aarch64-apple-darwin/ ◄───────────╯
-                                   ╚══════════════════════════════╝
+                                            $ cargo
+                                                ▼
+                            ╭────1───╴ wrapped-rust-toolchain ╶───2────╮
+                            │                                          │
+                            │                                          │
+                            │     ╔════════════target/═══════════╗     │
+                            ├──────► debug/                      ║     │
+                            ╰──────► release/                    ║     │
+                                  ║  x86_64-unknown-linux-gnu/ ◄───────┤
+                                  ║  x86_64-pc-windows-msvc/ ◄─────────┤
+                                  ║  aarch64-apple-darwin/ ◄───────────╯
+                                  ╚══════════════════════════════╝
 
                     (1) Local Nix System:             (2) Other Systems:
 
