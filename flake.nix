@@ -4,7 +4,10 @@
 
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
-    macos-sdk.follows = "";
+    macos-sdk = {
+      follows = "";
+      flake = false;
+    };
   };
   
   outputs = inputs@{ self, nixpkgs, ... }:
