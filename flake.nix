@@ -198,7 +198,7 @@
           done
 
           # Set up MacOS SDK if provided through config.
-          MACOS_SDK_DIR="${config.macos.sdk}"
+          export MACOS_SDK_DIR="${config.macos.sdk}"
           export IOS_SDK_DIR="${config.ios.sdk}"
 
           # Set up Windows SDK and CRT if pinning is enabled.
@@ -283,11 +283,14 @@
                   ]}"
                 '';
                 "aarch64-apple-darwin" = x86_64-apple-darwin;
-                "aarch64-apple-ios" = x86_64-apple-darwin; # + ''
-                  # export BINDGEN_EXTRA_CLANG_ARGS="${concatWithSpace [
-                  #   "-I$IOS_SDK_DIR/usr/include"
-                  #   "$BINDGEN_EXTRA_CLANG_ARGS"
-                  # ]}"
+                "aarch64-apple-ios" = x86_64-apple-darwin + ''
+                  export CARGO_TARGET_AARCH64_APPLE_IOS_LINKER="${pkgs.pkgsCross.aarch64-darwin.stdenv.cc.cc}/bin/ld"
+                '';
+                # ''
+                # export BINDGEN_EXTRA_CLANG_ARGS="${concatWithSpace [
+                #   "-I$IOS_SDK_DIR/usr/include"
+                #   "$BINDGEN_EXTRA_CLANG_ARGS"
+                # ]}"
                 # '';
                 # ''
                 #   if [ "$IOS_SDK_DIR" = "" ]; then
