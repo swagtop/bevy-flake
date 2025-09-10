@@ -285,6 +285,10 @@
                 "aarch64-apple-darwin" = x86_64-apple-darwin;
                 "aarch64-apple-ios" = ''
                   export SDKROOT="$IOS_SDK_DIR"
+                  exoprt BINDGEN_EXTRA_CLANG_ARGS="${concatWithSpace [
+                    "--sysroot=$IOS_SDK_DIR"
+                    "$BINDGEN_EXTRA_CLANG_ARGS"
+                  ]}"
                 '';
                 "wasm32-unknown-unknown" = ''
                   RUSTFLAGS="${concatWithSpace [
