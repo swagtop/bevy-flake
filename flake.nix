@@ -199,7 +199,7 @@
 
           # Set up MacOS SDK if provided through config.
           MACOS_SDK_DIR="${config.macos.sdk}"
-          IOS_SDK_DIR="${config.ios.dk}"
+          IOS_SDK_DIR="${config.ios.sdk}"
 
           # Set up Windows SDK and CRT if pinning is enabled.
           ${optionalString (config.windows.pin) ''
