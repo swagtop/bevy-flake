@@ -52,10 +52,6 @@
         sdk = optionalString (inputs.macos-sdk != self) inputs.macos-sdk;
       };
 
-      ios = {
-        sdk = optionalString (inputs.ios-sdk != self) inputs.ios-sdk;
-      };
-
       localDevRustflags = [ ];
 
       crossPlatformRustflags = [
@@ -197,7 +193,7 @@
           done
 
           # Set up MacOS SDK if provided through config.
-          export MACOS_SDK_DIR="${config.macos.sdk}"
+          MACOS_SDK_DIR="${config.macos.sdk}"
 
           # Set up Windows SDK and CRT if pinning is enabled.
           ${optionalString (config.windows.pin) ''

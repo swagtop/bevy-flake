@@ -17,7 +17,6 @@
     },
     "root": {
       "inputs": {
-        "ios-sdk": [],
         "macos-sdk": [],
         "nixpkgs": "nixpkgs"
       }
