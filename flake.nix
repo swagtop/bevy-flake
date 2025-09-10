@@ -285,6 +285,11 @@
                 "aarch64-apple-darwin" = x86_64-apple-darwin;
                 "aarch64-apple-ios" = x86_64-apple-darwin + ''
                   export CARGO_TARGET_AARCH64_APPLE_IOS_LINKER="${pkgs.zig}/bin/zig ld"
+                  export BINDGEN_EXTRA_CLANG_ARGS="${concatWithSpace [
+                    # "--sysroot=$IOS_SDK_DIR"
+                    "-I$MACOS_SDK_DIR/usr/include"
+                    "$BINDGEN_EXTRA_CLANG_ARGS"
+                  ]}"
                 '';
                 # ''
                 # export BINDGEN_EXTRA_CLANG_ARGS="${concatWithSpace [
