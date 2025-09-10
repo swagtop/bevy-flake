@@ -4,10 +4,8 @@
 
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
-    macos-sdk = {
-      follows = "";
-      flake = false;
-    };
+    macos-sdk = { follows = ""; flake = false; };
+    ios-sdk = { follows = ""; flake = false; };
   };
   
   outputs = inputs@{ self, nixpkgs, ... }:
@@ -53,6 +51,10 @@
       macos = {
         # Loads MacOS SDK into here automatically, if added as flake input.
         sdk = optionalString (inputs.macos-sdk != self) inputs.macos-sdk;
+      };
+
+      ios = {
+        sdk = optionalString (inputs.ios-sdk != self) inputs.ios-sdk;
       };
 
       localDevRustflags = [ ];
@@ -197,6 +199,7 @@
 
           # Set up MacOS SDK if provided through config.
           MACOS_SDK_DIR="${config.macos.sdk}"
+          IOS_SDK_DIR="${config.ios.dk}"
 
           # Set up Windows SDK and CRT if pinning is enabled.
           ${optionalString (config.windows.pin) ''
@@ -280,6 +283,9 @@
                   ]}"
                 '';
                 "aarch64-apple-darwin" = x86_64-apple-darwin;
+                "aarch64-apple-ios" = ''
+                  export SDKROOT="$IOS_SDK_DIR"
+                '';
                 "wasm32-unknown-unknown" = ''
                   RUSTFLAGS="${concatWithSpace [
                     ''--cfg getrandom_backend=\"wasm_js\"''
