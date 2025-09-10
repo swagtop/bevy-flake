@@ -199,7 +199,7 @@
 
           # Set up MacOS SDK if provided through config.
           export MACOS_SDK_DIR="${config.macos.sdk}"
-          export IOS_SDK_DIR="${config.ios.sdk}"
+          export IOS_SDK_DIR="${config.ios.sdk}/iPhoneOS18.6.sdk"
 
           # Set up Windows SDK and CRT if pinning is enabled.
           ${optionalString (config.windows.pin) ''
@@ -283,11 +283,11 @@
                   ]}"
                 '';
                 "aarch64-apple-darwin" = x86_64-apple-darwin;
-                "aarch64-apple-ios" = x86_64-apple-darwin + ''
+                "aarch64-apple-ios" = ''
                   export CARGO_TARGET_AARCH64_APPLE_IOS_LINKER="${pkgs.zig}/bin/zig ld"
                   export BINDGEN_EXTRA_CLANG_ARGS="${concatWithSpace [
-                    # "--sysroot=$IOS_SDK_DIR"
-                    "-I$IOS_SDK_DIR/iPhoneOS18.6.sdk/usr/include"
+                    "--sysroot=$IOS_SDK_DIR"
+                    "-I$IOS_SDK_DIR/usr/include"
                     "$BINDGEN_EXTRA_CLANG_ARGS"
                   ]}"
                 '';
