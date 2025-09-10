@@ -287,6 +287,7 @@
                   export SDKROOT="$IOS_SDK_DIR"
                   export BINDGEN_EXTRA_CLANG_ARGS="${concatWithSpace [
                     "--sysroot=$IOS_SDK_DIR"
+                    "-I$MACOS_SDK_DIR/usr/include"
                     "$BINDGEN_EXTRA_CLANG_ARGS"
                   ]}"
                 '';
