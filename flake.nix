@@ -283,21 +283,22 @@
                   ]}"
                 '';
                 "aarch64-apple-darwin" = x86_64-apple-darwin;
-                "aarch64-apple-ios" = ''
-                  if [ "$IOS_SDK_DIR" = "" ]; then
-                    printf "%s%s\n" \
-                      "bevy-flake: Building to iOS target without SDK, " \
-                      "compilation will most likely fail." 1>&2
-                  fi
-                  FRAMEWORKS="$IOS_SDK_DIR/System/Library/Frameworks";
-                  export SDKROOT="$IOS_SDK_DIR"
-                  export COREAUDIO_SDK_PATH="$FRAMEWORKS/CoreAudio.framework/Headers"
-                  export BINDGEN_EXTRA_CLANG_ARGS="${concatWithSpace [
-                    "--sysroot=$IOS_SDK_DIR"
-                    "-I$MACOS_SDK_DIR/usr/include"
-                    "$BINDGEN_EXTRA_CLANG_ARGS"
-                  ]}"
-                '';
+                "aarch64-apple-ios" = x86_64-apple-darwin;
+                # ''
+                #   if [ "$IOS_SDK_DIR" = "" ]; then
+                #     printf "%s%s\n" \
+                #       "bevy-flake: Building to iOS target without SDK, " \
+                #       "compilation will most likely fail." 1>&2
+                #   fi
+                #   FRAMEWORKS="$IOS_SDK_DIR/System/Library/Frameworks";
+                #   export SDKROOT="$IOS_SDK_DIR"
+                #   export COREAUDIO_SDK_PATH="$FRAMEWORKS/CoreAudio.framework/Headers"
+                #   export BINDGEN_EXTRA_CLANG_ARGS="${concatWithSpace [
+                #     "--sysroot=$IOS_SDK_DIR"
+                #     "-I$MACOS_SDK_DIR/usr/include"
+                #     "$BINDGEN_EXTRA_CLANG_ARGS"
+                #   ]}"
+                # '';
                 "wasm32-unknown-unknown" = ''
                   RUSTFLAGS="${concatWithSpace [
                     ''--cfg getrandom_backend=\"wasm_js\"''
