@@ -283,12 +283,12 @@
                   ]}"
                 '';
                 "aarch64-apple-darwin" = x86_64-apple-darwin;
-                "aarch64-apple-ios" = x86_64-apple-darwin + ''
-                  export BINDGEN_EXTRA_CLANG_ARGS="${concatWithSpace [
-                    "-I$IOS_SDK_DIR/usr/include"
-                    "$BINDGEN_EXTRA_CLANG_ARGS"
-                  ]}"
-                '';
+                "aarch64-apple-ios" = x86_64-apple-darwin; # + ''
+                  # export BINDGEN_EXTRA_CLANG_ARGS="${concatWithSpace [
+                  #   "-I$IOS_SDK_DIR/usr/include"
+                  #   "$BINDGEN_EXTRA_CLANG_ARGS"
+                  # ]}"
+                # '';
                 # ''
                 #   if [ "$IOS_SDK_DIR" = "" ]; then
                 #     printf "%s%s\n" \
@@ -341,7 +341,7 @@
           text =  ''
             case $BEVY_FLAKE_TARGET in
               *-unknown-linux-gnu*);&
-              *-apple-darwin);&
+              *-apple-*);&
               "wasm32-unknown-unknown")
                 if [ "$1" = 'build' ]; then
                   echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
