@@ -5,7 +5,6 @@
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
     macos-sdk = { follows = ""; flake = false; };
-    ios-sdk = { follows = ""; flake = false; };
   };
   
   outputs = inputs@{ self, nixpkgs, ... }:
@@ -199,7 +198,6 @@
 
           # Set up MacOS SDK if provided through config.
           export MACOS_SDK_DIR="${config.macos.sdk}"
-          export IOS_SDK_DIR="${config.ios.sdk}/iPhoneOS18.6.sdk"
 
           # Set up Windows SDK and CRT if pinning is enabled.
           ${optionalString (config.windows.pin) ''
@@ -283,35 +281,6 @@
                   ]}"
                 '';
                 "aarch64-apple-darwin" = x86_64-apple-darwin;
-                "aarch64-apple-ios" = ''
-                  export CARGO_TARGET_AARCH64_APPLE_IOS_LINKER="${pkgs.zig}/bin/zig ld"
-                  export BINDGEN_EXTRA_CLANG_ARGS="${concatWithSpace [
-                    "--sysroot=$IOS_SDK_DIR"
-                    "-I$IOS_SDK_DIR/usr/include"
-                    "$BINDGEN_EXTRA_CLANG_ARGS"
-                  ]}"
-                '';
-                # ''
-                # export BINDGEN_EXTRA_CLANG_ARGS="${concatWithSpace [
-                #   "-I$IOS_SDK_DIR/usr/include"
-                #   "$BINDGEN_EXTRA_CLANG_ARGS"
-                # ]}"
-                # '';
-                # ''
-                #   if [ "$IOS_SDK_DIR" = "" ]; then
-                #     printf "%s%s\n" \
-                #       "bevy-flake: Building to iOS target without SDK, " \
-                #       "compilation will most likely fail." 1>&2
-                #   fi
-                #   FRAMEWORKS="$IOS_SDK_DIR/System/Library/Frameworks";
-                #   export SDKROOT="$IOS_SDK_DIR"
-                #   export COREAUDIO_SDK_PATH="$FRAMEWORKS/CoreAudio.framework/Headers"
-                #   export BINDGEN_EXTRA_CLANG_ARGS="${concatWithSpace [
-                #     "--sysroot=$IOS_SDK_DIR"
-                #     "-I$MACOS_SDK_DIR/usr/include"
-                #     "$BINDGEN_EXTRA_CLANG_ARGS"
-                #   ]}"
-                # '';
                 "wasm32-unknown-unknown" = ''
                   RUSTFLAGS="${concatWithSpace [
                     ''--cfg getrandom_backend=\"wasm_js\"''
