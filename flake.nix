@@ -4,6 +4,7 @@
 
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
+    macos-sdk.follows = "";
   };
   
   outputs = inputs@{ self, nixpkgs, ... }:
@@ -48,7 +49,7 @@
 
       macos = {
         # Loads MacOS SDK into here automatically, if added as flake input.
-        sdk = optionalString (inputs ? macos-sdk) inputs.macos-sdk;
+        sdk = optionalString (inputs.macos-sdk != self) inputs.macos-sdk;
       };
 
       localDevRustflags = [ ];
