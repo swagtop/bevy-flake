@@ -284,7 +284,7 @@
                 '';
                 "aarch64-apple-darwin" = x86_64-apple-darwin;
                 "aarch64-apple-ios" = x86_64-apple-darwin + ''
-                  export CARGO_TARGET_AARCH64_APPLE_IOS_LINKER="${pkgs.pkgsCross.aarch64-darwin.stdenv.cc.cc}/bin/ld"
+                  export CARGO_TARGET_AARCH64_APPLE_IOS_LINKER="${pkgs.pkgsCross.aarch64-darwin.stdenv.cc}/bin/ld"
                 '';
                 # ''
                 # export BINDGEN_EXTRA_CLANG_ARGS="${concatWithSpace [
