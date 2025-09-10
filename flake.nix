@@ -344,7 +344,7 @@
           text =  ''
             case $BEVY_FLAKE_TARGET in
               *-unknown-linux-gnu*);&
-              *-apple-*);&
+              *-apple-darwin);&
               "wasm32-unknown-unknown")
                 if [ "$1" = 'build' ]; then
                   echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
