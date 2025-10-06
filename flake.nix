@@ -88,6 +88,7 @@
                 rust-analyzer
                 rustc
                 rustfmt
+                lld
               ];
             };
         };
@@ -119,7 +120,7 @@
             makeOverridable self.wrapInEnvironmentAdapter {
               inherit system;
               inherit (self) config;
-              runtime = [ runtime-bundle pkgs.binutils ];
+              runtime = [ runtime-bundle ];
               execPath = "${dx}/bin/dx";
               name = "dx";
             };
