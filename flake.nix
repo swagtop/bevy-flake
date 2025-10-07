@@ -329,6 +329,14 @@
     ) config;
 
     templates = {
+      nixpkgs =
+        builtins.warn (
+          "This template does not support any cross-compilation. "
+          + "Use the fenix or rust-overlay instead for this."
+        ) {
+        path = ./templates/nixpkgs;
+        description = "Get the rust toolchain from nixpkgs.";
+      };
       rust-overlay = {
         path = ./templates/rust-overlay;
         description = "Get the rust toolchain through oxalica's rust-overlay.";
