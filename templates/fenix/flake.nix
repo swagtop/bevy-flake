@@ -1,4 +1,7 @@
 {
+  description =
+    "A Nix flake using nix-community's fenix wrapped with bevy-flake.";
+
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
     bevy-flake = {
@@ -18,23 +21,24 @@
           inherit system;
           overlays = [ (fenix.overlays.default) ];
         };
-        bf = bevy-flake.packages.${system};
-        wrapped-rust-toolchain =
-          let
-            channel = "stable";
-          in bf.wrapped-rust-toolchain.override {
-            rust-toolchain = pkgs.fenix.combine ([
-              pkgs.fenix.${channel}.toolchain
-            ]
-            ++ map (target: pkgs.fenix.targets.${target}.${channel}.rust-std)
-              bevy-flake.targets
-            );
-          };
+        bf = bevy-flake.packages.override {
+          rustToolchainFor = system:
+            let
+              fx = fenix.packages.${system};
+              channel = "stable";
+            in
+              fx.combine
+                [ fx.${channel}.toolchain ]
+                  ++ map (target: fx.targets.${target}.${channel}.rust-std)
+                    bevy-flake.targets;
+            
+        };
       in {
         default = pkgs.mkShell {
           name = "bevy-flake-fenix";
           packages = [
-            wrapped-rust-toolchain
+            bf.${system}.wrapped-rust-toolchain
+            bf.${system}.wrapped-dioxus-cli
           ];
         };
       }  
