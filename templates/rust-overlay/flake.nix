@@ -17,7 +17,7 @@
   outputs = { nixpkgs, bevy-flake, rust-overlay, ... }: {
     devShells = bevy-flake.eachSystem (system:
       let
-        pkgs = import nixpkgs {};
+        pkgs = import nixpkgs { inherit system; };
         bf = bevy-flake.packages.override {
           rustToolchainFor = system:
             let

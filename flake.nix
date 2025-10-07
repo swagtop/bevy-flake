@@ -41,7 +41,6 @@
         paths = with pkgs; [
           cargo
           clippy
-          lld
           rust-analyzer
           rustc
           rustfmt
@@ -323,7 +322,7 @@
           in
             wrapInEnvironmentAdapter {
               name = "dx";
-              runtime = [ rust-toolchain ];
+              runtime = [ rust-toolchain pkgs.lld ];
               execPath = "${dx}/bin/dx";
             };
       })
