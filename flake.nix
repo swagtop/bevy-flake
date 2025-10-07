@@ -156,7 +156,7 @@
     };
   in
   {
-    inherit targets;
+    inherit eachSystem systems targets;
 
     devShells = eachSystem (system:
       let
