@@ -185,7 +185,7 @@
         wrapInEnvironmentAdapter = { name, runtime, execPath }:
         pkgs.writeShellApplication {
           inherit name;
-          runtimeInputs = runtimeBase ++ runtime;
+          runtimeInputs = runtimeBase ++ runtime ++ [ pkgs.stdenv.cc ];
           bashOptions = [ "errexit" "pipefail" ];
           text = ''
             # Check if cargo is being run with '--target', or '--no-wrapper'.
