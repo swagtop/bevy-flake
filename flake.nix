@@ -171,7 +171,7 @@
         name = "bevy-flake";
         packages = [
           self.packages.${system}.wrapped-rust-toolchain
-          self.packages.${system}.wrapped-dioxus-cli
+          # self.packages.${system}.wrapped-dioxus-cli
         ];
       };
     });
