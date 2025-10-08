@@ -8,12 +8,13 @@
   
   outputs = inputs@{ self, nixpkgs, ... }:
   let
-    lib = nixpkgs.lib;
-    inherit (lib)
+    inherit (builtins)
+      concatStringsSep warn;
+    inherit (nixpkgs.lib)
       genAttrs mapAttrsToList
       optionals optionalString
-      makeSearchPath;
-    concatWithSpace = list: builtins.concatStringsSep " " list;
+      makeSearchPath makeOverridable;
+
     systems = [
       "x86_64-linux"
       "aarch64-linux"
@@ -35,7 +36,9 @@
     config = {
       inherit rustToolchainFor runtimeBaseFor headersFor;
 
-      linux = { };
+      linux = {
+        glibcVersion = "2.41";
+      };
 
       windows = {
         # Set to false if you don't want bevy-flake to manage cargo-xwin.
@@ -86,13 +89,13 @@
           FRAMEWORKS="$MACOS_SDK_DIR/System/Library/Frameworks";
           export SDKROOT="$MACOS_SDK_DIR"
           export COREAUDIO_SDK_PATH="$FRAMEWORKS/CoreAudio.framework/Headers"
-          export BINDGEN_EXTRA_CLANG_ARGS="${concatWithSpace [
+          export BINDGEN_EXTRA_CLANG_ARGS="${concatStringsSep " " [
             "--sysroot=$MACOS_SDK_DIR"
             "-F $FRAMEWORKS"
             "-I$MACOS_SDK_DIR/usr/include"
             "$BINDGEN_EXTRA_CLANG_ARGS"
           ]}"
-          RUSTFLAGS="${concatWithSpace [
+          RUSTFLAGS="${concatStringsSep " " [
             "-L $MACOS_SDK_DIR/usr/lib"
             "-L framework=$FRAMEWORKS"
             "$RUSTFLAGS"
@@ -100,7 +103,7 @@
         '';
         "aarch64-apple-darwin" = x86_64-apple-darwin;
         "wasm32-unknown-unknown" = ''
-          RUSTFLAGS="${concatWithSpace [
+          RUSTFLAGS="${concatStringsSep " " [
             ''--cfg getrandom_backend=\"wasm_js\"''
             "$RUSTFLAGS"
           ]}"
@@ -156,8 +159,7 @@
             wayland.dev
           ])
         );
-  in
-  {
+  in {
     inherit eachSystem systems targets;
 
     devShells = eachSystem (system:
@@ -173,11 +175,12 @@
       };
     });
 
-    packages = lib.makeOverridable (config: eachSystem (system:
+    packages = makeOverridable (config: eachSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
         rust-toolchain = config.rustToolchainFor system;
         runtimeBase = config.runtimeBaseFor system;
+
         wrapInEnvironmentAdapter = { name, runtime, execPath }:
         pkgs.writeShellApplication {
           inherit name;
@@ -185,17 +188,17 @@
           bashOptions = [ "errexit" "pipefail" ];
           text = ''
             # Check if cargo is being run with '--target', or '--no-wrapper'.
-            ARG_COUNT=0
+            BEVY_FLAKE_ARG_COUNT=0
             for arg in "$@"; do
-              ARG_COUNT=$((ARG_COUNT + 1))
+              BEVY_FLAKE_ARG_COUNT=$((BEVY_FLAKE_ARG_COUNT + 1))
               case $arg in
                 "--target")
                   # Save next arg as target.
-                  eval "BEVY_FLAKE_TARGET=\$$((ARG_COUNT + 1))"
+                  eval "BEVY_FLAKE_TARGET=\$$((BEVY_FLAKE_ARG_COUNT + 1))"
                 ;;
                 "--no-wrapper")
                   # Remove '--no-wrapper' from args, then run unwrapped cargo.
-                  set -- "''${@:1:$((ARG_COUNT - 1))}" "''${@:$((ARG_COUNT + 1))}"
+                  set -- "''${@:1:$((BEVY_FLAKE_ARG_COUNT - 1))}" "''${@:$((BEVY_FLAKE_ARG_COUNT + 1))}"
                   exec ${execPath} "$@"
                 ;;
               esac
@@ -232,27 +235,31 @@
                 export PKG_CONFIG_PATH="${
                   makeSearchPath "lib/pkgconfig" (headersFor system)
                 }:$PKG_CONFIG_PATH"
-                RUSTFLAGS="${concatWithSpace [
+                RUSTFLAGS="${concatStringsSep " " [
                   (optionalString (runtime != [])
                     "-C link-args=-Wl,-rpath,${makeSearchPath "lib" (runtimeBase ++ runtime)}")
-                  "${concatWithSpace config.localDevRustflags}"
+                  "${concatStringsSep " " config.localDevRustflags}"
                   "$RUSTFLAGS"
                 ]}"
               ;;
 
-            ${builtins.concatStringsSep "\n" (mapAttrsToList (target: env: ''
-              ${target}*)
-              ${env}
-              RUSTFLAGS="${
-                concatWithSpace config.crossPlatformRustflags
-              } $RUSTFLAGS"
-              ;;
-            '') config.targetSpecificEnvironment)}
+            ${builtins.concatStringsSep "\n"
+              (mapAttrsToList
+                (target: env: ''
+                  ${target}*)
+                  ${env}
+                  RUSTFLAGS="${
+                    concatStringsSep " " config.crossPlatformRustflags
+                  } $RUSTFLAGS"
+                  ;;
+                '')
+              config.targetSpecificEnvironment)}
             esac
 
             export RUSTFLAGS="$RUSTFLAGS"
-            export BEVY_FLAKE_TARGET="$BEVY_FLAKE_TARGET"
             export PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
+            export BEVY_FLAKE_ARG_COUNT="$BEVY_FLAKE_ARG_COUNT"
+            export BEVY_FLAKE_TARGET="$BEVY_FLAKE_TARGET"
 
             exec ${execPath} "$@"
           '';
@@ -272,7 +279,19 @@
               ];
               execPath = pkgs.writeShellScript "cargo" ''
                 case $BEVY_FLAKE_TARGET in
-                  *-unknown-linux-gnu*);&
+                  *-unknown-linux-gnu*)
+                    args=("$@")
+                    if [[ $BEVY_FLAKE_TARGET =~ "x86_64" ]]; then
+                      args[$((BEVY_FLAKE_ARG_COUNT-1))]=${
+                        "x86_64-unknown-linux-gnu.${config.linux.glibcVersion}"
+                      }
+                    elif [[ $BEVY_FLAKE_TARGET =~ "aarch64" ]]; then
+                      args[$((BEVY_FLAKE_ARG_COUNT-1))]=${
+                        "aarch64-unknown-linux-gnu.${config.linux.glibcVersion}"
+                      }
+                    fi
+                    set -- "''${args[@]}"
+                  ;&
                   *-apple-darwin);&
                   "wasm32-unknown-unknown")
                     if [ "$1" = 'build' ]; then
@@ -330,11 +349,10 @@
     ) config;
 
     templates = {
-      nixpkgs = builtins.warn
-        "This template does not support any cross-compilation." {
-          path = ./templates/nixpkgs;
-          description = "Get the rust toolchain from nixpkgs.";
-        };
+      nixpkgs = warn "This template does not support any cross-compilation." {
+        path = ./templates/nixpkgs;
+        description = "Get the rust toolchain from nixpkgs.";
+      };
       rust-overlay = {
         path = ./templates/rust-overlay;
         description = "Get the rust toolchain through oxalica's rust-overlay.";
