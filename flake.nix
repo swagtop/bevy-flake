@@ -15,13 +15,13 @@
       optionals optionalString
       makeSearchPath makeOverridable;
 
+    eachSystem = genAttrs systems;
     systems = [
       "x86_64-linux"
       "aarch64-linux"
       "x86_64-darwin"
       "aarch64-darwin"
     ];
-    eachSystem = genAttrs systems;
 
     targets = [
       "x86_64-unknown-linux-gnu"
@@ -34,7 +34,7 @@
     ];
 
     config = {
-      inherit rustToolchainFor runtimeBaseFor headersFor;
+      inherit rustToolchainFor runtimeBaseFor headersFor; # Defined below.
 
       linux = {
         glibcVersion = "2.41";
@@ -67,48 +67,49 @@
 
       # Environment variables set for individual targets.
       # The target names, and bodies should use Bash syntax.
-      targetSpecificEnvironment = (rec {
-        "x86_64-unknown-linux-gnu" = ''
-          export PKG_CONFIG_PATH="${
-            makeSearchPath "lib/pkgconfig"
-              (headersFor "x86_64-linux")
-          }:$PKG_CONFIG_PATH"
-        '';
-        "aarch64-unknown-linux-gnu" = ''
-          export PKG_CONFIG_PATH="${
-            makeSearchPath "lib/pkgconfig"
-              (headersFor "aarch64-linux")
-          }:$PKG_CONFIG_THEME"
-        '';
-        "x86_64-apple-darwin" = ''
-          if [ "$MACOS_SDK_DIR" = "" ]; then
-            printf "%s%s\n" \
-              "bevy-flake: Building to MacOS target without SDK, " \
-              "compilation will most likely fail." 1>&2
-          fi
-          FRAMEWORKS="$MACOS_SDK_DIR/System/Library/Frameworks";
-          export SDKROOT="$MACOS_SDK_DIR"
-          export COREAUDIO_SDK_PATH="$FRAMEWORKS/CoreAudio.framework/Headers"
-          export BINDGEN_EXTRA_CLANG_ARGS="${concatStringsSep " " [
-            "--sysroot=$MACOS_SDK_DIR"
-            "-F $FRAMEWORKS"
-            "-I$MACOS_SDK_DIR/usr/include"
-            "$BINDGEN_EXTRA_CLANG_ARGS"
-          ]}"
-          RUSTFLAGS="${concatStringsSep " " [
-            "-L $MACOS_SDK_DIR/usr/lib"
-            "-L framework=$FRAMEWORKS"
-            "$RUSTFLAGS"
-          ]}"
-        '';
-        "aarch64-apple-darwin" = x86_64-apple-darwin;
-        "wasm32-unknown-unknown" = ''
-          RUSTFLAGS="${concatStringsSep " " [
-            ''--cfg getrandom_backend=\"wasm_js\"''
-            "$RUSTFLAGS"
-          ]}"
-        '';
-      });
+      targetSpecificEnvironment =
+        let
+          macos = ''
+            if [ "$MACOS_SDK_DIR" = "" ]; then
+              printf "%s%s\n" \
+                "bevy-flake: Building to MacOS target without SDK, " \
+                "compilation will most likely fail." 1>&2
+            fi
+            FRAMEWORKS="$MACOS_SDK_DIR/System/Library/Frameworks";
+            export SDKROOT="$MACOS_SDK_DIR"
+            export COREAUDIO_SDK_PATH="$FRAMEWORKS/CoreAudio.framework/Headers"
+            export BINDGEN_EXTRA_CLANG_ARGS="${concatStringsSep " " [
+              "--sysroot=$MACOS_SDK_DIR"
+              "-F $FRAMEWORKS"
+              "-I$MACOS_SDK_DIR/usr/include"
+              "$BINDGEN_EXTRA_CLANG_ARGS"
+            ]}"
+            RUSTFLAGS="${concatStringsSep " " [
+              "-L $MACOS_SDK_DIR/usr/lib"
+              "-L framework=$FRAMEWORKS"
+              "$RUSTFLAGS"
+            ]}"
+          '';
+        in {
+          "x86_64-unknown-linux-gnu" = ''
+            export PKG_CONFIG_PATH="${
+              makeSearchPath "lib/pkgconfig" (headersFor "x86_64-linux")
+            }:$PKG_CONFIG_PATH"
+          '';
+          "aarch64-unknown-linux-gnu" = ''
+            export PKG_CONFIG_PATH="${
+              makeSearchPath "lib/pkgconfig" (headersFor "aarch64-linux")
+            }:$PKG_CONFIG_THEME"
+          '';
+          "x86_64-apple-darwin" = macos;
+          "aarch64-apple-darwin" = macos;
+          "wasm32-unknown-unknown" = ''
+            RUSTFLAGS="${concatStringsSep " " [
+              ''--cfg getrandom_backend=\"wasm_js\"''
+              "$RUSTFLAGS"
+            ]}"
+          '';
+        };
     };
 
     rustToolchainFor = (system:
@@ -197,8 +198,10 @@
                   eval "BEVY_FLAKE_TARGET=\$$((BEVY_FLAKE_ARG_COUNT + 1))"
                 ;;
                 "--no-wrapper")
-                  # Remove '--no-wrapper' from args, then run unwrapped cargo.
-                  set -- "''${@:1:$((BEVY_FLAKE_ARG_COUNT - 1))}" "''${@:$((BEVY_FLAKE_ARG_COUNT + 1))}"
+                  # Remove '--no-wrapper' from args, then run unwrapped exec.
+                  set -- "''${@:1:$((BEVY_FLAKE_ARG_COUNT - 1))}" \
+                         "''${@:$((BEVY_FLAKE_ARG_COUNT + 1))}"
+                  export BEVY_FLAKE_NO_WRAPPER="1"
                   exec ${execPath} "$@"
                 ;;
               esac
@@ -237,7 +240,9 @@
                 }:$PKG_CONFIG_PATH"
                 RUSTFLAGS="${concatStringsSep " " [
                   (optionalString (runtime != [])
-                    "-C link-args=-Wl,-rpath,${makeSearchPath "lib" (runtimeBase ++ runtime)}")
+                    "-C link-args=-Wl,-rpath,${
+                      makeSearchPath "lib" (runtimeBase ++ runtime)}
+                    ")
                   "${concatStringsSep " " config.localDevRustflags}"
                   "$RUSTFLAGS"
                 ]}"
@@ -275,9 +280,12 @@
                 cargo-zigbuild
                 cargo-xwin
                 rust-toolchain
-                glibc
               ];
               execPath = pkgs.writeShellScript "cargo" ''
+                if [[ $BEVY_FLAKE_NO_WRAPPER = "1" ]]; then
+                  exec ${rust-toolchain}/bin/cargo "$@"
+                fi
+                
                 case $BEVY_FLAKE_TARGET in
                   *-unknown-linux-gnu*)
                     args=("$@")
