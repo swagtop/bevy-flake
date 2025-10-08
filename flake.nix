@@ -99,7 +99,7 @@
           "aarch64-unknown-linux-gnu" = ''
             export PKG_CONFIG_PATH="${
               makeSearchPath "lib/pkgconfig" (headersFor "aarch64-linux")
-            }:$PKG_CONFIG_THEME"
+            }:$PKG_CONFIG_PATH"
           '';
           "x86_64-apple-darwin" = macos;
           "aarch64-apple-darwin" = macos;
