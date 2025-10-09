@@ -154,12 +154,12 @@
     let
       eachSystem = genAttrs config.systems;
       packages = eachSystem (system:
-        let
-          pkgs = nixpkgs.legacyPackages.${system};
-          rust-toolchain = config.rustToolchainFor system;
-          runtimeBase = config.runtimeBaseFor system;
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+        rust-toolchain = config.rustToolchainFor system;
+        runtimeBase = config.runtimeBaseFor system;
 
-          wrapInEnvironmentAdapter = { name, runtime, execPath }:
+        wrapInEnvironmentAdapter = { name, runtime, execPath }:
           pkgs.writeShellApplication {
             inherit name;
             runtimeInputs = runtimeBase ++ runtime ++ [ pkgs.stdenv.cc ];
@@ -245,101 +245,98 @@
 
               exec ${execPath} "$@"
             '';
-          };
-        in {
-          wrapped-rust-toolchain = pkgs.symlinkJoin {
-            name = "bevy-flake-rust-toolchain";
-            ignoreCollisions = true;
-            paths = [
-              (wrapInEnvironmentAdapter {
-                name = "cargo";
-                runtime = with pkgs; [
-                  cargo-zigbuild
-                  cargo-xwin
-                  rust-toolchain
-                ];
-                execPath = pkgs.writeShellScript "cargo" ''
-                  if [[ $BEVY_FLAKE_NO_WRAPPER = "1" ]]; then
-                    exec ${rust-toolchain}/bin/cargo "$@"
-                  fi
-                
-                  case $BEVY_FLAKE_TARGET in
-                    *-unknown-linux-gnu*)
-                      args=("$@")
-                      if [[ $BEVY_FLAKE_TARGET =~ "x86_64" ]]; then
-                        args[$((BEVY_FLAKE_ARG_COUNT-1))]=${
-                          "x86_64-unknown-linux-gnu.${config.linux.glibcVersion}"
-                        }
-                      elif [[ $BEVY_FLAKE_TARGET =~ "aarch64" ]]; then
-                        args[$((BEVY_FLAKE_ARG_COUNT-1))]=${
-                          "aarch64-unknown-linux-gnu.${config.linux.glibcVersion}"
-                        }
-                      fi
-                      set -- "''${args[@]}"
-                    ;&
-                    *-apple-darwin);&
-                    "wasm32-unknown-unknown")
-                      if [ "$1" = 'build' ]; then
-                        echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
-                        shift
-                        set -- "zigbuild" "$@"
-                      fi
-                    ;;
-                    *-pc-windows-msvc)
-                      if [ "$1" = 'build' ] || [ "$1" = 'run' ]; then
-                        echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
-                        set -- "xwin" "$@"
-                      fi
-                    ;;
-                  esac
-
-                  ${optionalString (pkgs.stdenv.isDarwin) "ulimit -n 4096"}
+        };
+      in {
+        wrapped-rust-toolchain = pkgs.symlinkJoin {
+          name = "bevy-flake-rust-toolchain";
+          ignoreCollisions = true;
+          paths = [
+            (wrapInEnvironmentAdapter {
+              name = "cargo";
+              runtime = with pkgs; [
+                cargo-zigbuild
+                cargo-xwin
+                rust-toolchain
+              ];
+              execPath = pkgs.writeShellScript "cargo" ''
+                if [[ $BEVY_FLAKE_NO_WRAPPER = "1" ]]; then
                   exec ${rust-toolchain}/bin/cargo "$@"
-                '';
-              })
-              rust-toolchain
-            ];
-          };
-
-          wrapped-dioxus-cli =
-            let
-              version = "0.7.0-rc.0";
-              dx = nixpkgs.legacyPackages.${system}.dioxus-cli.override (old: {
-                rustPlatform = old.rustPlatform // {
-                  buildRustPackage = args:
-                    old.rustPlatform.buildRustPackage (
-                      args // {
-                        inherit version;
-                        src = old.fetchCrate {
-                          inherit version;
-                          pname = "dioxus-cli";
-                          hash =
-                            "sha256-xt/DJhcZz3TZLodfJTaFE2cBX3hedo+typHM5UezS94=";
-                        };
-                        cargoHash =
-                          "sha256-UVt4vZyh+w+8Z1Bp1emFOJqPXU1zzy7FzNcA5oQsM8U=";
-                        cargoPatches = [ ];
-                        buildFeatures = [ ];
+                fi
+              
+                case $BEVY_FLAKE_TARGET in
+                  *-unknown-linux-gnu*)
+                    args=("$@")
+                    if [[ $BEVY_FLAKE_TARGET =~ "x86_64" ]]; then
+                      args[$((BEVY_FLAKE_ARG_COUNT-1))]=${
+                        "x86_64-unknown-linux-gnu.${config.linux.glibcVersion}"
                       }
-                    );
-                };
-              });
-            in
-              wrapInEnvironmentAdapter {
-                name = "dx";
-                runtime = [ rust-toolchain pkgs.lld ];
-                execPath = "${dx}/bin/dx";
-              };
-        });
+                    elif [[ $BEVY_FLAKE_TARGET =~ "aarch64" ]]; then
+                      args[$((BEVY_FLAKE_ARG_COUNT-1))]=${
+                        "aarch64-unknown-linux-gnu.${config.linux.glibcVersion}"
+                      }
+                    fi
+                    set -- "''${args[@]}"
+                  ;&
+                  *-apple-darwin);&
+                  "wasm32-unknown-unknown")
+                    if [ "$1" = 'build' ]; then
+                      echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
+                      shift
+                      set -- "zigbuild" "$@"
+                    fi
+                  ;;
+                  *-pc-windows-msvc)
+                    if [ "$1" = 'build' ] || [ "$1" = 'run' ]; then
+                      echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
+                      set -- "xwin" "$@"
+                    fi
+                  ;;
+                esac
+
+                ${optionalString (pkgs.stdenv.isDarwin) "ulimit -n 4096"}
+                exec ${rust-toolchain}/bin/cargo "$@"
+              '';
+            })
+            rust-toolchain
+          ];
+        };
+
+        wrapped-dioxus-cli =
+        let
+          version = "0.7.0-rc.0";
+          dx = nixpkgs.legacyPackages.${system}.dioxus-cli.override (old: {
+            rustPlatform = old.rustPlatform // {
+              buildRustPackage = args:
+                old.rustPlatform.buildRustPackage (
+                  args // {
+                    inherit version;
+                    src = old.fetchCrate {
+                      inherit version;
+                      pname = "dioxus-cli";
+                      hash =
+                        "sha256-xt/DJhcZz3TZLodfJTaFE2cBX3hedo+typHM5UezS94=";
+                    };
+                    cargoHash =
+                      "sha256-UVt4vZyh+w+8Z1Bp1emFOJqPXU1zzy7FzNcA5oQsM8U=";
+                    cargoPatches = [ ];
+                    buildFeatures = [ ];
+                  }
+                );
+            };
+          });
+        in
+          wrapInEnvironmentAdapter {
+            name = "dx";
+            runtime = [ rust-toolchain pkgs.lld ];
+            execPath = "${dx}/bin/dx";
+          };
+      });
     in {
       inherit (config) systems;
       inherit eachSystem packages;
 
-      devShells = eachSystem (system:
-        let
-          pkgs = nixpkgs.legacyPackages.${system};
-        in {
-        default = pkgs.mkShell {
+      devShells = eachSystem (system: {
+        default = nixpkgs.legacyPackages.${system}.mkShell {
           name = "bevy-flake";
           packages = [
             packages.${system}.wrapped-rust-toolchain
