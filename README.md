@@ -2,15 +2,10 @@
 
 # bevy-flake
 
-A flake for painless development and distribution of [Bevy][bevy] programs from
-NixOS/MacOS systems, with the following features:
-
- 1. Develop on NixOS/MacOS without any extra configuration/libraries needed.
- 2. Cross-compile for Linux targets, with binaries that do not need to be patched
-    to work on non-Nix systems.
- 3. Cross-compile for MacOS targets from NixOS, if you provide a MacOS SDK.
- 4. Cross-compile for Windows-MSVC targets, with the ability to pin the SDK and
-   CRT versions.
+A flake for painless development and distribution of [Bevy][bevy] programs.
+With bevy-flake you can easily compile and run the same project on NixOS and
+MacOS, while being able to cross-compile to non-Nix Linux, Windows and MacOS
+targets.
 
 [bevy]: https://github.com/bevyengine/bevy
 
@@ -30,41 +25,15 @@ cd /path/to/bevy/project
 #### Option 1: Use the template with your preferred rust toolchain provider
 
 ```sh
+# The default with no cross-compilation.
+nix flake init --template github:swagtop/bevy-flake/dev#nixpkgs
+# ... or:
 nix flake init --template github:swagtop/bevy-flake/dev#rust-overlay
-# ... or ...
+# ... or:
 nix flake init --template github:swagtop/bevy-flake/dev#fenix
 ```
 
-#### Option 2: Wrap the toolchain used in your existing flake
-
-```nix
-{
-  # Add bevy-flake to inputs.
-  inputs = {
-    # ...
-    bevy-flake = {
-      url = "github:swagtop/bevy-flake/dev";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-  };
-  # ...
-}
-```
-
-```nix
-  pkgs.mkShell {
-    # ...
-    packages = [
-      # Override the `wrapped-rust-toolchain` package.
-      (bevy-flake.packages.${system}.wrapped-toolchain.override {
-        rust-toolchain = existing-rust-toolchain;
-      })
-      # ...
-    ];
-  };
-```
-
-#### Option 3: Copy flake
+#### Option 2: Copy flake
 
 Fetch `flake.nix` and `flake.lock`, and add them to the git index:
 
@@ -76,11 +45,7 @@ git add flake.nix flake.lock
 
 ## How to use
 
-Enter the development shell, and then run or compile your Bevy program:
-
 ```sh
-nix develop
-
 # Your Nix system
 cargo build
 cargo run
@@ -121,7 +86,6 @@ cargo build --target wasm32-unknown-unknown
 
                     (1) Local Nix System:             (2) Other Systems:
 
-                    - RUSTFLAGS += localFlags         - RUSTFLAGS += crossFlags
                     - Runtime packages                - Each targets libraries
                       provided through rpath            provided by cargo-wrapper
                     - cargo compiles for              - cargo-zigbuild,
