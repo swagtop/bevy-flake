@@ -18,7 +18,7 @@
     devShells = bevy-flake.eachSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
-        bf = bevy-flake.packages.override {
+        bf = bevy-flake.override {
           rustToolchainFor = system:
             let
               pkgs-with-overlay = import nixpkgs {
@@ -37,8 +37,8 @@
         default = pkgs.mkShell {
           name = "bevy-flake-fenix";
           packages = [
-            bf.${system}.wrapped-rust-toolchain
-            # bf.${system}.wrapped-dioxus-cli
+            bf.packages.${system}.wrapped-rust-toolchain
+            # bf.packages.${system}.wrapped-dioxus-cli
           ];
         };
       }  

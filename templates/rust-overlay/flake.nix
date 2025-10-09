@@ -18,14 +18,14 @@
     devShells = bevy-flake.eachSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
-        bf = bevy-flake.packages.override {
+        bf = bevy-flake.override {
           rustToolchainFor = system:
             let
               pkgs-with-overlay = (import nixpkgs {
                 inherit system;
                 overlays = [ (import rust-overlay ) ];
               });
-              channel = "stable";
+              channel = "stable"; # For nightly, use "nightly".
             in
               pkgs-with-overlay.rust-bin.${channel}.latest.default.override {
                 inherit (bevy-flake) targets;
@@ -36,8 +36,8 @@
         default = pkgs.mkShell {
           name = "bevy-flake-rust-overlay";
           packages = [
-            bf.${system}.wrapped-rust-toolchain
-            # bf.${system}.wrapped-dioxus-cli
+            bf.packages.${system}.wrapped-rust-toolchain
+            # bf.packages.${system}.wrapped-dioxus-cli
           ];
         };
       }
