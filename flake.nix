@@ -153,6 +153,7 @@
     makeOverridable (config:
     let
       eachSystem = genAttrs config.systems;
+
       packages = eachSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
