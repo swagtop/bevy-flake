@@ -25,13 +25,18 @@ cd /path/to/bevy/project
 #### Option 1: Use the template with your preferred rust toolchain provider
 
 ```sh
-# The default with no cross-compilation.
+# The default with no cross-compilation:
 nix flake init --template github:swagtop/bevy-flake/dev#nixpkgs
-# ... or:
+
+# The one using oxalica's rust-overlay:
 nix flake init --template github:swagtop/bevy-flake/dev#rust-overlay
-# ... or:
+
+# The one using nix-community's fenix:
 nix flake init --template github:swagtop/bevy-flake/dev#fenix
 ```
+
+If you get your toolchain from elsewhere, you should very easily be able to slot
+it in. More on this [here.](docs/tweaks.md)
 
 #### Option 2: Copy flake
 
@@ -45,12 +50,17 @@ git add flake.nix flake.lock
 
 ## How to use
 
+Add the `wrapped-rust-toolchain` package to your environment, either through
+`nix develop`, `nix shell .#wrapped-rust-toolchain`, or your own preferred way.
+
+Then, you can just use `cargo` like so:
+
 ```sh
-# Your Nix system
+# For your own Nix system:
 cargo build
 cargo run
 
-# Other systems
+# For other systems, just use '--target':
 cargo build --target x86_64-unknown-linux-gnu
 cargo build --target x86_64-pc-windows-msvc
 cargo build --target aarch64-apple-darwin # <-- Read docs/macos.md!
