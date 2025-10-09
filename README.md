@@ -3,6 +3,7 @@
 # bevy-flake
 
 A flake for painless development and distribution of [Bevy][bevy] programs.
+
 With bevy-flake you can easily compile and run the same project on NixOS and
 MacOS, while being able to cross-compile to non-Nix Linux, Windows and MacOS
 targets.
