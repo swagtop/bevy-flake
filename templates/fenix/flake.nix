@@ -1,6 +1,6 @@
 {
   description =
-    "A Nix flake using nix-community's fenix wrapped with bevy-flake.";
+    "A flake using nix-community's fenix wrapped with bevy-flake.";
 
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";

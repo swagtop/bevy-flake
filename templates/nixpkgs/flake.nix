@@ -1,6 +1,6 @@
 {
   description =
-    "A Nix flake using the nixpkgs rust toolchain wrapped with bevy-flake.";
+    "A flake using the nixpkgs rust toolchain wrapped with bevy-flake.";
 
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";

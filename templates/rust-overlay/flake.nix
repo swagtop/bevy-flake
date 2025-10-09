@@ -1,6 +1,6 @@
 {
   description =
-    "A Nix flake using Oxalica's rust-overlay wrapped with bevy-flake.";
+    "A flake using Oxalica's rust-overlay wrapped with bevy-flake.";
 
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
