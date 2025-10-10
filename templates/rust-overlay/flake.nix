@@ -32,17 +32,16 @@
     };
   in {
     devShells = bf.eachSystem (system:
-      let
-        pkgs = import nixpkgs { inherit system; };
-      in {
-        default = pkgs.mkShell {
-          name = "bevy-flake-rust-overlay";
-          packages = [
-            bf.packages.${system}.wrapped-rust-toolchain
-            # bf.packages.${system}.wrapped-dioxus-cli
-          ];
-        };
-      }
-    );
+    let
+      pkgs = import nixpkgs { inherit system; };
+    in {
+      default = pkgs.mkShell {
+        name = "bevy-flake-rust-overlay";
+        packages = [
+          bf.packages.${system}.wrapped-rust-toolchain
+          # bf.packages.${system}.wrapped-dioxus-cli
+        ];
+      };
+    });
   };
 }
