@@ -16,7 +16,7 @@
       makeSearchPath makeOverridable;
 
     config = {
-      inherit rustToolchainFor runtimeBaseFor headersFor; # Defined below.
+      inherit rustToolchainFor runtimeInputsFor headerInputsFor stdEnvFor;
 
       systems = [
         "x86_64-linux"
@@ -82,12 +82,12 @@
         in {
           "x86_64-unknown-linux-gnu" = ''
             export PKG_CONFIG_PATH="${
-              makeSearchPath "lib/pkgconfig" (headersFor "x86_64-linux")
+              makeSearchPath "lib/pkgconfig" (headerInputsFor "x86_64-linux")
             }:$PKG_CONFIG_PATH"
           '';
           "aarch64-unknown-linux-gnu" = ''
             export PKG_CONFIG_PATH="${
-              makeSearchPath "lib/pkgconfig" (headersFor "aarch64-linux")
+              makeSearchPath "lib/pkgconfig" (headerInputsFor "aarch64-linux")
             }:$PKG_CONFIG_PATH"
           '';
           "x86_64-apple-darwin" = macos;
@@ -102,53 +102,57 @@
     };
 
     rustToolchainFor = (system:
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
-      in
-        pkgs.symlinkJoin {
-          name = "nixpkgs-rust-toolchain";
-          pname = "cargo";
-          paths = with pkgs; [
-            cargo
-            clippy
-            rust-analyzer
-            rustc
-            rustfmt
-          ];
-        });
+    let
+      pkgs = nixpkgs.legacyPackages.${system};
+    in
+      pkgs.symlinkJoin {
+        name = "nixpkgs-rust-toolchain";
+        pname = "cargo";
+        paths = with pkgs; [
+          cargo
+          clippy
+          rust-analyzer
+          rustc
+          rustfmt
+        ];
+      });
 
-    runtimeBaseFor = (system:
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
-      in
-        optionals (pkgs.stdenv.isLinux)
-          (with pkgs; [
-            alsa-lib-with-plugins
-            libxkbcommon
-            udev
-            vulkan-loader
-            libGL
-            wayland
-            xorg.libX11
-            xorg.libXcursor
-            xorg.libXi
-            xorg.libXrandr
-          ])
-        );
+    runtimeInputsFor = (system:
+    let
+      pkgs = nixpkgs.legacyPackages.${system};
+    in
+      optionals (pkgs.stdenv.isLinux)
+        (with pkgs; [
+          alsa-lib-with-plugins
+          libxkbcommon
+          udev
+          vulkan-loader
+          libGL
+          wayland
+          xorg.libX11
+          xorg.libXcursor
+          xorg.libXi
+          xorg.libXrandr
+        ])
+      );
 
-    headersFor = (system:
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
-      in
-        optionals (pkgs.stdenv.isLinux)
-          (with pkgs; [
-            alsa-lib-with-plugins.dev
-            libxkbcommon.dev
-            openssl.dev
-            udev.dev
-            wayland.dev
-          ])
-        );
+    headerInputsFor = (system:
+    let
+      pkgs = nixpkgs.legacyPackages.${system};
+    in
+      optionals (pkgs.stdenv.isLinux)
+        (with pkgs; [
+          alsa-lib-with-plugins.dev
+          libxkbcommon.dev
+          openssl.dev
+          udev.dev
+          wayland.dev
+        ])
+      );
+
+    stdEnvFor = (system:
+      nixpkgs.legacyPackages.${system}.stdenv
+    );
   in
     makeOverridable (config:
     let
@@ -158,12 +162,14 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
         rust-toolchain = config.rustToolchainFor system;
-        runtimeBase = config.runtimeBaseFor system;
+        runtimeInputsBase = config.runtimeInputsFor system;
+        stdenv = config.stdEnvFor system;
 
-        wrapInEnvironmentAdapter = { name, runtime, execPath }:
+        wrapInEnvironmentAdapter = { name, extraRuntimeInputs, execPath }:
           pkgs.writeShellApplication {
             inherit name;
-            runtimeInputs = runtimeBase ++ runtime ++ [ pkgs.stdenv.cc ];
+            runtimeInputs =
+              runtimeInputsBase ++ extraRuntimeInputs ++ [ stdenv.cc ];
             bashOptions = [ "errexit" "pipefail" ];
             text = ''
               # Check if cargo is being run with '--target', or '--no-wrapper'.
@@ -214,12 +220,13 @@
               case $BEVY_FLAKE_TARGET in
                 "")
                   export PKG_CONFIG_PATH="${
-                    makeSearchPath "lib/pkgconfig" (headersFor system)
+                    makeSearchPath "lib/pkgconfig" (headerInputsFor system)
                   }:$PKG_CONFIG_PATH"
                   RUSTFLAGS="${concatStringsSep " " [
-                    (optionalString (runtime != [])
+                    (optionalString (extraRuntimeInputs != [])
                       "-C link-args=-Wl,-rpath,${
-                        makeSearchPath "lib" (runtimeBase ++ runtime)}
+                        makeSearchPath "lib"
+                          (runtimeInputsBase ++ extraRuntimeInputs)}
                       ")
                     "${concatStringsSep " " config.localDevRustflags}"
                     "$RUSTFLAGS"
@@ -254,7 +261,7 @@
           paths = [
             (wrapInEnvironmentAdapter {
               name = "cargo";
-              runtime = with pkgs; [
+              extraRuntimeInputs = with pkgs; [
                 cargo-zigbuild
                 cargo-xwin
                 rust-toolchain
@@ -328,7 +335,7 @@
         in
           wrapInEnvironmentAdapter {
             name = "dx";
-            runtime = [ rust-toolchain pkgs.lld ];
+            extraRuntimeInputs = [ rust-toolchain pkgs.lld ];
             execPath = "${dx}/bin/dx";
           };
       });
