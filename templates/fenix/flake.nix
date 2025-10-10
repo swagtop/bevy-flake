@@ -14,33 +14,34 @@
     };
   };
 
-  outputs = { nixpkgs, bevy-flake, fenix, ... }: {
+  outputs = { nixpkgs, bevy-flake, fenix, ... }: 
+  let
+    bf = bevy-flake.override {
+      rustToolchainFor = system:
+        let
+          fx = (import nixpkgs { inherit system;
+            overlays = [ (fenix.overlays.default ) ];
+          }).fenix;
+          channel = "stable"; # For nightly, use "latest".
+        in
+          fx.combine (
+            [ fx.${channel}.toolchain ]
+            ++ map (target: fx.targets.${target}.${channel}.rust-std)
+              bevy-flake.targets
+          );
+    };
+  in {
     devShells = bevy-flake.eachSystem (system:
-      let
-        pkgs = import nixpkgs { inherit system; };
-        bf = bevy-flake.override {
-          rustToolchainFor = system:
-            let
-              fx = (import nixpkgs { inherit system;
-                overlays = [ (fenix.overlays.default ) ];
-              }).fenix;
-              channel = "stable"; # For nightly, use "latest".
-            in
-              fx.combine (
-                [ fx.${channel}.toolchain ]
-                ++ map (target: fx.targets.${target}.${channel}.rust-std)
-                  bevy-flake.targets
-              );
-          };
-      in {
-        default = pkgs.mkShell {
-          name = "bevy-flake-fenix";
-          packages = [
-            bf.packages.${system}.wrapped-rust-toolchain
-            # bf.packages.${system}.wrapped-dioxus-cli
-          ];
-        };
-      }  
-    );
+    let
+      pkgs = import nixpkgs { inherit system; };
+    in {
+      default = pkgs.mkShell {
+        name = "bevy-flake-fenix";
+        packages = [
+          bf.packages.${system}.wrapped-rust-toolchain
+          # bf.packages.${system}.wrapped-dioxus-cli
+        ];
+      };
+    });
   };
 }

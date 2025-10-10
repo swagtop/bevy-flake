@@ -14,24 +14,26 @@
     };
   };
 
-  outputs = { nixpkgs, bevy-flake, rust-overlay, ... }: {
+  outputs = { nixpkgs, bevy-flake, rust-overlay, ... }:
+  let
+    bf = bevy-flake.override {
+      rustToolchainFor = system:
+        let
+          pkgs-with-overlay = (import nixpkgs {
+            inherit system;
+            overlays = [ (import rust-overlay ) ];
+          });
+          channel = "stable"; # For nightly, use "nightly".
+        in
+          pkgs-with-overlay.rust-bin.${channel}.latest.default.override {
+            inherit (bevy-flake) targets;
+            extensions = [ "rust-src" "rust-analyzer" ];
+          };
+    };
+  in {
     devShells = bevy-flake.eachSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
-        bf = bevy-flake.override {
-          rustToolchainFor = system:
-            let
-              pkgs-with-overlay = (import nixpkgs {
-                inherit system;
-                overlays = [ (import rust-overlay ) ];
-              });
-              channel = "stable"; # For nightly, use "nightly".
-            in
-              pkgs-with-overlay.rust-bin.${channel}.latest.default.override {
-                inherit (bevy-flake) targets;
-                extensions = [ "rust-src" "rust-analyzer" ];
-              };
-        };
       in {
         default = pkgs.mkShell {
           name = "bevy-flake-rust-overlay";
