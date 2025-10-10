@@ -21,17 +21,16 @@
         bf = bevy-flake.override {
           rustToolchainFor = system:
             let
-              pkgs-with-overlay = import nixpkgs {
-                inherit system;
+              fx = (import nixpkgs { inherit system;
                 overlays = [ (fenix.overlays.default ) ];
-              };
+              }).fenix;
               channel = "stable"; # For nightly, use "latest".
             in
-              pkgs-with-overlay.fenix.combine ([
-                pkgs-with-overlay.fenix.${channel}.toolchain
-              ] ++ map (target:
-                pkgs-with-overlay.fenix.targets.${target}.${channel}.rust-std
-              ) bevy-flake.targets );
+              fx.combine (
+                [ fx.${channel}.toolchain ]
+                ++ map (target: fx.targets.${target}.${channel}.rust-std)
+                  bevy-flake.targets
+              );
           };
       in {
         default = pkgs.mkShell {
