@@ -18,20 +18,20 @@
   let
     bf = bevy-flake.override {
       rustToolchainFor = system:
-        let
-          pkgs-with-overlay = (import nixpkgs {
-            inherit system;
-            overlays = [ (import rust-overlay ) ];
-          });
-          channel = "stable"; # For nightly, use "nightly".
-        in
-          pkgs-with-overlay.rust-bin.${channel}.latest.default.override {
-            inherit (bevy-flake) targets;
-            extensions = [ "rust-src" "rust-analyzer" ];
-          };
+      let
+        pkgs-with-overlay = (import nixpkgs {
+          inherit system;
+          overlays = [ (import rust-overlay ) ];
+        });
+        channel = "stable"; # For nightly, use "nightly".
+      in
+        pkgs-with-overlay.rust-bin.${channel}.latest.default.override {
+          inherit (bevy-flake) targets;
+          extensions = [ "rust-src" "rust-analyzer" ];
+        };
     };
   in {
-    devShells = bevy-flake.eachSystem (system:
+    devShells = bf.eachSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
       in {

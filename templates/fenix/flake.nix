@@ -31,7 +31,7 @@
           );
     };
   in {
-    devShells = bevy-flake.eachSystem (system:
+    devShells = bf.eachSystem (system:
     let
       pkgs = import nixpkgs { inherit system; };
     in {
