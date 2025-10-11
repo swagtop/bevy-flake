@@ -6,7 +6,7 @@
     nixpkgs.url = "nixpkgs/nixos-unstable";
   };
   
-  outputs = inputs@{ self, nixpkgs, ... }:
+  outputs = { nixpkgs, ... }:
   let
     inherit (builtins)
       attrNames concatStringsSep warn;
@@ -168,8 +168,8 @@
         wrapInEnvironmentAdapter = { name, extraRuntimeInputs, execPath }:
           pkgs.writeShellApplication {
             inherit name;
-            runtimeInputs =
-              runtimeInputsBase ++ extraRuntimeInputs ++ [ stdenv.cc ];
+            runtimeInputs = runtimeInputsBase ++ extraRuntimeInputs
+              ++ [ stdenv.cc rust-toolchain ];
             bashOptions = [ "errexit" "pipefail" ];
             text = ''
               # Check if cargo is being run with '--target', or '--no-wrapper'.
@@ -255,6 +255,8 @@
             '';
         };
       in {
+        inherit wrapInEnvironmentAdapter;
+        
         wrapped-rust-toolchain = pkgs.symlinkJoin {
           name = "bevy-flake-rust-toolchain";
           ignoreCollisions = true;
@@ -264,7 +266,6 @@
               extraRuntimeInputs = with pkgs; [
                 cargo-zigbuild
                 cargo-xwin
-                rust-toolchain
               ];
               execPath = pkgs.writeShellScript "cargo" ''
                 if [[ $BEVY_FLAKE_NO_WRAPPER = "1" ]]; then
