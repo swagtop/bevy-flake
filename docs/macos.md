@@ -21,13 +21,13 @@ When acquired, you can add it like so, depending on your situation:
 Override `bevy-flake` to add the SDK like so:
 
 ```nix
-  bf = bevy-flake.override {
-    mac.sdk = builtins.fetchTarball {
-      url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
-      sha256 = "put-the-hash-here!";
-    };
-    # ...
+bf = bevy-flake.override {
+  mac.sdk = builtins.fetchTarball {
+    url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
+    sha256 = "put-the-hash-here!";
   };
+  # ...
+};
 ```
 
 ### Option 2: I have copied the `flake.nix` and `flake.lock` from the repo
@@ -35,16 +35,16 @@ Override `bevy-flake` to add the SDK like so:
 Add the SDK to the `config` attribute set like so:
 
 ```nix
-  config = {
-    # ...
-    macos = {
-      sdk = builtins.fetchTarball {
-        url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
-        sha256 = "put-the-hash-here!";
-      }
-    };
-    # ...
+config = {
+  # ...
+  macos = {
+    sdk = builtins.fetchTarball {
+      url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
+      sha256 = "put-the-hash-here!";
+    }
   };
+  # ...
+};
 ```
 
 ## Structure of the SDK
@@ -65,10 +65,10 @@ this structure is found inside of another directory, you can scope in on it like
 so (in this example this extra directory is called 'extra-directory'):
 
 ```nix
-  sdk = "${builtins.fetchTarball {
-    url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
-    sha256 = "put-the-hash-here!";
-  }}/extra-directory";
+mac.sdk = "${builtins.fetchTarball {
+  url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
+  sha256 = "put-the-hash-here!";
+}}/extra-directory";
 ```
 
 ## General advice
