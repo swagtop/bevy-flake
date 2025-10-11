@@ -59,22 +59,17 @@
       targetSpecificEnvironment =
         let
           macos = ''
-            if [ "$MACOS_SDK_DIR" = "" ]; then
-              printf "%s%s\n" \
-                "bevy-flake: Building to MacOS target without SDK, " \
-                "compilation will most likely fail." 1>&2
-            fi
-            FRAMEWORKS="$MACOS_SDK_DIR/System/Library/Frameworks";
-            export SDKROOT="$MACOS_SDK_DIR"
+            FRAMEWORKS="$BF_MACOS_SDK/System/Library/Frameworks";
+            export SDKROOT="$BF_MACOS_SDK"
             export COREAUDIO_SDK_PATH="$FRAMEWORKS/CoreAudio.framework/Headers"
             export BINDGEN_EXTRA_CLANG_ARGS="${concatStringsSep " " [
-              "--sysroot=$MACOS_SDK_DIR"
+              "--sysroot=$BF_MACOS_SDK"
               "-F $FRAMEWORKS"
-              "-I$MACOS_SDK_DIR/usr/include"
+              "-I$BF_MACOS_SDK/usr/include"
               "$BINDGEN_EXTRA_CLANG_ARGS"
             ]}"
             RUSTFLAGS="${concatStringsSep " " [
-              "-L $MACOS_SDK_DIR/usr/lib"
+              "-L $BF_MACOS_SDK/usr/lib"
               "-L framework=$FRAMEWORKS"
               "$RUSTFLAGS"
             ]}"
@@ -173,26 +168,26 @@
             bashOptions = [ "errexit" "pipefail" ];
             text = ''
               # Check if cargo is being run with '--target', or '--no-wrapper'.
-              BEVY_FLAKE_ARG_COUNT=0
+              BF_ARG_COUNT=0
               for arg in "$@"; do
-                BEVY_FLAKE_ARG_COUNT=$((BEVY_FLAKE_ARG_COUNT + 1))
+                BF_ARG_COUNT=$((BF_ARG_COUNT + 1))
                 case $arg in
                   "--target")
                     # Save next arg as target.
-                    eval "BEVY_FLAKE_TARGET=\$$((BEVY_FLAKE_ARG_COUNT + 1))"
+                    eval "BF_TARGET=\$$((BF_ARG_COUNT + 1))"
                   ;;
                   "--no-wrapper")
                     # Remove '--no-wrapper' from args, then run unwrapped exec.
-                    set -- "''${@:1:$((BEVY_FLAKE_ARG_COUNT - 1))}" \
-                           "''${@:$((BEVY_FLAKE_ARG_COUNT + 1))}"
-                    export BEVY_FLAKE_NO_WRAPPER="1"
+                    set -- "''${@:1:$((BF_ARG_COUNT - 1))}" \
+                           "''${@:$((BF_ARG_COUNT + 1))}"
+                    export BF_NO_WRAPPER="1"
                     exec ${execPath} "$@"
                   ;;
                 esac
               done
 
               # Set up MacOS SDK if provided through config.
-              MACOS_SDK_DIR="${config.macos.sdk}"
+              BF_MACOS_SDK="${config.macos.sdk}"
 
               # Set up Windows SDK and CRT if pinning is enabled.
               ${optionalString (config.windows.pin) ''
@@ -217,13 +212,13 @@
               export LIBRARY_PATH="${pkgs.libiconv}/lib"
               ${config.sharedEnvironment}
 
-              case $BEVY_FLAKE_TARGET in
+              case $BF_TARGET in
                 "")
                   export PKG_CONFIG_PATH="${
                     makeSearchPath "lib/pkgconfig" (headerInputsFor system)
                   }:$PKG_CONFIG_PATH"
                   RUSTFLAGS="${concatStringsSep " " [
-                    (optionalString (extraRuntimeInputs != [])
+                    (optionalString (pkgs.stdenv.isLinux)
                       "-C link-args=-Wl,-rpath,${
                         makeSearchPath "lib"
                           (runtimeInputsBase ++ extraRuntimeInputs)}
@@ -248,8 +243,8 @@
 
               export RUSTFLAGS="$RUSTFLAGS"
               export PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
-              export BEVY_FLAKE_ARG_COUNT="$BEVY_FLAKE_ARG_COUNT"
-              export BEVY_FLAKE_TARGET="$BEVY_FLAKE_TARGET"
+              export BF_ARG_COUNT="$BF_ARG_COUNT"
+              export BF_TARGET="$BF_TARGET"
 
               exec ${execPath} "$@"
             '';
@@ -268,39 +263,45 @@
                 cargo-xwin
               ];
               execPath = pkgs.writeShellScript "cargo" ''
-                if [[ $BEVY_FLAKE_NO_WRAPPER = "1" ]]; then
+                if [[ $BF_NO_WRAPPER = "1" ]]; then
                   exec ${rust-toolchain}/bin/cargo "$@"
                 fi
-              
-                case $BEVY_FLAKE_TARGET in
+
+                case $BF_TARGET in
                   *-unknown-linux-gnu*)
                     args=("$@")
-                    if [[ $BEVY_FLAKE_TARGET =~ "x86_64" ]]; then
-                      args[$((BEVY_FLAKE_ARG_COUNT-1))]=${
+                    if [[ $BF_TARGET =~ "x86_64" ]]; then
+                      args[$((BF_ARG_COUNT-1))]=${
                         "x86_64-unknown-linux-gnu.${config.linux.glibcVersion}"
                       }
-                    elif [[ $BEVY_FLAKE_TARGET =~ "aarch64" ]]; then
-                      args[$((BEVY_FLAKE_ARG_COUNT-1))]=${
+                    elif [[ $BF_TARGET =~ "aarch64" ]]; then
+                      args[$((BF_ARG_COUNT-1))]=${
                         "aarch64-unknown-linux-gnu.${config.linux.glibcVersion}"
                       }
                     fi
                     set -- "''${args[@]}"
-                  ;&
-                  *-apple-darwin);&
-                  "wasm32-unknown-unknown")
-                    if [ "$1" = 'build' ]; then
-                      echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
-                      shift
-                      set -- "zigbuild" "$@"
-                    fi
+                    BF_USE_ZIGBUILD=1
                   ;;
-                  *-pc-windows-msvc)
-                    if [ "$1" = 'build' ] || [ "$1" = 'run' ]; then
-                      echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
-                      set -- "xwin" "$@"
+                  *-apple-darwin)
+                    if [ "$BF_MACOS_SDK" = "" ]; then
+                      printf "%s%s\n" \
+                        "bevy-flake: Building to MacOS target without SDK, " \
+                        "compilation will most likely fail." 1>&2
                     fi
+                    BF_USE_ZIGBUILD=1
                   ;;
+                  "wasm32-unknown-unknown") BF_USE_ZIGBUILD=1;;
+                  *-pc-windows-msvc) BF_USE_XWIN=1;;
                 esac
+
+                if [[ $BF_USE_ZIGBUILD == 1 && "$1" == 'build' ]]; then
+                  echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
+                  shift
+                  set -- "zigbuild" "$@"
+                elif [[ $BF_USE_XWIN == 1 && ("$1" = 'build' || "$1" = 'run') ]]; then
+                  echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
+                  set -- "xwin" "$@"
+                fi
 
                 ${optionalString (pkgs.stdenv.isDarwin) "ulimit -n 4096"}
                 exec ${rust-toolchain}/bin/cargo "$@"
