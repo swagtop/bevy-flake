@@ -187,7 +187,7 @@
               done
 
               # Set up MacOS SDK if provided through config.
-              BF_MACOS_SDK="${config.macos.sdk}"
+              export BF_MACOS_SDK="${config.macos.sdk}"
 
               # Set up Windows SDK and CRT if pinning is enabled.
               ${optionalString (config.windows.pin) ''
