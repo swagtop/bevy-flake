@@ -49,5 +49,28 @@ Add the SDK to the `config` attribute set like so:
 
 ## Structure of the SDK
 
+The base directory of the SDK should look something like this:
+
+```
+path-to-sdk/
+  ├─ Entitlements.plist
+  ├─ SDKSettings.json
+  ├─ SDKSettings.plist
+  ├─ System/
+  ╰─ usr/
+```
+
+If the root directory of the tarball you've unpacked doesn't look like this, and
+this structure is found inside of another directory, you can scope in on it like
+so (in this example this extra directory is called 'extra-directory'):
+
+```nix
+  sdk = "${builtins.fetchTarball {
+    url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
+    sha256 = "put-the-hash-here!";
+  }}/extra-directory";
+```
+
 ## General advice
+
 

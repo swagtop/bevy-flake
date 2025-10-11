@@ -1,4 +1,4 @@
-# Windows
+# Cross-compiling for Windows
 
 As of `2025-06-02`, these are the Windows SDK and CRT versions that have been
 tested, and confirmed to succesfully be fetched, and used for compiling the
