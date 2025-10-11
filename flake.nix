@@ -39,7 +39,7 @@
 
       macos = {
         # You will not be able to cross-compile to MacOS targets without an SDK.
-        sdk = inputs.macos-sdk or "";
+        sdk = ""; # <--- Intentionally left empty.
       };
 
       localDevRustflags = [ ];

@@ -2,58 +2,52 @@
 
 ## Adding the MacOS SDK to inputs
 
-Get your hands on a SDK packaged into a tarball. This is either done by
-packaging it yourself with [osxcross][osxcross], or finding it pre-packaged
-somewhere on the internet.
+Regardless of if you are on MacOS or not, you need to add a MacOS SDK to your
+bevy-flake instance to compile a portable MacOS binary for non-Nix systems.
+
+This is done by first getting your hands on a SDK. You can make one yourself by
+using [osxcross][osxcross], but you can probably find one already packaged for
+you somewhere on the internet.
+
+You will not find a link to one anywhere on this repo, as it is legally dubious
+if one is allowed to redistribute it.
 
 [osxcross]: https://github.com/tpoechtrager/osxcross
 
-When acquired, add it to the flake inputs as `macos-sdk` like so:
+When acquired, you can add it like so, depending on your situation:
+
+### Option 1: I am using `bevy-flake` as a flake input
+
+Override `bevy-flake` to add the SDK like so:
+
 ```diff
-{
-  description = "A NixOS development flake for Bevy development.";
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    rust-overlay = {
-      url = "github:oxalica/rust-overlay";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-+   macos-sdk = {
+  bf = bevy-flake.override {
++   mac.sdk = builtins.fetchTarball {
 +     url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
-+     flake = false;
++     sha256 = "put-the-hash-here!";
 +   };
+    ...
   };
-  ...
-}
 ```
 
-... or, download the tarball and reference it on your local system:
+### Option 2: I have copied the `flake.nix` and `flake.lock` from the repo
 
-```
-macos-sdk = {
-  url = "file:///home/user/Downloads/MacOSX(Version).tar.xz";
-              # ^ Notice the extra forward-slash.
-  flake = false;
-};
-```
+Add the SDK to the `config` attribute set like so:
 
-## I am wrapping my own toolchain
-
-Add the path of the MacOS SDK to the `config.mac.sdk` input of
-`makeToolchainWrapper` like so:
-
-```nix
-{
-  rust-toolchain-wrapped = makeToolchainWrapper {
-    inherit system;
-    rust-toolchain = pkgs.cargo;
-    config = existingConfig // {
-      macos.sdk = inputs.macos-sdk;
-    };
+```diff
+  config = {
+    ...
++   macos = {
++     sdk = builtins.fetchTarball {
++       url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
++       sha256 = "put-the-hash-here!";
++     }
++   };
+    ...
   };
-}
 ```
 
-## I am on MacOS
+## Structure of the SDK
 
-You should add a specific MacOS SDK to your system.
+## General advice
+
