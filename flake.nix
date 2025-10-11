@@ -1,6 +1,6 @@
 {
   description =
-    "A Nix flake for development and distribution of Bevy projects.";
+    "A flake for development and distribution of Bevy projects.";
 
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
@@ -38,7 +38,7 @@
       };
 
       macos = {
-        # Loads MacOS SDK into here automatically, if added as flake input.
+        # You will not be able to cross-compile to MacOS targets without an SDK.
         sdk = inputs.macos-sdk or "";
       };
 
