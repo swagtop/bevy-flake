@@ -73,4 +73,10 @@ mac.sdk = "${builtins.fetchTarball {
 
 ## General advice
 
+You should never add the SDK tarball to your projects git repo. Flakes copy the
+repository they are in to the Nix store on evaluation, and you will therefore
+end up with very long evaluation times.
 
+If you are getting the SDK prepackaged from somewhere, it could be a good idea
+for you to upload it yourself somewhere, such that you are sure you can always
+get your hands on it, should the original place you've gotten it from go down.
