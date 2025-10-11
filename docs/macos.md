@@ -20,13 +20,13 @@ When acquired, you can add it like so, depending on your situation:
 
 Override `bevy-flake` to add the SDK like so:
 
-```diff
+```nix
   bf = bevy-flake.override {
 +   mac.sdk = builtins.fetchTarball {
 +     url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
 +     sha256 = "put-the-hash-here!";
 +   };
-    ...
+    # ...
   };
 ```
 
@@ -34,16 +34,16 @@ Override `bevy-flake` to add the SDK like so:
 
 Add the SDK to the `config` attribute set like so:
 
-```diff
+```nix
   config = {
-    ...
-+   macos = {
-+     sdk = builtins.fetchTarball {
-+       url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
-+       sha256 = "put-the-hash-here!";
-+     }
-+   };
-    ...
+    # ...
+    macos = {
+      sdk = builtins.fetchTarball {
+        url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
+        sha256 = "put-the-hash-here!";
+      }
+    };
+    # ...
   };
 ```
 
