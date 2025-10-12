@@ -152,7 +152,7 @@
         ])
       );
 
-    stdEnvFor = system: nixpkgs.legacyPackages.${system}.stdenv;
+    stdEnvFor = system: nixpkgs.legacyPackages.${system}.clangStdenv;
   in
     makeOverridable (config:
     let
