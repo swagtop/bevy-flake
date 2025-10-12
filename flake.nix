@@ -352,8 +352,8 @@
         default = nixpkgs.legacyPackages.${system}.mkShell {
           name = "bevy-flake";
           packages = [
-            packages.${system}.wrapped-rust-toolchain
-            # packages.${system}.wrapped-dioxus-cli
+            packages.${system}.rust-toolchain
+            # packages.${system}.dioxus-cli
           ];
         };
       });
