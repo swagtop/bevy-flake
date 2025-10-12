@@ -68,7 +68,7 @@
               "-I$BF_MACOS_SDK/usr/include"
               "$BINDGEN_EXTRA_CLANG_ARGS"
             ]}"
-            RUSTFLAGS="${concatStringsSep " " [
+            export RUSTFLAGS="${concatStringsSep " " [
               "-L $BF_MACOS_SDK/usr/lib"
               "-L framework=$FRAMEWORKS"
               "$RUSTFLAGS"
@@ -88,7 +88,7 @@
           "x86_64-apple-darwin" = macos;
           "aarch64-apple-darwin" = macos;
           "wasm32-unknown-unknown" = ''
-            RUSTFLAGS="${concatStringsSep " " [
+            export RUSTFLAGS="${concatStringsSep " " [
               ''--cfg getrandom_backend=\"wasm_js\"''
               "$RUSTFLAGS"
             ]}"
@@ -148,9 +148,7 @@
         ])
       );
 
-    stdEnvFor = (system:
-      nixpkgs.legacyPackages.${system}.stdenv
-    );
+    stdEnvFor = system: nixpkgs.legacyPackages.${system}.stdenv;
   in
     makeOverridable (config:
     let
@@ -178,6 +176,7 @@
                   "--target")
                     # Save next arg as target.
                     eval "BF_TARGET=\$$((BF_ARG_COUNT + 1))"
+                    export BF_TARGET="$BF_TARGET"
                   ;;
                   "--no-wrapper")
                     # Remove '--no-wrapper' from args, then run unwrapped exec.
@@ -220,7 +219,7 @@
                   export PKG_CONFIG_PATH="${
                     makeSearchPath "lib/pkgconfig" (headerInputsFor system)
                   }:$PKG_CONFIG_PATH"
-                  RUSTFLAGS="${concatStringsSep " " [
+                  export RUSTFLAGS="${concatStringsSep " " [
                     (optionalString (pkgs.stdenv.isLinux)
                       "-C link-args=-Wl,-rpath,${
                         makeSearchPath "lib"
@@ -236,18 +235,13 @@
                   (target: env: ''
                     ${target}*)
                     ${env}
-                    RUSTFLAGS="${
+                    export RUSTFLAGS="${
                       concatStringsSep " " config.crossPlatformRustflags
                     } $RUSTFLAGS"
                     ;;
                   '')
                 config.targetSpecificEnvironment)}
               esac
-
-              export RUSTFLAGS="$RUSTFLAGS"
-              export PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
-              export BF_ARG_COUNT="$BF_ARG_COUNT"
-              export BF_TARGET="$BF_TARGET"
 
               exec ${execPath} "$@"
             '';
