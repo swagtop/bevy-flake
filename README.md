@@ -25,6 +25,8 @@ cd /path/to/bevy/project
 ```
 #### Option 1: Use the template with your preferred rust toolchain provider
 
+Read more on the benefits and drawbacks of each option [here.](docs/details.md)
+
 ```sh
 # The default with no cross-compilation:
 nix flake init --template github:swagtop/bevy-flake/dev#nixpkgs
@@ -38,9 +40,6 @@ nix flake init --template github:swagtop/bevy-flake/dev#fenix
 
 If you get your toolchain from elsewhere, you should very easily be able to slot
 it in. More on this [here.](docs/tweaks.md)
-
-Unsure of which one to choose? Read more on the benefits and drawbacks of each
-option [here.](docs/details.md)
 
 #### Option 2: Copy flake
 
