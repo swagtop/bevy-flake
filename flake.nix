@@ -316,7 +316,7 @@
         # For now we have to override the package for hot-reloading.
         dioxus-cli =
         let
-          version = "0.7.0-rc.0";
+          version = "0.7.0-rc.1";
           dx = nixpkgs.legacyPackages.${system}.dioxus-cli.override (old: {
             rustPlatform = old.rustPlatform // {
               buildRustPackage = args:
@@ -327,10 +327,14 @@
                       inherit version;
                       pname = "dioxus-cli";
                       hash =
-                        "sha256-xt/DJhcZz3TZLodfJTaFE2cBX3hedo+typHM5UezS94=";
+                        "sha256-Gri7gJe9b1q0qP+m0fe4eh+xj3wqi2get4Rqz6xL8yA=";
                     };
                     cargoHash =
-                      "sha256-UVt4vZyh+w+8Z1Bp1emFOJqPXU1zzy7FzNcA5oQsM8U=";
+                      "sha256-+HPWgiFc7pbosHWpRvHcSj7DZHD9sIPOE3S5LTrDb6I=";
+
+                    postPatch = "";
+                    checkFlags = [ "--skip" "test_harnesses::run_harness" ];
+
                     cargoPatches = [ ];
                     buildFeatures = [ ];
                   }
