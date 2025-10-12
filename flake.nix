@@ -274,6 +274,7 @@
                 fi
 
                 # Last extra setup for select targets.
+                args=("$@")
                 case $BF_TARGET in
                   aarch64-unknown-linux-gnu*)
                     args[$((BF_ARG_COUNT-1))]=${
