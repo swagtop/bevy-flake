@@ -68,12 +68,10 @@
               "--sysroot=$BF_MACOS_SDK_PATH"
               "-F ${frameworks}"
               "-I$BF_MACOS_SDK_PATH/usr/include"
-              "$BINDGEN_EXTRA_CLANG_ARGS"
             ];
             RUSTFLAGS = concatStringsSep " " [
               "-L $BF_MACOS_SDK_PATH/usr/lib"
               "-L framework=${frameworks}"
-              "$RUSTFLAGS"
             ];
           };
         in {
@@ -82,17 +80,16 @@
           "x86_64-unknown-linux-gnu" = {
             PKG_CONFIG_PATH = "${
               makeSearchPath "lib/pkgconfig" (headerInputsFor "x86_64-linux")
-            }:$PKG_CONFIG_PATH";
+            }";
           };
           "aarch64-unknown-linux-gnu" = {
             PKG_CONFIG_PATH = "${
               makeSearchPath "lib/pkgconfig" (headerInputsFor "aarch64-linux")
-            }:$PKG_CONFIG_PATH";
+            }";
           };
           "wasm32-unknown-unknown" = {
             RUSTFLAGS = concatStringsSep " " [
               ''--cfg getrandom_backend=\"wasm_js\"''
-              "$RUSTFLAGS"
             ];
           };
           # No environment setup needed for Windows targets.
