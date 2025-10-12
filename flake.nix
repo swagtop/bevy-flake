@@ -274,7 +274,7 @@
                 case $BF_TARGET in
                   aarch64-unknown-linux-gnu*)
                     args[$((BF_ARG_COUNT-1))]=${
-                      "x86_64-unknown-linux-gnu.${config.linux.glibcVersion}"
+                      "aarch64-unknown-linux-gnu.${config.linux.glibcVersion}"
                     }
                     set -- "''${args[@]}"
                   ;;
