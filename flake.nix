@@ -9,7 +9,7 @@
   outputs = { nixpkgs, ... }:
   let
     inherit (builtins)
-      mapAttrs attrNames concatStringsSep warn;
+      attrNames concatStringsSep warn;
     inherit (nixpkgs.lib)
       genAttrs mapAttrsToList
       optionals optionalString
@@ -39,7 +39,7 @@
 
       macos = {
         # You will not be able to cross-compile to MacOS targets without an SDK.
-        sdk = ""; # <--- Intentionally left empty.
+        sdk = "";
       };
 
       localDevRustflags = [ ];
@@ -60,23 +60,25 @@
         let
           macos =
           let
-            frameworks = "$BF_MACOS_SDK/System/Library/Frameworks";
+            frameworks = "$BF_MACOS_SDK_PATH/System/Library/Frameworks";
           in {
-            SDKROOT = "$BF_MACOS_SDK";
+            SDKROOT = "$BF_MACOS_SDK_PATH";
             COREAUDIO_SDK_PATH = "${frameworks}/CoreAudio.framework/Headers";
             BINDGEN_EXTRA_CLANG_ARGS = concatStringsSep " " [
-              "--sysroot=$BF_MACOS_SDK"
+              "--sysroot=$BF_MACOS_SDK_PATH"
               "-F ${frameworks}"
-              "-I$BF_MACOS_SDK/usr/include"
+              "-I$BF_MACOS_SDK_PATH/usr/include"
               "$BINDGEN_EXTRA_CLANG_ARGS"
             ];
             RUSTFLAGS = concatStringsSep " " [
-              "-L $BF_MACOS_SDK/usr/lib"
+              "-L $BF_MACOS_SDK_PATH/usr/lib"
               "-L framework=${frameworks}"
               "$RUSTFLAGS"
             ];
           };
         in {
+          "x86_64-apple-darwin" = macos;
+          "aarch64-apple-darwin" = macos;
           "x86_64-unknown-linux-gnu" = {
             PKG_CONFIG_PATH = "${
               makeSearchPath "lib/pkgconfig" (headerInputsFor "x86_64-linux")
@@ -87,8 +89,6 @@
               makeSearchPath "lib/pkgconfig" (headerInputsFor "aarch64-linux")
             }:$PKG_CONFIG_PATH";
           };
-          "x86_64-apple-darwin" = macos;
-          "aarch64-apple-darwin" = macos;
           "wasm32-unknown-unknown" = {
             RUSTFLAGS =  concatStringsSep " " [
               ''--cfg getrandom_backend=\"wasm_js\"''
@@ -177,8 +177,7 @@
                 case $arg in
                   "--target")
                     # Save next arg as target.
-                    eval "BF_TARGET=\$$((BF_ARG_COUNT + 1))"
-                    export BF_TARGET="$BF_TARGET"
+                    eval "BF_TARGET=\$$((BF_ARG_COUNT + 1))"; export BF_TARGET
                   ;;
                   "--no-wrapper")
                     # Remove '--no-wrapper' from args, then run unwrapped exec.
@@ -191,7 +190,7 @@
               done
 
               # Set up MacOS SDK if provided through config.
-              export BF_MACOS_SDK="${config.macos.sdk}"
+              export BF_MACOS_SDK_PATH="${config.macos.sdk}"
 
               # Set up Windows SDK and CRT if pinning is enabled.
               ${optionalString (config.windows.pin) ''
@@ -237,7 +236,9 @@
                     (target: env: ''
                       ${target}*)
                       ${concatStringsSep "\n"
-                        (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env)
+                        (mapAttrsToList
+                          (name: val: "export ${name}=\"${val}\"")
+                        env)
                       }
                       export RUSTFLAGS="${
                         concatStringsSep " " config.crossPlatformRustflags
@@ -284,7 +285,7 @@
                     BF_USE_ZIGBUILD=1
                   ;;
                   *-apple-darwin)
-                    if [ "$BF_MACOS_SDK" = "" ]; then
+                    if [ "$BF_MACOS_SDK_PATH" = "" ]; then
                       printf "%s%s\n" \
                         "bevy-flake: Building to MacOS target without SDK, " \
                         "compilation will most likely fail." 1>&2
@@ -312,6 +313,7 @@
           ];
         };
 
+        # For now we have to override the package for hot-reloading.
         dioxus-cli =
         let
           version = "0.7.0-rc.0";
