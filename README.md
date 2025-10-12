@@ -25,7 +25,8 @@ cd /path/to/bevy/project
 ```
 #### Option 1: Use the template with your preferred rust toolchain provider
 
-Read more on the benefits and drawbacks of each option [here.](docs/details.md)
+_Read more on the benefits and drawbacks of each option_
+_[here.](docs/details.md)_
 
 ```sh
 # The default with no cross-compilation:
@@ -72,10 +73,9 @@ cargo build --target aarch64-apple-darwin # <-- Read docs/macos.md!
 cargo build --target wasm32-unknown-unknown
 ```
 
-You can compile to every target with a `targetSpecificEnvironment` entry. If
-you'd like to add one that no longer exists, you can work on setting it up by
-adding its environment to the attribute set.
-More on this [here.](docs/tweaks.md)
+You can compile to every target with a `config.targetSpecificEnvironment` entry.
+If you the target you want isn't in the config, you can add it yourself, and set
+up the environment needed for it yourself. More on that [here.](docs/tweaks.md)
 
 - [Tweaks](docs/tweaks.md)
 - [Pitfalls](docs/pitfalls.md)
