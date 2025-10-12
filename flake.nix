@@ -360,7 +360,6 @@
           packages = [
             packages.${system}.rust-toolchain
             # packages.${system}.dioxus-cli
-            # packages.${system}.bevy-cli
           ];
         };
       });
