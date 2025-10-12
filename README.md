@@ -5,8 +5,8 @@
 A flake for painless development and distribution of [Bevy][bevy] programs.
 
 With bevy-flake you can easily compile and run the same project on NixOS and
-MacOS, while being able to cross-compile to non-Nix Linux, Windows and MacOS
-targets.
+MacOS, while being able to cross-compile portable binaries for non-Nix Linux,
+Windows and MacOS targets.
 
 [bevy]: https://github.com/bevyengine/bevy
 
@@ -37,7 +37,10 @@ nix flake init --template github:swagtop/bevy-flake/dev#fenix
 ```
 
 If you get your toolchain from elsewhere, you should very easily be able to slot
-it in. More on this [here.](docs/tweaks.md)
+it in. More on this [here.][docs/tweaks.md]
+
+Unsure of which one to choose? Read more on the benefits and drawbacks of each
+option [here.][docs/details.md]
 
 #### Option 2: Copy flake
 
@@ -48,6 +51,8 @@ wget https://github.com/swagtop/bevy-flake/raw/refs/heads/dev/flake.nix
 wget https://github.com/swagtop/bevy-flake/raw/refs/heads/dev/flake.lock
 git add flake.nix flake.lock
 ```
+
+You can read edits to the flake you'd like to do
 
 ## How to use
 
@@ -61,12 +66,17 @@ Then, you can just use `cargo` like so:
 cargo build
 cargo run
 
-# For other systems, just use '--target':
+# For other targets, just use '--target':
 cargo build --target x86_64-unknown-linux-gnu
 cargo build --target x86_64-pc-windows-msvc
 cargo build --target aarch64-apple-darwin # <-- Read docs/macos.md!
 cargo build --target wasm32-unknown-unknown
 ```
+
+You can compile to every target with a `targetSpecificEnvironment` entry. If
+you'd like to add one that no longer exists, you can work on setting it up by
+adding its environment to the attribute set.
+More on this [here.][docs/tweaks.md]
 
 - [Tweaks](docs/tweaks.md)
 - [Pitfalls](docs/pitfalls.md)
