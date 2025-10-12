@@ -24,7 +24,7 @@ Override `bevy-flake` to add the SDK like so:
 bf = bevy-flake.override {
   mac.sdk = builtins.fetchTarball {
     url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
-    sha256 = "put-the-hash-here!";
+    sha256 = "sha256:some-long-hash-string-goes-here";
   };
   # ...
 };
@@ -40,7 +40,7 @@ config = {
   macos = {
     sdk = builtins.fetchTarball {
       url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
-      sha256 = "put-the-hash-here!";
+      sha256 = "sha256:some-long-hash-string-goes-here";
     }
   };
   # ...
@@ -67,7 +67,7 @@ like so:
 ```nix
 mac.sdk = "${builtins.fetchTarball {
   url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
-  sha256 = "put-the-hash-here!";
+  sha256 = "sha256:some-long-hash-string-goes-here";
 }}/sub-path";
 ```
 
