@@ -38,8 +38,8 @@
       default = pkgs.mkShell {
         name = "bevy-flake-fenix";
         packages = [
-          bf.packages.${system}.wrapped-rust-toolchain
-          # bf.packages.${system}.wrapped-dioxus-cli
+          bf.packages.${system}.rust-toolchain
+          # bf.packages.${system}.dioxus-cli
         ];
       };
     });

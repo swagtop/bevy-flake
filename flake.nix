@@ -252,7 +252,7 @@
       in {
         inherit wrapInEnvironmentAdapter;
         
-        wrapped-rust-toolchain = pkgs.symlinkJoin {
+        rust-toolchain = pkgs.symlinkJoin {
           name = "bevy-flake-rust-toolchain";
           ignoreCollisions = true;
           paths = [
@@ -311,7 +311,7 @@
           ];
         };
 
-        wrapped-dioxus-cli =
+        dioxus-cli =
         let
           version = "0.7.0-rc.0";
           dx = nixpkgs.legacyPackages.${system}.dioxus-cli.override (old: {
