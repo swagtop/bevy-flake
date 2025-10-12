@@ -222,7 +222,7 @@
                 "")
                   export PKG_CONFIG_PATH="${
                     makeSearchPath "lib/pkgconfig" (headerInputsFor system)
-                  }:$PKG_CONFIG_PATH"
+                  }"
                   export RUSTFLAGS="${concatStringsSep " " [
                     (optionalString (pkgs.stdenv.isLinux)
                       "-C link-args=-Wl,-rpath,${
@@ -230,7 +230,6 @@
                           (runtimeInputsBase ++ extraRuntimeInputs)}
                       ")
                     "${concatStringsSep " " config.localDevRustflags}"
-                    "$RUSTFLAGS"
                   ]}"
                 ;;
 
