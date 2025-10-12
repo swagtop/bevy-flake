@@ -166,7 +166,7 @@
         runtimeInputsBase = config.runtimeInputsFor system;
         stdenv = config.stdEnvFor system;
           
-        wrapInEnvironmentAdapter = { name, extraRuntimeInputs, execPath }:
+        wrapInEnvironmentAdapter = { name, extraRuntimeInputs ? [], execPath }:
           pkgs.writeShellApplication {
             inherit name;
             runtimeInputs = runtimeInputsBase
@@ -316,7 +316,7 @@
         };
 
         # For now we have to override the package for hot-reloading.
-        dioxus-cli =
+        dioxus-cli = 
         let
           version = "0.7.0-rc.1";
           dx = nixpkgs.legacyPackages.${system}.dioxus-cli.override (old: {
@@ -344,11 +344,11 @@
             };
           });
         in
-          wrapInEnvironmentAdapter {
+          makeOverridable (dx-package: wrapInEnvironmentAdapter {
             name = "dx";
             extraRuntimeInputs = [ pkgs.lld ];
             execPath = "${dx}/bin/dx";
-          };
+          }) dx;
       });
     in {
       inherit (config) systems;
