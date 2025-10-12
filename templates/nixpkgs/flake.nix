@@ -12,17 +12,16 @@
 
   outputs = { nixpkgs, bevy-flake, ... }: {
     devShells = bevy-flake.eachSystem (system:
-      let
-        pkgs = import nixpkgs { inherit system; };
-      in {
-        default = pkgs.mkShell {
-          name = "bevy-flake-nixpkgs";
-          packages = [
-            bevy-flake.packages.${system}.rust-toolchain
-            # bevy-flake.packages.${system}.dioxus-cli
-          ];
-        };
-      }
-    );
+    let
+      pkgs = import nixpkgs { inherit system; };
+    in {
+      default = pkgs.mkShell {
+        name = "bevy-flake-nixpkgs";
+        packages = [
+          bevy-flake.packages.${system}.rust-toolchain
+          # bevy-flake.packages.${system}.dioxus-cli
+        ];
+      };
+    });
   };
 }

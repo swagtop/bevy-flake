@@ -18,17 +18,17 @@
   let
     bf = bevy-flake.override {
       rustToolchainFor = system:
-        let
-          fx = (import nixpkgs { inherit system;
-            overlays = [ (fenix.overlays.default ) ];
-          }).fenix;
-          channel = "stable"; # For nightly, use "latest".
-        in
-          fx.combine (
-            [ fx.${channel}.toolchain ]
-            ++ map (target: fx.targets.${target}.${channel}.rust-std)
-              bevy-flake.targets
-          );
+      let
+        fx = (import nixpkgs { inherit system;
+          overlays = [ (fenix.overlays.default ) ];
+        }).fenix;
+        channel = "stable"; # For nightly, use "latest".
+      in
+        fx.combine (
+          [ fx.${channel}.toolchain ]
+          ++ map (target: fx.targets.${target}.${channel}.rust-std)
+            bevy-flake.targets
+        );
     };
   in {
     devShells = bf.eachSystem (system:
