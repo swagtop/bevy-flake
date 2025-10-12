@@ -189,6 +189,12 @@
                     export BF_NO_WRAPPER="1"
                     exec ${execPath} "$@"
                   ;;
+                  "web")
+                    # Set BF_TARGET to WASM, when using bevy-cli.
+                    if [[ $0 == "bevy" ]]; then
+                      export BF_TARGET="wasm32-unknown-unknown"
+                    fi
+                  ;;
                 esac
               done
 
@@ -346,9 +352,33 @@
         in
           wrapInEnvironmentAdapter {
             name = "dx";
-            extraRuntimeInputs = [ rust-toolchain pkgs.lld ];
+            extraRuntimeInputs = [ pkgs.lld ];
             execPath = "${dx}/bin/dx";
           };
+
+        bevy-cli = wrapInEnvironmentAdapter (
+        let
+          version = "0.1.0-alpha.2";
+          package ="${pkgs.rustPlatform.buildRustPackage rec {
+            name = "bevy-cli-${version}";
+            inherit version;
+            nativeBuildInputs = [
+              pkgs.openssl.dev
+              pkgs.pkg-config
+            ];
+            PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
+            src = builtins.fetchTarball {
+              url = "https://github.com/TheBevyFlock/bevy_cli/archive/refs/tags/cli-v${version}.tar.gz";
+              sha256 = "sha256:02p2c3fzxi9cs5y2fn4dfcyca1z8l5d8i09jia9h5b50ym82cr8l";
+            };
+            cargoLock.lockFile = "${src}/Cargo.lock";
+            doCheck = false;
+          }}";
+        in {
+          name = "bevy";
+          extraRuntimeInputs = [ pkgs.lld ];
+          execPath = "${package}/bin/bevy";
+        });
       });
     in {
       inherit (config) systems;
@@ -360,6 +390,7 @@
           packages = [
             packages.${system}.rust-toolchain
             # packages.${system}.dioxus-cli
+            # packages.${system}.bevy-cli
           ];
         };
       });

@@ -23,6 +23,7 @@ First, navigate to your Bevy project root:
 ```sh
 cd /path/to/bevy/project
 ```
+
 #### Option 1: Use the template with your preferred rust toolchain provider
 
 ```sh
