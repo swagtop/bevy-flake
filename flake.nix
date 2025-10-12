@@ -90,7 +90,7 @@
             }:$PKG_CONFIG_PATH";
           };
           "wasm32-unknown-unknown" = {
-            RUSTFLAGS =  concatStringsSep " " [
+            RUSTFLAGS = concatStringsSep " " [
               ''--cfg getrandom_backend=\"wasm_js\"''
               "$RUSTFLAGS"
             ];
@@ -269,7 +269,7 @@
                 cargo-xwin
               ];
               execPath = pkgs.writeShellScript "cargo" ''
-                if [[ $BF_NO_WRAPPER = "1" ]]; then
+                if [[ $BF_NO_WRAPPER == "1" ]]; then
                   exec ${rust-toolchain}/bin/cargo "$@"
                 fi
 
