@@ -347,7 +347,7 @@
           makeOverridable (dx-package: wrapInEnvironmentAdapter {
             name = "dx";
             extraRuntimeInputs = [ pkgs.lld ];
-            execPath = "${dx}/bin/dx";
+            execPath = "${dx-package}/bin/dx";
           }) dx;
       });
     in {
