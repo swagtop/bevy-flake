@@ -161,18 +161,19 @@
       packages = eachSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        rust-toolchain = config.rustToolchainFor system;
-        runtimeInputsBase = config.runtimeInputsFor system;
-        stdenv = config.stdEnvFor system;
         exportEnv = env: "${concatStringsSep "\n"
           (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env)
         }";
+
+        rust-toolchain = config.rustToolchainFor system;
+        runtimeInputsBase = config.runtimeInputsFor system;
+        stdenv = config.stdEnvFor system;
           
         wrapInEnvironmentAdapter = { name, extraRuntimeInputs, execPath }:
           pkgs.writeShellApplication {
             inherit name;
-            runtimeInputs = runtimeInputsBase ++ extraRuntimeInputs
-              ++ [ stdenv.cc rust-toolchain ];
+            runtimeInputs = runtimeInputsBase
+              ++ extraRuntimeInputs ++ [ stdenv.cc rust-toolchain ];
             bashOptions = [ "errexit" "pipefail" ];
             text = ''
               # Check if cargo is being run with '--target', or '--no-wrapper'.
