@@ -93,13 +93,13 @@ environment needed for it yourself. More on that [here.](docs/tweaks.md)
                             ╭────1───╴ wrapped-rust-toolchain ╶───2────╮
                             │                                          │
                             │                                          │
-                            │     ╔════════════target/═══════════╗     │
-                            ├──────► debug/                      ║     │
-                            ╰──────► release/                    ║     │
+                            │     ╔════════════target/══════════╗      │
+                            ├──────► debug/                     ║      │
+                            ╰──────► release/                   ║      │
                                   ║  x86_64-unknown-linux-gnu/ ◄───────┤
                                   ║  x86_64-pc-windows-msvc/ ◄─────────┤
                                   ║  aarch64-apple-darwin/ ◄───────────╯
-                                  ╚══════════════════════════════╝
+                                  ╚═════════════════════════════╝
 
                     (1) Local Nix System:             (2) Other Systems:
 
