@@ -297,7 +297,7 @@
                 # Set linker for specific targets.
                 case $BF_TARGET in
                   *-unknown-linux-gnu*);&
-                  *-apple-darwin)&;
+                  *-apple-darwin);&
                   "wasm32-unknown-unknown")
                     echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
                     shift
