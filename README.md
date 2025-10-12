@@ -37,10 +37,10 @@ nix flake init --template github:swagtop/bevy-flake/dev#fenix
 ```
 
 If you get your toolchain from elsewhere, you should very easily be able to slot
-it in. More on this [here.][docs/tweaks.md]
+it in. More on this [here.](docs/tweaks.md)
 
 Unsure of which one to choose? Read more on the benefits and drawbacks of each
-option [here.][docs/details.md]
+option [here.](docs/details.md)
 
 #### Option 2: Copy flake
 
@@ -76,7 +76,7 @@ cargo build --target wasm32-unknown-unknown
 You can compile to every target with a `targetSpecificEnvironment` entry. If
 you'd like to add one that no longer exists, you can work on setting it up by
 adding its environment to the attribute set.
-More on this [here.][docs/tweaks.md]
+More on this [here.](docs/tweaks.md)
 
 - [Tweaks](docs/tweaks.md)
 - [Pitfalls](docs/pitfalls.md)
