@@ -276,13 +276,11 @@
                     args[$((BF_ARG_COUNT-1))]=${
                       "aarch64-unknown-linux-gnu.${config.linux.glibcVersion}"
                     }
-                    set -- "''${args[@]}"
                   ;;
                   x86_64-unknown-linux-gnu*)
                     args[$((BF_ARG_COUNT-1))]=${
                       "x86_64-unknown-linux-gnu.${config.linux.glibcVersion}"
                     }
-                    set -- "''${args[@]}"
                   ;;
                   *-apple-darwin)
                     if [[ $BF_MACOS_SDK_PATH == "" ]]; then
@@ -292,6 +290,7 @@
                     fi
                   ;;
                 esac
+                set -- "''${args[@]}"
                 
                 # Set linker for specific targets.
                 case $BF_TARGET in
