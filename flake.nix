@@ -273,41 +273,41 @@
                   exec ${rust-toolchain}/bin/cargo "$@"
                 fi
 
+                # Last extra setup for select targets.
                 case $BF_TARGET in
-                  *-unknown-linux-gnu*)
-                    args=("$@")
-                    if [[ $BF_TARGET =~ "x86_64" ]]; then
-                      args[$((BF_ARG_COUNT-1))]=${
-                        "x86_64-unknown-linux-gnu.${config.linux.glibcVersion}"
-                      }
-                    elif [[ $BF_TARGET =~ "aarch64" ]]; then
-                      args[$((BF_ARG_COUNT-1))]=${
-                        "aarch64-unknown-linux-gnu.${config.linux.glibcVersion}"
-                      }
-                    fi
+                  aarch64-unknown-linux-gnu*)
+                    args[$((BF_ARG_COUNT-1))]=${
+                      "x86_64-unknown-linux-gnu.${config.linux.glibcVersion}"
+                    }
                     set -- "''${args[@]}"
-                    BF_USE_ZIGBUILD=1
+                  ;;
+                  x86_64-unknown-linux-gnu*)
+                    args[$((BF_ARG_COUNT-1))]=${
+                      "x86_64-unknown-linux-gnu.${config.linux.glibcVersion}"
+                    }
+                    set -- "''${args[@]}"
                   ;;
                   *-apple-darwin)
-                    if [ "$BF_MACOS_SDK_PATH" = "" ]; then
-                      printf "%s%s\n" \
-                        "bevy-flake: Building to MacOS target without SDK, " \
-                        "compilation will most likely fail." 1>&2
-                    fi
-                    BF_USE_ZIGBUILD=1
+                    printf "%s%s\n" \
+                      "bevy-flake: Building to MacOS target without SDK, " \
+                      "compilation will most likely fail." 1>&2
                   ;;
-                  "wasm32-unknown-unknown") BF_USE_ZIGBUILD=1;;
-                  *-pc-windows-msvc) BF_USE_XWIN=1;;
                 esac
-
-                if [[ $BF_USE_ZIGBUILD == 1 && "$1" == 'build' ]]; then
-                  echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
-                  shift
-                  set -- "zigbuild" "$@"
-                elif [[ $BF_USE_XWIN == 1 && ("$1" = 'build' || "$1" = 'run') ]]; then
-                  echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
-                  set -- "xwin" "$@"
-                fi
+                
+                # Set linker for specific targets.
+                case $BF_TARGET in
+                  *-unknown-linux-gnu*);&
+                  *-apple-darwin)&;
+                  "wasm32-unknown-unknown")
+                    echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
+                    shift
+                    set -- "zigbuild" "$@"
+                  ;;
+                  *-pc-windows-msvc)
+                    echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
+                    set -- "xwin" "$@"
+                  ;;
+                esac
 
                 ${optionalString (pkgs.stdenv.isDarwin) "ulimit -n 4096"}
                 exec ${rust-toolchain}/bin/cargo "$@"
