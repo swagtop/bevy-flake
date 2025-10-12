@@ -93,6 +93,9 @@
               "$RUSTFLAGS"
             ]}"
           '';
+          # No environment setup needed for Windows targets.
+          "x86_64-pc-windows-msvc" = "";
+          "aarch64-pc-windows-msvc" = "";
         };
     };
 
