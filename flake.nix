@@ -49,10 +49,10 @@
       ];
 
       # Base environment for every target to build on.
-      sharedEnvironment = ''
-        # Stops 'blake3' crate from messing up.
-        export CARGO_FEATURE_PURE=1
-      '';
+      sharedEnvironment = {
+        # Stops blake3 from messing builds up every once in a while.
+        CARGO_FEATURE_PURE = "1";
+      };
 
       # Environment variables set for individual targets.
       # The target names, and bodies should use Bash syntax.
@@ -99,6 +99,8 @@
           "x86_64-pc-windows-msvc" = { };
           "aarch64-pc-windows-msvc" = { };
         };
+
+      extraScript = "";
     };
 
     rustToolchainFor = (system:
@@ -162,7 +164,10 @@
         rust-toolchain = config.rustToolchainFor system;
         runtimeInputsBase = config.runtimeInputsFor system;
         stdenv = config.stdEnvFor system;
-
+        exportEnv = env: "${concatStringsSep "\n"
+          (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env)
+        }";
+          
         wrapInEnvironmentAdapter = { name, extraRuntimeInputs, execPath }:
           pkgs.writeShellApplication {
             inherit name;
@@ -211,9 +216,9 @@
 
               # Base environment for all targets.
               export PKG_CONFIG_ALLOW_CROSS="1"
-              export LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
-              export LIBRARY_PATH="${pkgs.libiconv}/lib"
-              ${config.sharedEnvironment}
+              export LIBCLANG_PATH="${pkgs.libclang.lib}/lib";
+              export LIBRARY_PATH="${pkgs.libiconv}/lib";
+              ${exportEnv config.sharedEnvironment}
 
               case $BF_TARGET in
                 "")
@@ -235,11 +240,7 @@
                   (mapAttrsToList
                     (target: env: ''
                       ${target}*)
-                      ${concatStringsSep "\n"
-                        (mapAttrsToList
-                          (name: val: "export ${name}=\"${val}\"")
-                        env)
-                      }
+                      ${exportEnv env}
                       export RUSTFLAGS="${
                         concatStringsSep " " config.crossPlatformRustflags
                       } $RUSTFLAGS"
@@ -247,6 +248,8 @@
                     '')
                   config.targetSpecificEnvironment)}
               esac
+
+              ${config.extraScript}
 
               exec ${execPath} "$@"
             '';
