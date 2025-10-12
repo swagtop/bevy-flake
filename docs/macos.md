@@ -61,14 +61,14 @@ path-to-sdk/
 ```
 
 If the root directory of the tarball you've unpacked doesn't look like this, and
-this structure is found inside of another directory, you can scope in on it like
-so (in this example this extra directory is called 'extra-directory'):
+this structure is found inside of subpath of the SDK, you can scope in on it
+like so:
 
 ```nix
 mac.sdk = "${builtins.fetchTarball {
   url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
   sha256 = "put-the-hash-here!";
-}}/extra-directory";
+}}/sub-path";
 ```
 
 ## General advice
