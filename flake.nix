@@ -9,7 +9,7 @@
   outputs = { nixpkgs, ... }:
   let
     inherit (builtins)
-      attrNames concatStringsSep warn;
+      mapAttrs attrNames concatStringsSep warn;
     inherit (nixpkgs.lib)
       genAttrs mapAttrsToList
       optionals optionalString
@@ -58,44 +58,46 @@
       # The target names, and bodies should use Bash syntax.
       targetSpecificEnvironment =
         let
-          macos = ''
-            FRAMEWORKS="$BF_MACOS_SDK/System/Library/Frameworks";
-            export SDKROOT="$BF_MACOS_SDK"
-            export COREAUDIO_SDK_PATH="$FRAMEWORKS/CoreAudio.framework/Headers"
-            export BINDGEN_EXTRA_CLANG_ARGS="${concatStringsSep " " [
+          macos =
+          let
+            frameworks = "$BF_MACOS_SDK/System/Library/Frameworks";
+          in {
+            SDKROOT = "$BF_MACOS_SDK";
+            COREAUDIO_SDK_PATH = "${frameworks}/CoreAudio.framework/Headers";
+            BINDGEN_EXTRA_CLANG_ARGS = concatStringsSep " " [
               "--sysroot=$BF_MACOS_SDK"
-              "-F $FRAMEWORKS"
+              "-F ${frameworks}"
               "-I$BF_MACOS_SDK/usr/include"
               "$BINDGEN_EXTRA_CLANG_ARGS"
-            ]}"
-            export RUSTFLAGS="${concatStringsSep " " [
+            ];
+            RUSTFLAGS = concatStringsSep " " [
               "-L $BF_MACOS_SDK/usr/lib"
-              "-L framework=$FRAMEWORKS"
+              "-L framework=${frameworks}"
               "$RUSTFLAGS"
-            ]}"
-          '';
+            ];
+          };
         in {
-          "x86_64-unknown-linux-gnu" = ''
-            export PKG_CONFIG_PATH="${
+          "x86_64-unknown-linux-gnu" = {
+            PKG_CONFIG_PATH = "${
               makeSearchPath "lib/pkgconfig" (headerInputsFor "x86_64-linux")
-            }:$PKG_CONFIG_PATH"
-          '';
-          "aarch64-unknown-linux-gnu" = ''
-            export PKG_CONFIG_PATH="${
+            }:$PKG_CONFIG_PATH";
+          };
+          "aarch64-unknown-linux-gnu" = {
+            PKG_CONFIG_PATH = "${
               makeSearchPath "lib/pkgconfig" (headerInputsFor "aarch64-linux")
-            }:$PKG_CONFIG_PATH"
-          '';
+            }:$PKG_CONFIG_PATH";
+          };
           "x86_64-apple-darwin" = macos;
           "aarch64-apple-darwin" = macos;
-          "wasm32-unknown-unknown" = ''
-            export RUSTFLAGS="${concatStringsSep " " [
+          "wasm32-unknown-unknown" = {
+            RUSTFLAGS =  concatStringsSep " " [
               ''--cfg getrandom_backend=\"wasm_js\"''
               "$RUSTFLAGS"
-            ]}"
-          '';
+            ];
+          };
           # No environment setup needed for Windows targets.
-          "x86_64-pc-windows-msvc" = "";
-          "aarch64-pc-windows-msvc" = "";
+          "x86_64-pc-windows-msvc" = { };
+          "aarch64-pc-windows-msvc" = { };
         };
     };
 
@@ -230,17 +232,19 @@
                   ]}"
                 ;;
 
-              ${builtins.concatStringsSep "\n"
-                (mapAttrsToList
-                  (target: env: ''
-                    ${target}*)
-                    ${env}
-                    export RUSTFLAGS="${
-                      concatStringsSep " " config.crossPlatformRustflags
-                    } $RUSTFLAGS"
-                    ;;
-                  '')
-                config.targetSpecificEnvironment)}
+                ${concatStringsSep "\n"
+                  (mapAttrsToList
+                    (target: env: ''
+                      ${target}*)
+                      ${concatStringsSep "\n"
+                        (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env)
+                      }
+                      export RUSTFLAGS="${
+                        concatStringsSep " " config.crossPlatformRustflags
+                      } $RUSTFLAGS"
+                      ;;
+                    '')
+                  config.targetSpecificEnvironment)}
               esac
 
               exec ${execPath} "$@"
