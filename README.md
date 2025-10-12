@@ -25,11 +25,8 @@ cd /path/to/bevy/project
 ```
 #### Option 1: Use the template with your preferred rust toolchain provider
 
-_Read more on the benefits and drawbacks of each option_
-_[here.](docs/details.md)_
-
 ```sh
-# The default with no cross-compilation:
+# The default with no cross-compilation, but much faster evaluation:
 nix flake init --template github:swagtop/bevy-flake/dev#nixpkgs
 
 # The one using oxalica's rust-overlay:
