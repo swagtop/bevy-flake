@@ -288,9 +288,11 @@
                     set -- "''${args[@]}"
                   ;;
                   *-apple-darwin)
-                    printf "%s%s\n" \
-                      "bevy-flake: Building to MacOS target without SDK, " \
-                      "compilation will most likely fail." 1>&2
+                    if [[ $BF_MACOS_SDK_PATH == "" ]]; then
+                      printf "%s%s\n" \
+                        "bevy-flake: Building to MacOS target without SDK, " \
+                        "compilation will most likely fail." 1>&2
+                    fi
                   ;;
                 esac
                 
