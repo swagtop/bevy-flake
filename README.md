@@ -74,8 +74,8 @@ cargo build --target wasm32-unknown-unknown
 ```
 
 You can compile to every target with a `config.targetSpecificEnvironment` entry.
-If you the target you want isn't in the config, you can add it yourself, and set
-up the environment needed for it yourself. More on that [here.](docs/tweaks.md)
+If the target you want isn't in the config, you can add it yourself, and set up
+the environment needed for it yourself. More on that [here.](docs/tweaks.md)
 
 - [Tweaks](docs/tweaks.md)
 - [Pitfalls](docs/pitfalls.md)
