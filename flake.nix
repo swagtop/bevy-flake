@@ -310,14 +310,14 @@
             '';
           };
         in 
-          makeOverridable ({ adapter-args, rust-toolchain }: pkgs.symlinkJoin {
+          pkgs.symlinkJoin {
             name = "bevy-flake-rust-toolchain";
             ignoreCollisions = true;
             paths = [
               (wrapInEnvironmentAdapter adapter-args)
               rust-toolchain
             ];
-          }) { inherit rust-toolchain adapter-args; };
+          };
 
         # For now we have to override the package for hot-reloading.
         dioxus-cli = 
