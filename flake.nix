@@ -196,21 +196,19 @@
               export BF_MACOS_SDK_PATH="${config.macos.sdk}"
 
               # Set up Windows SDK and CRT if pinning is enabled.
-              ${optionalString (config.windows.pin) ''
-                  export XWIN_CACHE_DIR="${(
-                    if (pkgs.stdenv.isDarwin)
-                      then "$HOME/Library/Caches/"
-                      else "\${XDG_CACHE_HOME:-$HOME/.cache}/"
-                    )
-                    + "bevy-flake/xwin/"
-                    + "manifest${config.windows.manifestVersion}"
-                    + "-sdk${config.windows.sdkVersion}"
-                    + "-crt${config.windows.crtVersion}"
-                  }"
-                  export XWIN_VERSION="${config.windows.manifestVersion}"
-                  export XWIN_SDK_VERSION="${config.windows.sdkVersion}"
-                  export XWIN_CRT_VERSION="${config.windows.crtVersion}"
-              ''}
+              ${optionalString (config.windows.pin) (exportEnv {
+                XWIN_CACHE_DIR = (
+                  if (pkgs.stdenv.isDarwin)
+                    then "$HOME/Library/Caches/"
+                    else "\${XDG_CACHE_HOME:-$HOME/.cache}/"
+                ) + "bevy-flake/xwin/"
+                  + "manifest${config.windows.manifestVersion}"
+                  + "-sdk${config.windows.sdkVersion}"
+                  + "-crt${config.windows.crtVersion}";
+                XWIN_VERSION = config.windows.manifestVersion;
+                XWIN_SDK_VERSION = "${config.windows.sdkVersion}";
+                XWIN_CRT_VERSION = "${config.windows.crtVersion}";
+              })}
 
               # Base environment for all targets.
               export PKG_CONFIG_ALLOW_CROSS="1"
