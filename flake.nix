@@ -206,8 +206,8 @@
                   + "-sdk${config.windows.sdkVersion}"
                   + "-crt${config.windows.crtVersion}";
                 XWIN_VERSION = config.windows.manifestVersion;
-                XWIN_SDK_VERSION = "${config.windows.sdkVersion}";
-                XWIN_CRT_VERSION = "${config.windows.crtVersion}";
+                XWIN_SDK_VERSION = config.windows.sdkVersion;
+                XWIN_CRT_VERSION = config.windows.crtVersion;
               })}
 
               # Base environment for all targets.
