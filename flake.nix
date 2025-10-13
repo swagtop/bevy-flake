@@ -242,19 +242,19 @@
         let
           target-adapter = pkgs.writeShellScriptBin "cargo" ''
             # Check if what the adapter is being run with.
-            BF_TARGET_ARG_NUMBER=0
+            TARGET_ARG_NO=0
             for arg in "$@"; do
-              BF_TARGET_ARG_NUMBER=$((BF_TARGET_ARG_NUMBER + 1))
+              TARGET_ARG_NO=$((TARGET_ARG_NO + 1))
               case $arg in
                 "--target")
                   # Save next arg as target.
-                  eval "BF_TARGET=\$$((BF_TARGET_ARG_NUMBER + 1))"
+                  eval "BF_TARGET=\$$((TARGET_ARG_NO + 1))"
                   export BF_TARGET="$BF_TARGET"
                 ;;
                 "--no-wrapper")
                   # Remove '--no-wrapper' from args, then run unwrapped exec.
-                  set -- "''${@:1:$((BF_TARGET_ARG_NUMBER - 1))}" \
-                         "''${@:$((BF_TARGET_ARG_NUMBER + 1))}"
+                  set -- "''${@:1:$((TARGET_ARG_NO - 1))}" \
+                         "''${@:$((TARGET_ARG_NO + 1))}"
                   export BF_NO_WRAPPER="1"
                   exec ${rust-toolchain}/bin/cargo "$@"
                 ;;
@@ -264,7 +264,7 @@
             # Insert glibc version for Linux targets.
             if [[ $BF_TARGET == *"-unknown-linux-gnu" ]]; then
               args=("$@")
-              args[$((BF_TARGET_ARG_NUMBER-1))]="$BF_TARGET.${
+              args[$((TARGET_ARG_NO-1))]="$BF_TARGET.${
                 config.linux.glibcVersion
               }"
               set -- "''${args[@]}"
@@ -303,7 +303,7 @@
           '';
         in 
           pkgs.symlinkJoin {
-            name = "bevy-flake-rust-toolchain";
+            name = "bf-wrapped-rust-toolchain";
             ignoreCollisions = true;
             paths = [
               target-adapter
