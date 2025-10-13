@@ -256,7 +256,7 @@
         
         rust-toolchain =
         let
-          linker-adapter = wrapInEnvironmentAdapter {
+          linker-adapter-package = wrapInEnvironmentAdapter {
             name = "cargo";
             extraRuntimeInputs = with pkgs; [
               cargo-zigbuild
@@ -310,7 +310,7 @@
             '';
           };
         in 
-          makeOverridable (linker-adapter-package:
+          makeOverridable (linker-adapter:
             pkgs.symlinkJoin {
               name = "bevy-flake-rust-toolchain";
               ignoreCollisions = true;
@@ -318,13 +318,13 @@
                 linker-adapter-package
                 rust-toolchain
               ];
-          }) linker-adapter;
+          }) linker-adapter-package;
 
         # For now we have to override the package for hot-reloading.
         dioxus-cli = 
         let
           version = "0.7.0-rc.1";
-          dx = nixpkgs.legacyPackages.${system}.dioxus-cli.override (old: {
+          dx-package = nixpkgs.legacyPackages.${system}.dioxus-cli.override (old: {
             rustPlatform = old.rustPlatform // {
               buildRustPackage = args:
                 old.rustPlatform.buildRustPackage (
@@ -349,11 +349,11 @@
             };
           });
         in
-          makeOverridable (dx-package: wrapInEnvironmentAdapter {
+          makeOverridable (dx: wrapInEnvironmentAdapter {
             name = "dx";
             extraRuntimeInputs = [ pkgs.lld ];
-            execPath = "${dx-package}/bin/dx";
-          }) dx;
+            execPath = "${dx}/bin/dx";
+          }) dx-package;
       });
     in {
       inherit (config) systems;
