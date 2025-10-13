@@ -256,7 +256,7 @@
         
         rust-toolchain =
         let
-          adapter-args = {
+          linker-adapter = wrapInEnvironmentAdapter {
             name = "cargo";
             extraRuntimeInputs = with pkgs; [
               cargo-zigbuild
@@ -310,14 +310,15 @@
             '';
           };
         in 
-          pkgs.symlinkJoin {
-            name = "bevy-flake-rust-toolchain";
-            ignoreCollisions = true;
-            paths = [
-              (wrapInEnvironmentAdapter adapter-args)
-              rust-toolchain
-            ];
-          };
+          makeOverridable (linker-adapter-package:
+            pkgs.symlinkJoin {
+              name = "bevy-flake-rust-toolchain";
+              ignoreCollisions = true;
+              paths = [
+                linker-adapter-package
+                rust-toolchain
+              ];
+          }) linker-adapter;
 
         # For now we have to override the package for hot-reloading.
         dioxus-cli = 
