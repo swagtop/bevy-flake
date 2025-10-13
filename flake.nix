@@ -254,66 +254,70 @@
       in {
         inherit wrapInEnvironmentAdapter;
         
-        rust-toolchain = pkgs.symlinkJoin {
-          name = "bevy-flake-rust-toolchain";
-          ignoreCollisions = true;
-          paths = [
-            (wrapInEnvironmentAdapter {
-              name = "cargo";
-              extraRuntimeInputs = with pkgs; [
-                cargo-zigbuild
-                cargo-xwin
-              ];
-              execPath = pkgs.writeShellScript "cargo" ''
-                if [[ $BF_NO_WRAPPER == "1" ]]; then
-                  exec ${rust-toolchain}/bin/cargo "$@"
-                fi
-
-                # Last extra setup for select targets.
-                args=("$@")
-                case $BF_TARGET in
-                  aarch64-unknown-linux-gnu*)
-                    args[$((BF_ARG_COUNT-1))]=${
-                      "aarch64-unknown-linux-gnu.${config.linux.glibcVersion}"
-                    }
-                  ;;
-                  x86_64-unknown-linux-gnu*)
-                    args[$((BF_ARG_COUNT-1))]=${
-                      "x86_64-unknown-linux-gnu.${config.linux.glibcVersion}"
-                    }
-                  ;;
-                  *-apple-darwin)
-                    if [[ $BF_MACOS_SDK_PATH == "" ]]; then
-                      printf "%s%s\n" \
-                        "bevy-flake: Building to MacOS target without SDK, " \
-                        "compilation will most likely fail." 1>&2
-                    fi
-                  ;;
-                esac
-                set -- "''${args[@]}"
-                
-                # Set linker for specific targets.
-                case $BF_TARGET in
-                  *-unknown-linux-gnu*);&
-                  *-apple-darwin);&
-                  "wasm32-unknown-unknown")
-                    echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
-                    shift
-                    set -- "zigbuild" "$@"
-                  ;;
-                  *-pc-windows-msvc)
-                    echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
-                    set -- "xwin" "$@"
-                  ;;
-                esac
-
-                ${optionalString (pkgs.stdenv.isDarwin) "ulimit -n 4096"}
+        rust-toolchain =
+        let
+          linker-adapter = wrapInEnvironmentAdapter {
+            name = "cargo";
+            extraRuntimeInputs = with pkgs; [
+              cargo-zigbuild
+              cargo-xwin
+            ];
+            execPath = pkgs.writeShellScript "cargo" ''
+              if [[ $BF_NO_WRAPPER == "1" ]]; then
                 exec ${rust-toolchain}/bin/cargo "$@"
-              '';
-            })
-            rust-toolchain
-          ];
-        };
+              fi
+
+              # Last extra setup for select targets.
+              args=("$@")
+              case $BF_TARGET in
+                aarch64-unknown-linux-gnu*)
+                  args[$((BF_ARG_COUNT-1))]=${
+                    "aarch64-unknown-linux-gnu.${config.linux.glibcVersion}"
+                  }
+                ;;
+                x86_64-unknown-linux-gnu*)
+                  args[$((BF_ARG_COUNT-1))]=${
+                    "x86_64-unknown-linux-gnu.${config.linux.glibcVersion}"
+                  }
+                ;;
+                *-apple-darwin)
+                  if [[ $BF_MACOS_SDK_PATH == "" ]]; then
+                    printf "%s%s\n" \
+                      "bevy-flake: Building to MacOS target without SDK, " \
+                      "compilation will most likely fail." 1>&2
+                  fi
+                ;;
+              esac
+              set -- "''${args[@]}"
+              
+              # Set linker for specific targets.
+              case $BF_TARGET in
+                *-unknown-linux-gnu*);&
+                *-apple-darwin);&
+                "wasm32-unknown-unknown")
+                  echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
+                  shift
+                  set -- "zigbuild" "$@"
+                ;;
+                *-pc-windows-msvc)
+                  echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
+                  set -- "xwin" "$@"
+                ;;
+              esac
+
+              ${optionalString (pkgs.stdenv.isDarwin) "ulimit -n 4096"}
+              exec ${rust-toolchain}/bin/cargo "$@"
+            '';
+          };
+        in 
+          makeOverridable (linker-adapter-pakage: pkgs.symlinkJoin {
+            name = "bevy-flake-rust-toolchain";
+            ignoreCollisions = true;
+            paths = [
+              linker-adapter
+              rust-toolchain
+            ];
+          }) linker-adapter;
 
         # For now we have to override the package for hot-reloading.
         dioxus-cli = 
