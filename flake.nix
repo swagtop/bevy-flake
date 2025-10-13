@@ -173,24 +173,9 @@
               ++ extraRuntimeInputs ++ [ stdenv.cc rust-toolchain ];
             bashOptions = [ "errexit" "pipefail" ];
             text = ''
-              # Check if what the adapter is being run with.
-              BF_ARG_COUNT=0
-              for arg in "$@"; do
-                BF_ARG_COUNT=$((BF_ARG_COUNT + 1))
-                case $arg in
-                  "--target")
-                    # Save next arg as target.
-                    eval "BF_TARGET=\$$((BF_ARG_COUNT + 1))"; export BF_TARGET
-                  ;;
-                  "--no-wrapper")
-                    # Remove '--no-wrapper' from args, then run unwrapped exec.
-                    set -- "''${@:1:$((BF_ARG_COUNT - 1))}" \
-                           "''${@:$((BF_ARG_COUNT + 1))}"
-                    export BF_NO_WRAPPER="1"
-                    exec ${execPath} "$@"
-                  ;;
-                esac
-              done
+              if [[ $BF_NO_WRAPPER == "1" ]]; then
+                exec ${execPath} "$@"
+              fi
 
               # Set up MacOS SDK if provided through config.
               export BF_MACOS_SDK_PATH="${config.macos.sdk}"
@@ -254,16 +239,26 @@
         
         rust-toolchain =
         let
-          linker-adapter-package = wrapInEnvironmentAdapter {
-            name = "cargo";
-            extraRuntimeInputs = with pkgs; [
-              cargo-zigbuild
-              cargo-xwin
-            ];
-            execPath = pkgs.writeShellScript "cargo" ''
-              if [[ $BF_NO_WRAPPER == "1" ]]; then
-                exec ${rust-toolchain}/bin/cargo "$@"
-              fi
+          target-adapter =
+            pkgs.writeShellScriptBin "cargo" ''
+              # Check if what the adapter is being run with.
+              BF_ARG_COUNT=0
+              for arg in "$@"; do
+                BF_ARG_COUNT=$((BF_ARG_COUNT + 1))
+                case $arg in
+                  "--target")
+                    # Save next arg as target.
+                    eval "BF_TARGET=\$$((BF_ARG_COUNT + 1))"; export BF_TARGET
+                  ;;
+                  "--no-wrapper")
+                    # Remove '--no-wrapper' from args, then run unwrapped exec.
+                    set -- "''${@:1:$((BF_ARG_COUNT - 1))}" \
+                           "''${@:$((BF_ARG_COUNT + 1))}"
+                    export BF_NO_WRAPPER="1"
+                    exec ${rust-toolchain}/bin/cargo "$@"
+                  ;;
+                esac
+              done
 
               # Last extra setup for select targets.
               args=("$@")
@@ -287,7 +282,7 @@
                 ;;
               esac
               set -- "''${args[@]}"
-              
+            
               # Set linker for specific targets.
               case $BF_TARGET in
                 *-unknown-linux-gnu*);&
@@ -304,19 +299,24 @@
               esac
 
               ${optionalString (pkgs.stdenv.isDarwin) "ulimit -n 4096"}
-              exec ${rust-toolchain}/bin/cargo "$@"
+              exec ${wrapInEnvironmentAdapter {
+                name = "cargo";
+                extraRuntimeInputs = with pkgs; [
+                  cargo-zigbuild
+                  cargo-xwin
+                ];
+                execPath = "${rust-toolchain}/bin/cargo";
+              }}/bin/cargo "$@"
             '';
-          };
         in 
-          makeOverridable (linker-adapter:
-            pkgs.symlinkJoin {
-              name = "bevy-flake-rust-toolchain";
-              ignoreCollisions = true;
-              paths = [
-                linker-adapter
-                rust-toolchain
-              ];
-          }) linker-adapter-package;
+          pkgs.symlinkJoin {
+            name = "bevy-flake-rust-toolchain";
+            ignoreCollisions = true;
+            paths = [
+              target-adapter
+              rust-toolchain
+            ];
+          };
 
         # For now we have to override the package for hot-reloading.
         dioxus-cli = 
