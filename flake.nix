@@ -313,7 +313,7 @@
               name = "bevy-flake-rust-toolchain";
               ignoreCollisions = true;
               paths = [
-                linker-adapter-package
+                linker-adapter
                 rust-toolchain
               ];
           }) linker-adapter-package;
@@ -321,8 +321,9 @@
         # For now we have to override the package for hot-reloading.
         dioxus-cli = 
         let
+          pkgs = nixpkgs.legacyPackages.${system};
           version = "0.7.0-rc.1";
-          dx-package = nixpkgs.legacyPackages.${system}.dioxus-cli.override (old: {
+          dx-package = pkgs.dioxus-cli.override (old: {
             rustPlatform = old.rustPlatform // {
               buildRustPackage = args:
                 old.rustPlatform.buildRustPackage (
@@ -342,8 +343,7 @@
 
                     cargoPatches = [ ];
                     buildFeatures = [ ];
-                  }
-                );
+                  });
             };
           });
         in
