@@ -321,7 +321,6 @@
         # For now we have to override the package for hot-reloading.
         dioxus-cli = 
         let
-          pkgs = nixpkgs.legacyPackages.${system};
           version = "0.7.0-rc.1";
           dx-package = pkgs.dioxus-cli.override (old: {
             rustPlatform = old.rustPlatform // {
@@ -352,6 +351,42 @@
             extraRuntimeInputs = [ pkgs.lld ];
             execPath = "${dx}/bin/dx";
           }) dx-package;
+
+        bevy-cli =
+        let
+          bevy-cli-package = pkgs.rustPlatform.buildRustPackage (
+          let
+            version = "0.1.0-alpha.2";
+            src = builtins.fetchTarball {
+              url = "https://github.com/TheBevyFlock/bevy_cli/archive/refs/tags/cli-v${version}.tar.gz";
+              sha256 = "sha256:02p2c3fzxi9cs5y2fn4dfcyca1z8l5d8i09jia9h5b50ym82cr8l";
+            };
+          in {
+            inherit version src;
+            name = "bevy-cli-${version}";
+            nativeBuildInputs = [
+              pkgs.openssl.dev
+              pkgs.pkg-config
+            ];
+            PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
+            cargoLock.lockFile = "${src}/Cargo.lock";
+            doCheck = false;
+          });
+          wrapInWebChecker = bevy-cli: pkgs.writeShellScriptBin "bevy" ''
+            if [[ "$@" =~ "web" ]]; then
+              export BF_TARGET="wasm32-unknown-unknown"
+            fi
+
+            exec ${bevy-cli}/bin/bevy "$@"
+          '';
+        in
+          makeOverridable (bevy-cli: wrapInWebChecker (
+            wrapInEnvironmentAdapter {
+              name = "bevy";
+              extraRuntimeInputs = [ pkgs.lld pkgs.wasm-bindgen-cli_0_2_104 ];
+              execPath = "${bevy-cli}/bin/bevy";
+            }
+          )) bevy-cli-package;
       });
     in {
       inherit (config) systems;
@@ -363,6 +398,7 @@
           packages = [
             packages.${system}.rust-toolchain
             # packages.${system}.dioxus-cli
+            # packages.${system}.bevy-cli
           ];
         };
       });
