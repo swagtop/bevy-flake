@@ -310,11 +310,11 @@
             '';
           };
         in 
-          makeOverridable (linker-adapter-pakage: pkgs.symlinkJoin {
+          makeOverridable (linker-adapter-package: pkgs.symlinkJoin {
             name = "bevy-flake-rust-toolchain";
             ignoreCollisions = true;
             paths = [
-              linker-adapter
+              linker-adapter-package
               rust-toolchain
             ];
           }) linker-adapter;
