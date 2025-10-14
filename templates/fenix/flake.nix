@@ -17,17 +17,17 @@
   outputs = { nixpkgs, bevy-flake, fenix, ... }: 
   let
     bf = bevy-flake.override {
-      rustToolchainFor = system:
+      mkRustToolchain = targets: pkgs:
       let
-        fx = (import nixpkgs { inherit system;
+        fx = (import nixpkgs {
+          inherit (pkgs) system;
           overlays = [ (fenix.overlays.default ) ];
         }).fenix;
         channel = "stable"; # For nightly, use "latest".
       in
         fx.combine (
           [ fx.${channel}.toolchain ]
-          ++ map (target: fx.targets.${target}.${channel}.rust-std)
-            bevy-flake.targets
+          ++ map (target: fx.targets.${target}.${channel}.rust-std) targets
         );
     };
   in {
@@ -42,6 +42,7 @@
         packages = [
           bf.packages.${system}.rust-toolchain
           # bf.packages.${system}.dioxus-cli
+          # bf.packages.${system}.bevy-cli
         ];
       };
     });

@@ -22,6 +22,7 @@
         packages = [
           bevy-flake.packages.${system}.rust-toolchain
           # bevy-flake.packages.${system}.dioxus-cli
+          # bevy-flake.packages.${system}.bevy-cli
         ];
       };
     });

@@ -17,16 +17,16 @@
   outputs = { nixpkgs, bevy-flake, rust-overlay, ... }:
   let
     bf = bevy-flake.override {
-      rustToolchainFor = system:
+      mkRustToolchain = targets: pkgs:
       let
         pkgs-with-overlay = (import nixpkgs {
-          inherit system;
+          inherit (pkgs) system;
           overlays = [ (import rust-overlay ) ];
         });
         channel = "stable"; # For nightly, use "nightly".
       in
         pkgs-with-overlay.rust-bin.${channel}.latest.default.override {
-          inherit (bevy-flake) targets;
+          inherit targets;
           extensions = [ "rust-src" "rust-analyzer" ];
         };
     };
@@ -42,6 +42,7 @@
         packages = [
           bf.packages.${system}.rust-toolchain
           # bf.packages.${system}.dioxus-cli
+          # bf.packages.${system}.bevy-cli
         ];
       };
     });

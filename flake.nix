@@ -9,7 +9,7 @@
   outputs = { nixpkgs, ... }:
   let
     inherit (builtins)
-      attrNames concatStringsSep warn;
+      concatStringsSep warn;
     inherit (nixpkgs.lib)
       optionals genAttrs makeSearchPath makeOverridable;
 
@@ -173,8 +173,6 @@
           ];
         };
       });
-
-      targets = attrNames config.targetEnvironment;
 
       templates = {
         nixpkgs = warn "This template does not support any cross-compilation." {
