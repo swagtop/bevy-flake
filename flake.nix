@@ -55,45 +55,45 @@
       # Environment variables set for individual targets.
       # The target names, and bodies should use Bash syntax.
       targetSpecificEnvironment =
+      let
+        macos =
         let
-          macos =
-          let
-            frameworks = "$BF_MACOS_SDK_PATH/System/Library/Frameworks";
-          in {
-            SDKROOT = "$BF_MACOS_SDK_PATH";
-            COREAUDIO_SDK_PATH = "${frameworks}/CoreAudio.framework/Headers";
-            BINDGEN_EXTRA_CLANG_ARGS = concatStringsSep " " [
-              "--sysroot=$BF_MACOS_SDK_PATH"
-              "-F ${frameworks}"
-              "-I$BF_MACOS_SDK_PATH/usr/include"
-            ];
-            RUSTFLAGS = concatStringsSep " " [
-              "-L $BF_MACOS_SDK_PATH/usr/lib"
-              "-L framework=${frameworks}"
-            ];
-          };
+          frameworks = "$BF_MACOS_SDK_PATH/System/Library/Frameworks";
         in {
-          "x86_64-apple-darwin" = macos;
-          "aarch64-apple-darwin" = macos;
-          "x86_64-unknown-linux-gnu" = {
-            PKG_CONFIG_PATH = "${
-              makeSearchPath "lib/pkgconfig" (headerInputsFor "x86_64-linux")
-            }";
-          };
-          "aarch64-unknown-linux-gnu" = {
-            PKG_CONFIG_PATH = "${
-              makeSearchPath "lib/pkgconfig" (headerInputsFor "aarch64-linux")
-            }";
-          };
-          "wasm32-unknown-unknown" = {
-            RUSTFLAGS = concatStringsSep " " [
-              ''--cfg getrandom_backend=\"wasm_js\"''
-            ];
-          };
-          # No environment setup needed for Windows targets.
-          "x86_64-pc-windows-msvc" = { };
-          "aarch64-pc-windows-msvc" = { };
+          SDKROOT = "$BF_MACOS_SDK_PATH";
+          COREAUDIO_SDK_PATH = "${frameworks}/CoreAudio.framework/Headers";
+          BINDGEN_EXTRA_CLANG_ARGS = concatStringsSep " " [
+            "--sysroot=$BF_MACOS_SDK_PATH"
+            "-F ${frameworks}"
+            "-I$BF_MACOS_SDK_PATH/usr/include"
+          ];
+          RUSTFLAGS = concatStringsSep " " [
+            "-L $BF_MACOS_SDK_PATH/usr/lib"
+            "-L framework=${frameworks}"
+          ];
         };
+      in {
+        "x86_64-apple-darwin" = macos;
+        "aarch64-apple-darwin" = macos;
+        "x86_64-unknown-linux-gnu" = {
+          PKG_CONFIG_PATH = "${
+            makeSearchPath "lib/pkgconfig" (headerInputsFor "x86_64-linux")
+          }";
+        };
+        "aarch64-unknown-linux-gnu" = {
+          PKG_CONFIG_PATH = "${
+            makeSearchPath "lib/pkgconfig" (headerInputsFor "aarch64-linux")
+          }";
+        };
+        "wasm32-unknown-unknown" = {
+          RUSTFLAGS = concatStringsSep " " [
+            ''--cfg getrandom_backend=\"wasm_js\"''
+          ];
+        };
+        # No environment setup needed for Windows targets.
+        "x86_64-pc-windows-msvc" = { };
+        "aarch64-pc-windows-msvc" = { };
+      };
 
       extraScript = "";
 

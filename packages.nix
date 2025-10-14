@@ -13,8 +13,8 @@
   targetSpecificEnvironment,
 
   extraScript,
-
   defaultArgParser,
+
   rustToolchainFor,
   runtimeInputsFor,
   headerInputsFor,
@@ -25,7 +25,7 @@ let
   inherit (builtins)
     concatStringsSep;
   inherit (nixpkgs.lib)
-    makeOverridable mapAttrsToList optionalString makeSearchPath;
+    optionalString makeOverridable mapAttrsToList makeSearchPath;
 in
   eachSystem (system:
     let
