@@ -79,9 +79,9 @@ environment needed for it yourself. More on that [here.](docs/tweaks.md)
 
 ```
                                             $ cargo
-                                                │
+                                                ▼
                                  [bevy-flake Environment Adapters]
-                                                🠗
+                                                ▼
                              ╭─────1────╴ rust-toolchain ╶─────2──────╮
                              │                                        │
                              │                                        │
