@@ -182,7 +182,7 @@
         };
       });
 
-      targets = attrNames config.targetSpecificEnvironment;
+      targets = attrNames config.targetEnvironment;
 
       templates = {
         nixpkgs = warn "This template does not support any cross-compilation." {
