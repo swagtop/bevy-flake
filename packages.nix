@@ -34,9 +34,9 @@ in
       (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env)
     }";
 
-    rust-toolchain = rustToolchainFor system;
-    runtimeInputsBase = runtimeInputsFor system;
-    stdenv = stdEnvFor system;
+    rust-toolchain = rustToolchainFor pkgs;
+    runtimeInputsBase = runtimeInputsFor pkgs;
+    stdenv = stdEnvFor pkgs;
 
     wrapInEnvironmentAdapter = {
       name,
@@ -84,7 +84,7 @@ in
             "")
               ${exportEnv {
                 PKG_CONFIG_PATH =
-                  makeSearchPath "lib/pkgconfig" (headerInputsFor system);
+                  makeSearchPath "lib/pkgconfig" (headerInputsFor pkgs);
                 RUSTFLAGS = concatStringsSep " " [
                   (optionalString (pkgs.stdenv.isLinux)
                     "-C link-args=-Wl,-rpath,${

@@ -77,12 +77,14 @@
         "aarch64-apple-darwin" = macos;
         "x86_64-unknown-linux-gnu" = {
           PKG_CONFIG_PATH = "${
-            makeSearchPath "lib/pkgconfig" (headerInputsFor "x86_64-linux")
+            makeSearchPath "lib/pkgconfig"
+              (headerInputsFor nixpkgs.legacyPackages."x86_64-linux")
           }";
         };
         "aarch64-unknown-linux-gnu" = {
           PKG_CONFIG_PATH = "${
-            makeSearchPath "lib/pkgconfig" (headerInputsFor "aarch64-linux")
+            makeSearchPath "lib/pkgconfig"
+              (headerInputsFor nixpkgs.legacyPackages."aarch64-linux")
           }";
         };
         "wasm32-unknown-unknown" = {
@@ -119,10 +121,7 @@
       '';
     };
 
-    rustToolchainFor = (system:
-    let
-      pkgs = nixpkgs.legacyPackages.${system};
-    in
+    rustToolchainFor = pkgs:
       pkgs.symlinkJoin {
         name = "nixpkgs-rust-toolchain";
         pname = "cargo";
@@ -133,12 +132,9 @@
           rustc
           rustfmt
         ];
-      });
+      };
 
-    runtimeInputsFor = (system:
-    let
-      pkgs = nixpkgs.legacyPackages.${system};
-    in
+    runtimeInputsFor = pkgs:
       optionals (pkgs.stdenv.isLinux)
         (with pkgs; [
           alsa-lib-with-plugins
@@ -151,13 +147,9 @@
           xorg.libXcursor
           xorg.libXi
           xorg.libXrandr
-        ])
-      );
+        ]);
 
-    headerInputsFor = (system:
-    let
-      pkgs = nixpkgs.legacyPackages.${system};
-    in
+    headerInputsFor = pkgs:
       optionals (pkgs.stdenv.isLinux)
         (with pkgs; [
           alsa-lib-with-plugins.dev
@@ -165,10 +157,9 @@
           openssl.dev
           udev.dev
           wayland.dev
-        ])
-      );
+        ]);
 
-    stdEnvFor = system: nixpkgs.legacyPackages.${system}.clangStdenv;
+    stdEnvFor = pkgs: pkgs.clangStdenv;
   in
     makeOverridable (config:
     let
