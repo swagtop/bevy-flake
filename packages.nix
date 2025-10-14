@@ -1,20 +1,25 @@
 {
   nixpkgs,
   eachSystem,
-  systems,
+
   linux,
   windows,
   macos,
+
   localDevRustflags,
   crossPlatformRustflags,
+
   sharedEnvironment,
   targetSpecificEnvironment,
+
   extraScript,
+
   defaultArgParser,
   rustToolchainFor,
   runtimeInputsFor,
   headerInputsFor,
   stdEnvFor,
+  ...
 }:
 let
   inherit (builtins)
