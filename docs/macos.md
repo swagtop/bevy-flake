@@ -9,8 +9,7 @@ This is done by first getting your hands on a SDK. You can make one yourself by
 using [osxcross][osxcross], but you can probably find one already packaged for
 you somewhere on the internet.
 
-You will not find a link to one anywhere on this repo, as it is legally dubious
-if one is allowed to redistribute it.
+You will not find a link to one anywhere on this repo.
 
 [osxcross]: https://github.com/tpoechtrager/osxcross
 

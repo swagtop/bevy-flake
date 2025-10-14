@@ -166,13 +166,15 @@
         runtimeInputsBase = config.runtimeInputsFor system;
         stdenv = config.stdEnvFor system;
           
-        wrapInEnvironmentAdapter = { name, extraRuntimeInputs ? [], execPath }:
+        wrapInEnvironmentAdapter = { name, extraRuntimeInputs ? [], argParser ? "", execPath }:
           pkgs.writeShellApplication {
             inherit name;
             runtimeInputs = runtimeInputsBase
               ++ extraRuntimeInputs ++ [ stdenv.cc rust-toolchain ];
             bashOptions = [ "errexit" "pipefail" ];
             text = ''
+              ${argParser}
+              
               if [[ $BF_NO_WRAPPER == "1" ]]; then
                 exec ${execPath} "$@"
               fi
@@ -240,76 +242,75 @@
         
         rust-toolchain =
         let
-          target-adapter = pkgs.writeShellScriptBin "cargo" ''
-            # Check if what the adapter is being run with.
-            TARGET_ARG_NO=0
-            for arg in "$@"; do
-              TARGET_ARG_NO=$((TARGET_ARG_NO + 1))
-              case $arg in
-                "--target")
-                  # Save next arg as target.
-                  eval "BF_TARGET=\$$((TARGET_ARG_NO + 1))"
-                  export BF_TARGET="$BF_TARGET"
+          target-adapter-package = wrapInEnvironmentAdapter {
+            name = "cargo";
+            extraRuntimeInputs = with pkgs; [
+              cargo-zigbuild
+              cargo-xwin
+            ];
+            execPath = "${rust-toolchain}/bin/cargo";
+            argParser = ''
+              # Check if what the adapter is being run with.
+              TARGET_ARG_NO=0
+              for arg in "$@"; do
+                TARGET_ARG_NO=$((TARGET_ARG_NO + 1))
+                case $arg in
+                  "--target")
+                    # Save next arg as target.
+                    eval "BF_TARGET=\$$((TARGET_ARG_NO + 1))"
+                    export BF_TARGET="$BF_TARGET"
+                  ;;
+                  "--no-wrapper")
+                    # Remove '--no-wrapper' from args, then run unwrapped exec.
+                    set -- "''${@:1:$((TARGET_ARG_NO - 1))}" \
+                           "''${@:$((TARGET_ARG_NO + 1))}"
+                    export BF_NO_WRAPPER="1"
+                    exec ${rust-toolchain}/bin/cargo "$@"
+                  ;;
+                esac
+              done
+
+              # Insert glibc version for Linux targets.
+              if [[ $BF_TARGET == *"-unknown-linux-gnu" ]]; then
+                args=("$@")
+                args[TARGET_ARG_NO-1]="$BF_TARGET.${config.linux.glibcVersion}"
+                set -- "''${args[@]}"
+              fi
+
+              # Set linker for specific targets.
+              case $BF_TARGET in
+                *-apple-darwin)
+                  ${optionalString (config.macos.sdk == "") ''
+                    printf "%s%s\n" \
+                      "bevy-flake: Building to MacOS target without SDK, " \
+                      "compilation will most likely fail." 1>&2
+                  ''}
+                ;&
+                *-unknown-linux-gnu);&
+                "wasm32-unknown-unknown")
+                  echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
+                  shift
+                  set -- "zigbuild" "$@"
                 ;;
-                "--no-wrapper")
-                  # Remove '--no-wrapper' from args, then run unwrapped exec.
-                  set -- "''${@:1:$((TARGET_ARG_NO - 1))}" \
-                         "''${@:$((TARGET_ARG_NO + 1))}"
-                  export BF_NO_WRAPPER="1"
-                  exec ${rust-toolchain}/bin/cargo "$@"
+                *-pc-windows-msvc)
+                  echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
+                  set -- "xwin" "$@"
                 ;;
               esac
-            done
 
-            # Insert glibc version for Linux targets.
-            if [[ $BF_TARGET == *"-unknown-linux-gnu" ]]; then
-              args=("$@")
-              args[$((TARGET_ARG_NO-1))]="$BF_TARGET.${
-                config.linux.glibcVersion
-              }"
-              set -- "''${args[@]}"
-            fi
-
-            # Set linker for specific targets.
-            case $BF_TARGET in
-              *-apple-darwin)
-                ${optionalString (config.macos.sdk == "") ''
-                  printf "%s%s\n" \
-                    "bevy-flake: Building to MacOS target without SDK, " \
-                    "compilation will most likely fail." 1>&2
-                ''}
-              ;&
-              *-unknown-linux-gnu);&
-              "wasm32-unknown-unknown")
-                echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
-                shift
-                set -- "zigbuild" "$@"
-              ;;
-              *-pc-windows-msvc)
-                echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
-                set -- "xwin" "$@"
-              ;;
-            esac
-
-            ${optionalString (pkgs.stdenv.isDarwin) "ulimit -n 4096"}
-            exec ${wrapInEnvironmentAdapter {
-              name = "cargo";
-              extraRuntimeInputs = with pkgs; [
-                cargo-zigbuild
-                cargo-xwin
-              ];
-              execPath = "${rust-toolchain}/bin/cargo";
-            }}/bin/cargo "$@"
-          '';
+              # Stops `cargo-zigbuild` from jamming on MacOS systems.
+              ${optionalString (pkgs.stdenv.isDarwin) "ulimit -n 4096"}
+            '';
+          };
         in 
-          pkgs.symlinkJoin {
+          makeOverridable (target-adapter: pkgs.symlinkJoin {
             name = "bf-wrapped-rust-toolchain";
             ignoreCollisions = true;
             paths = [
               target-adapter
               rust-toolchain
             ];
-          };
+          }) target-adapter-package;
 
         # For now we have to override the package for hot-reloading.
         dioxus-cli = 
@@ -363,21 +364,21 @@
             cargoLock.lockFile = "${src}/Cargo.lock";
             doCheck = false;
           });
-          wrapInWebChecker = bevy-cli: pkgs.writeShellScriptBin "bevy" ''
-            if [[ "$@" =~ "web" ]]; then
-              export BF_TARGET="wasm32-unknown-unknown"
-            fi
-
-            exec ${bevy-cli}/bin/bevy "$@"
-          '';
         in
-          makeOverridable (bevy-cli: wrapInWebChecker (
+          makeOverridable (bevy-cli:
             wrapInEnvironmentAdapter {
               name = "bevy";
               extraRuntimeInputs = [ pkgs.lld pkgs.wasm-bindgen-cli_0_2_104 ];
               execPath = "${bevy-cli}/bin/bevy";
+              argParser = ''
+                if [[ "$@" == *"--no-wrapper"* ]]; then
+                  export BF_NO_WRAPPER="1"
+                elif [[ "$@" == *" web"* ]]; then
+                  export BF_TARGET="wasm32-unknown-unknown"
+                fi
+              '';
             }
-          )) bevy-cli-package;
+          ) bevy-cli-package;
       });
     in {
       inherit (config) systems;
