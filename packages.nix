@@ -19,7 +19,6 @@
   mkRuntimeInputs,
   mkHeaderInputs,
   mkStdenv,
-  ...
 }:
 let
   inherit (builtins)
