@@ -37,7 +37,7 @@ in
     runtimeInputsBase = mkRuntimeInputs pkgs;
     stdenv = mkStdenv pkgs;
 
-    wrapInEnvironmentAdapter = {
+    wrapWithEnv = {
       name,
       execPath,
       argParser ? defaultArgParser,
@@ -45,8 +45,10 @@ in
     }:
       pkgs.writeShellApplication {
         inherit name;
-        runtimeInputs = runtimeInputsBase
-          ++ extraRuntimeInputs ++ [ stdenv.cc rust-toolchain ];
+        runtimeInputs = runtimeInputsBase ++ extraRuntimeInputs ++ [
+          stdenv.cc
+          rust-toolchain
+        ];
         bashOptions = [ "errexit" "pipefail" ];
         text = ''
           ${argParser}
@@ -116,7 +118,7 @@ in
   in {
     rust-toolchain = (
     let
-      target-adapter-package = wrapInEnvironmentAdapter {
+      target-adapter-package = wrapWithEnv {
         name = "cargo";
         extraRuntimeInputs = with pkgs; [
           cargo-zigbuild
@@ -169,7 +171,7 @@ in
           rust-toolchain
         ];
       }) target-adapter-package
-    ) // { inherit wrapInEnvironmentAdapter; };
+    ) // { inherit wrapWithEnv; };
 
     # For now we have to override the package for hot-reloading.
     dioxus-cli = 
@@ -197,7 +199,7 @@ in
         };
       });
     in
-      makeOverridable (dx: wrapInEnvironmentAdapter {
+      makeOverridable (dx: wrapWithEnv {
         name = "dx";
         extraRuntimeInputs = [ pkgs.lld ];
         execPath = "${dx}/bin/dx";
@@ -226,7 +228,7 @@ in
       });
     in
       makeOverridable (bevy-cli:
-        wrapInEnvironmentAdapter {
+        wrapWithEnv {
           name = "bevy";
           extraRuntimeInputs = [ pkgs.lld pkgs.wasm-bindgen-cli_0_2_104 ];
           execPath = "${bevy-cli}/bin/bevy";
