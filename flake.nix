@@ -9,7 +9,7 @@
   outputs = { nixpkgs, ... }:
   let
     inherit (builtins)
-      attrNames concatStringsSep warn;
+      removeAttrs attrNames concatStringsSep warn;
     inherit (nixpkgs.lib)
       optionals genAttrs makeSearchPath makeOverridable;
 
@@ -121,7 +121,7 @@
       '';
     };
 
-    mkRustToolchain = pkgs:
+    mkRustToolchain = targets: pkgs:
       pkgs.symlinkJoin {
         name = "nixpkgs-rust-toolchain";
         pname = "cargo";
@@ -164,9 +164,7 @@
     makeOverridable (config:
     let
       eachSystem = genAttrs config.systems;
-      packages = import ./packages.nix (config // {
-        inherit nixpkgs eachSystem;
-      });
+      packages = import ./packages.nix (config // { inherit nixpkgs; });
     in {
       inherit (config) systems;
       inherit config eachSystem packages;

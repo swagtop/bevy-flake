@@ -1,6 +1,6 @@
 {
   nixpkgs,
-  eachSystem,
+  systems,
 
   linux,
   windows,
@@ -22,18 +22,18 @@
 }:
 let
   inherit (builtins)
-    concatStringsSep;
+    attrNames concatStringsSep;
   inherit (nixpkgs.lib)
-    optionalString makeOverridable mapAttrsToList makeSearchPath;
+    genAttrs optionalString makeOverridable mapAttrsToList makeSearchPath;
 in
-  eachSystem (system:
+  genAttrs systems (system:
   let
     pkgs = nixpkgs.legacyPackages.${system};
     exportEnv = env: "${concatStringsSep "\n"
       (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env)
     }";
 
-    rust-toolchain = mkRustToolchain pkgs;
+    rust-toolchain = mkRustToolchain (attrNames targetEnvironment) pkgs;
     runtimeInputsBase = mkRuntimeInputs pkgs;
     stdenv = mkStdenv pkgs;
 
