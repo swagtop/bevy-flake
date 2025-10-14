@@ -14,7 +14,7 @@
       optionals genAttrs makeSearchPath makeOverridable;
 
     config = {
-      inherit rustToolchainFor runtimeInputsFor headerInputsFor stdEnvFor;
+      inherit mkStdenv mkHeaderInputs mkRuntimeInputs mkRustToolchain;
 
       systems = [
         "x86_64-linux"
@@ -54,7 +54,7 @@
 
       # Environment variables set for individual targets.
       # The target names, and bodies should use Bash syntax.
-      targetSpecificEnvironment =
+      targetEnvironment =
       let
         macos =
         let
@@ -78,13 +78,13 @@
         "x86_64-unknown-linux-gnu" = {
           PKG_CONFIG_PATH = "${
             makeSearchPath "lib/pkgconfig"
-              (headerInputsFor nixpkgs.legacyPackages."x86_64-linux")
+              (mkHeaderInputs nixpkgs.legacyPackages."x86_64-linux")
           }";
         };
         "aarch64-unknown-linux-gnu" = {
           PKG_CONFIG_PATH = "${
             makeSearchPath "lib/pkgconfig"
-              (headerInputsFor nixpkgs.legacyPackages."aarch64-linux")
+              (mkHeaderInputs nixpkgs.legacyPackages."aarch64-linux")
           }";
         };
         "wasm32-unknown-unknown" = {
@@ -121,7 +121,7 @@
       '';
     };
 
-    rustToolchainFor = pkgs:
+    mkRustToolchain = pkgs:
       pkgs.symlinkJoin {
         name = "nixpkgs-rust-toolchain";
         pname = "cargo";
@@ -134,7 +134,7 @@
         ];
       };
 
-    runtimeInputsFor = pkgs:
+    mkRuntimeInputs = pkgs:
       optionals (pkgs.stdenv.isLinux)
         (with pkgs; [
           alsa-lib-with-plugins
@@ -149,7 +149,7 @@
           xorg.libXrandr
         ]);
 
-    headerInputsFor = pkgs:
+    mkHeaderInputs = pkgs:
       optionals (pkgs.stdenv.isLinux)
         (with pkgs; [
           alsa-lib-with-plugins.dev
@@ -159,7 +159,7 @@
           wayland.dev
         ]);
 
-    stdEnvFor = pkgs: pkgs.clangStdenv;
+    mkStdenv = pkgs: pkgs.clangStdenv;
   in
     makeOverridable (config:
     let

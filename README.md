@@ -5,7 +5,7 @@
 A flake for painless development and distribution of [Bevy][bevy] programs.
 
 With bevy-flake you can easily compile and run the same project on NixOS and
-MacOS, while being able to cross-compile portable binaries for non-Nix Linux,
+MacOS, with the ability to cross-compile portable binaries for non-Nix Linux,
 Windows and MacOS targets.
 
 [bevy]: https://github.com/bevyengine/bevy
@@ -60,7 +60,7 @@ cargo build --target aarch64-apple-darwin # <-- Read docs/macos.md!
 cargo build --target wasm32-unknown-unknown
 ```
 
-You can compile to every target with a `config.targetSpecificEnvironment` entry.
+You can compile to every target with a `config.targetEnvironment` entry.
 If the target you want isn't in the config, you can add it, and set up the
 environment needed for it yourself. More on that [here.](docs/tweaks.md)
 
@@ -90,7 +90,8 @@ environment needed for it yourself. More on that [here.](docs/tweaks.md)
                              ╰─────► release/                   ║     │
                                   ║  x86_64-unknown-linux-gnu/ ◄──────┤ 
                                   ║  x86_64-pc-windows-msvc/ ◄────────┤        
-                                  ║  aarch64-apple-darwin/ ◄──────────╯  
+                                  ║  aarch64-apple-darwin/ ◄──────────┤  
+                                  ║     (...and so on)   ◄────────────╯  
                                   ╚═════════════════════════════╝
 
                     (1) Local Nix System:             (2) Other Systems:
