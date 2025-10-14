@@ -96,9 +96,11 @@ environment needed for it yourself. More on that [here.](docs/tweaks.md)
                     (1) Local Nix System:             (2) Other Systems:
 
                     - Runtime packages                - Each targets libraries
-                      provided through rpath            provided by cargo-wrapper
-                    - cargo compiles for              - cargo-zigbuild,
-                      local system and runs             cargo-xwin cross-compile
+                      provided through rpath            and build environments
+                    - cargo compiles for                provided by environment
+                      local system and runs             adapter
+                                                      - cargo-zigbuild,
+                                                        cargo-xwin cross-compile
 ```
 
 - [Details](docs/details.md)
