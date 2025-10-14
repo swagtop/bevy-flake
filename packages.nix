@@ -1,0 +1,236 @@
+{
+  nixpkgs,
+  eachSystem,
+  systems,
+  linux,
+  windows,
+  macos,
+  localDevRustflags,
+  crossPlatformRustflags,
+  sharedEnvironment,
+  targetSpecificEnvironment,
+  extraScript,
+  defaultArgParser,
+  rustToolchainFor,
+  runtimeInputsFor,
+  headerInputsFor,
+  stdEnvFor,
+}:
+let
+  inherit (builtins)
+    concatStringsSep;
+  inherit (nixpkgs.lib)
+    makeOverridable mapAttrsToList optionalString makeSearchPath;
+in
+  eachSystem (system:
+    let
+      pkgs = nixpkgs.legacyPackages.${system};
+      exportEnv = env: "${concatStringsSep "\n"
+        (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env)
+      }";
+
+      rust-toolchain = rustToolchainFor system;
+      runtimeInputsBase = runtimeInputsFor system;
+      stdenv = stdEnvFor system;
+
+      wrapInEnvironmentAdapter = {
+        name,
+        execPath,
+        argParser ? defaultArgParser,
+        extraRuntimeInputs ? []
+      }:
+        pkgs.writeShellApplication {
+          inherit name;
+          runtimeInputs = runtimeInputsBase
+            ++ extraRuntimeInputs ++ [ stdenv.cc rust-toolchain ];
+          bashOptions = [ "errexit" "pipefail" ];
+          text = ''
+            ${argParser}
+          
+            if [[ $BF_NO_WRAPPER == "1" ]]; then
+              exec ${execPath} "$@"
+            fi
+
+            # Set up MacOS SDK if provided through 
+            export BF_MACOS_SDK_PATH="${macos.sdk}"
+
+            # Set up Windows SDK and CRT if pinning is enabled.
+            ${optionalString (windows.pin) (exportEnv {
+              XWIN_CACHE_DIR = (
+                if (pkgs.stdenv.isDarwin)
+                  then "$HOME/Library/Caches/"
+                  else "\${XDG_CACHE_HOME:-$HOME/.cache}/"
+              ) + "bevy-flake/xwin/"
+                + "manifest${windows.manifestVersion}"
+                + "-sdk${windows.sdkVersion}"
+                + "-crt${windows.crtVersion}";
+              XWIN_VERSION = windows.manifestVersion;
+              XWIN_SDK_VERSION = windows.sdkVersion;
+              XWIN_CRT_VERSION = windows.crtVersion;
+            })}
+
+            # Base environment for all targets.
+            export PKG_CONFIG_ALLOW_CROSS="1"
+            export LIBCLANG_PATH="${pkgs.libclang.lib}/lib";
+            export LIBRARY_PATH="${pkgs.libiconv}/lib";
+            ${exportEnv sharedEnvironment}
+
+            case $BF_TARGET in
+              "")
+                ${exportEnv {
+                  PKG_CONFIG_PATH =
+                    makeSearchPath "lib/pkgconfig" (headerInputsFor system);
+                  RUSTFLAGS = concatStringsSep " " [
+                    (optionalString (pkgs.stdenv.isLinux)
+                      "-C link-args=-Wl,-rpath,${
+                        makeSearchPath "lib"
+                          (runtimeInputsBase ++ extraRuntimeInputs)}
+                      ")
+                    "${concatStringsSep " " localDevRustflags}"
+                  ];
+                }}
+              ;;
+
+              ${concatStringsSep "\n"
+                (mapAttrsToList
+                  (target: env: ''
+                    ${target}*)
+                    ${exportEnv env}
+                    export RUSTFLAGS="${
+                      concatStringsSep " " crossPlatformRustflags
+                    } $RUSTFLAGS"
+                    ;;
+                  '')
+                targetSpecificEnvironment)}
+            esac
+
+            ${extraScript}
+
+            exec ${execPath} "$@"
+          '';
+      };
+    in {
+      inherit wrapInEnvironmentAdapter;
+    
+      rust-toolchain =
+      let
+        target-adapter-package = wrapInEnvironmentAdapter {
+          name = "cargo";
+          extraRuntimeInputs = with pkgs; [
+            cargo-zigbuild
+            cargo-xwin
+          ];
+          execPath = "${rust-toolchain}/bin/cargo";
+          argParser = defaultArgParser + ''
+            if [[ $BF_NO_WRAPPER != "1" ]]; then
+              # Insert glibc version for Linux targets.
+              if [[ $BF_TARGET == *"-unknown-linux-gnu" ]]; then
+                args=("$@")
+                args[TARGET_ARG_NO-1]="$BF_TARGET.${linux.glibcVersion}"
+                set -- "''${args[@]}"
+              fi
+
+              # Set linker for specific targets.
+              case $BF_TARGET in
+                *-apple-darwin)
+                  ${optionalString (macos.sdk == "") ''
+                    printf "%s%s\n" \
+                      "bevy-flake: Building to MacOS target without SDK, " \
+                      "compilation will most likely fail." 1>&2
+                  ''}
+                ;&
+                *-unknown-linux-gnu);&
+                "wasm32-unknown-unknown")
+                  echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
+                  shift
+                  set -- "zigbuild" "$@"
+                ;;
+                *-pc-windows-msvc)
+                  echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
+                  set -- "xwin" "$@"
+                ;;
+              esac
+
+              ${optionalString (pkgs.stdenv.isDarwin) ''
+                # Stops `cargo-zigbuild` from jamming on MacOS systems.
+                ulimit -n 4096
+              ''}
+            fi
+          '';
+        };
+      in 
+        makeOverridable (target-adapter: pkgs.symlinkJoin {
+          name = "bf-wrapped-rust-toolchain";
+          ignoreCollisions = true;
+          paths = [
+            target-adapter
+            rust-toolchain
+          ];
+        }) target-adapter-package;
+
+      # For now we have to override the package for hot-reloading.
+      dioxus-cli = 
+      let
+        version = "0.7.0-rc.1";
+        dx-package = pkgs.dioxus-cli.override (old: {
+          rustPlatform = old.rustPlatform // {
+            buildRustPackage = args:
+              old.rustPlatform.buildRustPackage (
+                args // {
+                  inherit version;
+                  src = old.fetchCrate {
+                    inherit version;
+                    pname = "dioxus-cli";
+                    hash = "sha256-Gri7gJe9b1q0qP+m0fe4eh+xj3wqi2get4Rqz6xL8yA=";
+                  };
+                  cargoHash = "sha256-+HPWgiFc7pbosHWpRvHcSj7DZHD9sIPOE3S5LTrDb6I=";
+
+                  cargoPatches = [ ];
+                  buildFeatures = [ ];
+
+                  postPatch = "";
+                  checkFlags = [ "--skip" "test_harnesses::run_harness" ];
+                });
+          };
+        });
+      in
+        makeOverridable (dx: wrapInEnvironmentAdapter {
+          name = "dx";
+          extraRuntimeInputs = [ pkgs.lld ];
+          execPath = "${dx}/bin/dx";
+        }) dx-package;
+
+      bevy-cli =
+      let
+        bevy-cli-package = pkgs.rustPlatform.buildRustPackage (
+        let
+          version = "0.1.0-alpha.2";
+          src = builtins.fetchTarball {
+            url = "https://github.com/TheBevyFlock/bevy_cli/archive/refs/tags/cli-v${version}.tar.gz";
+            sha256 = "sha256:02p2c3fzxi9cs5y2fn4dfcyca1z8l5d8i09jia9h5b50ym82cr8l";
+          };
+        in {
+          inherit version src;
+          name = "bevy-cli-${version}";
+          nativeBuildInputs = [
+            pkgs.openssl.dev
+            pkgs.pkg-config
+          ];
+          PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
+          cargoLock.lockFile = "${src}/Cargo.lock";
+          doCheck = false;
+        });
+      in
+        makeOverridable (bevy-cli:
+          wrapInEnvironmentAdapter {
+            name = "bevy";
+            extraRuntimeInputs = [ pkgs.lld pkgs.wasm-bindgen-cli_0_2_104 ];
+            execPath = "${bevy-cli}/bin/bevy";
+            argParser = defaultArgParser + ''
+              if [[ $* == *" web"* ]]; then
+                export BF_TARGET="wasm32-unknown-unknown"
+              fi
+            '';
+          }
+        ) bevy-cli-package;
+    })
