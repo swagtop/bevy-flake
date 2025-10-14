@@ -187,7 +187,12 @@
         runtimeInputsBase = config.runtimeInputsFor system;
         stdenv = config.stdEnvFor system;
 
-        wrapInEnvironmentAdapter = { name, extraRuntimeInputs ? [], argParser ? config.defaultArgParser, execPath }:
+        wrapInEnvironmentAdapter = {
+          name,
+          execPath,
+          argParser ? config.defaultArgParser,
+          extraRuntimeInputs ? []
+        }:
           pkgs.writeShellApplication {
             inherit name;
             runtimeInputs = runtimeInputsBase
