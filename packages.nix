@@ -205,6 +205,7 @@ in
         execPath = "${dx}/bin/dx";
       }) dx-package;
 
+    # For now we package 'bevy-cli' ourselves, as it is not in nixpkgs yet.
     bevy-cli =
     let
       bevy-cli-package = pkgs.rustPlatform.buildRustPackage (
