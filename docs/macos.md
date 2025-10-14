@@ -13,34 +13,14 @@ You will not find a link to one anywhere on this repo.
 
 [osxcross]: https://github.com/tpoechtrager/osxcross
 
-When acquired, you can add it like so, depending on your situation:
-
-### Option 1: I am using `bevy-flake` as a flake input
-
-Override `bevy-flake` to add the SDK like so:
+When acquired, you can add it to your `bevy-flake` configuration via. an
+override:
 
 ```nix
 bf = bevy-flake.override {
   mac.sdk = builtins.fetchTarball {
     url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
     sha256 = "sha256:some-long-hash-string-goes-here";
-  };
-  # ...
-};
-```
-
-### Option 2: I have copied the `flake.nix` and `flake.lock` from the repo
-
-Add the SDK to the `config` attribute set like so:
-
-```nix
-config = {
-  # ...
-  macos = {
-    sdk = builtins.fetchTarball {
-      url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
-      sha256 = "sha256:some-long-hash-string-goes-here";
-    }
   };
   # ...
 };
