@@ -376,7 +376,7 @@
               extraRuntimeInputs = [ pkgs.lld pkgs.wasm-bindgen-cli_0_2_104 ];
               execPath = "${bevy-cli}/bin/bevy";
               argParser = config.defaultArgParser + ''
-                if [[ "$@" == *" web"* ]]; then
+                if [[ $@ == *" web"* ]]; then
                   export BF_TARGET="wasm32-unknown-unknown"
                 fi
               '';
