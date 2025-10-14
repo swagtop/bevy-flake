@@ -15,6 +15,8 @@
     let
       pkgs = import nixpkgs { inherit system; };
     in {
+      inherit (bevy-flake) packages;
+
       default = pkgs.mkShell {
         name = "bevy-flake-nixpkgs";
         packages = [

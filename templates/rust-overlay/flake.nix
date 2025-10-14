@@ -31,6 +31,8 @@
         };
     };
   in {
+    inherit (bf) packages;
+
     devShells = bf.eachSystem (system:
     let
       pkgs = import nixpkgs { inherit system; };

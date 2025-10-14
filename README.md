@@ -25,7 +25,7 @@ First, navigate to your Bevy project root:
 cd /path/to/bevy/project
 ```
 
-#### Option 1: Use the template with your preferred rust toolchain provider
+Then, use the template with your preferred rust toolchain provider
 
 ```sh
 # The default with no cross-compilation, but much faster evaluation:
@@ -41,22 +41,10 @@ nix flake init --template github:swagtop/bevy-flake/dev#fenix
 If you get your toolchain from elsewhere, you should very easily be able to slot
 it in. More on this [here.](docs/tweaks.md)
 
-#### Option 2: Copy flake
-
-Fetch `flake.nix` and `flake.lock`, and add them to the git index:
-
-```sh
-wget https://github.com/swagtop/bevy-flake/raw/refs/heads/dev/flake.nix
-wget https://github.com/swagtop/bevy-flake/raw/refs/heads/dev/flake.lock
-git add flake.nix flake.lock
-```
-
-You can read edits to the flake you'd like to do
-
 ## How to use
 
-Add the `wrapped-rust-toolchain` package to your environment, either through
-`nix develop`, `nix shell .#wrapped-rust-toolchain`, or your own preferred way.
+Add the `rust-toolchain` package to your environment, either through
+`nix develop`, `nix shell .#rust-toolchain`, or your own preferred way.
 
 Then, you can just use `cargo` like so:
 
