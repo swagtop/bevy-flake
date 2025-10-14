@@ -114,9 +114,7 @@ in
         '';
     };
   in {
-    inherit wrapInEnvironmentAdapter;
-  
-    rust-toolchain =
+    rust-toolchain = (
     let
       target-adapter-package = wrapInEnvironmentAdapter {
         name = "cargo";
@@ -170,7 +168,8 @@ in
           target-adapter
           rust-toolchain
         ];
-      }) target-adapter-package;
+      }) target-adapter-package
+    ) // { inherit wrapInEnvironmentAdapter; };
 
     # For now we have to override the package for hot-reloading.
     dioxus-cli = 

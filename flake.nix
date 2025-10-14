@@ -9,7 +9,7 @@
   outputs = { nixpkgs, ... }:
   let
     inherit (builtins)
-      removeAttrs attrNames concatStringsSep warn;
+      attrNames concatStringsSep warn;
     inherit (nixpkgs.lib)
       optionals genAttrs makeSearchPath makeOverridable;
 
@@ -19,7 +19,6 @@
       systems = [
         "x86_64-linux"
         "aarch64-linux"
-        "x86_64-darwin"
         "aarch64-darwin"
       ];
 
@@ -53,7 +52,6 @@
       };
 
       # Environment variables set for individual targets.
-      # The target names, and bodies should use Bash syntax.
       targetEnvironment =
       let
         macos =
@@ -76,16 +74,12 @@
         "x86_64-apple-darwin" = macos;
         "aarch64-apple-darwin" = macos;
         "x86_64-unknown-linux-gnu" = {
-          PKG_CONFIG_PATH = "${
-            makeSearchPath "lib/pkgconfig"
-              (mkHeaderInputs nixpkgs.legacyPackages."x86_64-linux")
-          }";
+          PKG_CONFIG_PATH = makeSearchPath "lib/pkgconfig"
+            (mkHeaderInputs nixpkgs.legacyPackages."x86_64-linux");
         };
         "aarch64-unknown-linux-gnu" = {
-          PKG_CONFIG_PATH = "${
-            makeSearchPath "lib/pkgconfig"
-              (mkHeaderInputs nixpkgs.legacyPackages."aarch64-linux")
-          }";
+          PKG_CONFIG_PATH = makeSearchPath "lib/pkgconfig"
+            (mkHeaderInputs nixpkgs.legacyPackages."aarch64-linux");
         };
         "wasm32-unknown-unknown" = {
           RUSTFLAGS = concatStringsSep " " [
