@@ -98,6 +98,27 @@
         };
 
       extraScript = "";
+
+      defaultArgParser = ''
+        # Check if what the adapter is being run with.
+        TARGET_ARG_NO=0
+        for arg in "$@"; do
+          TARGET_ARG_NO=$((TARGET_ARG_NO + 1))
+          case $arg in
+            "--target")
+              # Save next arg as target.
+              eval "BF_TARGET=\$$((TARGET_ARG_NO + 1))"
+              export BF_TARGET="$BF_TARGET"
+            ;;
+            "--no-wrapper")
+              # Remove '--no-wrapper' from args, then run unwrapped exec.
+              set -- "''${@:1:$((TARGET_ARG_NO - 1))}" \
+                     "''${@:$((TARGET_ARG_NO + 1))}"
+              export BF_NO_WRAPPER="1"
+            ;;
+          esac
+        done
+      '';
     };
 
     rustToolchainFor = (system:
@@ -165,8 +186,8 @@
         rust-toolchain = config.rustToolchainFor system;
         runtimeInputsBase = config.runtimeInputsFor system;
         stdenv = config.stdEnvFor system;
-          
-        wrapInEnvironmentAdapter = { name, extraRuntimeInputs ? [], argParser ? "", execPath }:
+
+        wrapInEnvironmentAdapter = { name, extraRuntimeInputs ? [], argParser ? config.defaultArgParser, execPath }:
           pkgs.writeShellApplication {
             inherit name;
             runtimeInputs = runtimeInputsBase
@@ -249,57 +270,41 @@
               cargo-xwin
             ];
             execPath = "${rust-toolchain}/bin/cargo";
-            argParser = ''
-              # Check if what the adapter is being run with.
-              TARGET_ARG_NO=0
-              for arg in "$@"; do
-                TARGET_ARG_NO=$((TARGET_ARG_NO + 1))
-                case $arg in
-                  "--target")
-                    # Save next arg as target.
-                    eval "BF_TARGET=\$$((TARGET_ARG_NO + 1))"
-                    export BF_TARGET="$BF_TARGET"
+            argParser = config.defaultArgParser + ''
+              if [[ $BF_NO_WRAPPER != "1" ]]; then
+                # Insert glibc version for Linux targets.
+                if [[ $BF_TARGET == *"-unknown-linux-gnu" ]]; then
+                  args=("$@")
+                  args[TARGET_ARG_NO-1]="$BF_TARGET.${config.linux.glibcVersion}"
+                  set -- "''${args[@]}"
+                fi
+
+                # Set linker for specific targets.
+                case $BF_TARGET in
+                  *-apple-darwin)
+                    ${optionalString (config.macos.sdk == "") ''
+                      printf "%s%s\n" \
+                        "bevy-flake: Building to MacOS target without SDK, " \
+                        "compilation will most likely fail." 1>&2
+                    ''}
+                  ;&
+                  *-unknown-linux-gnu);&
+                  "wasm32-unknown-unknown")
+                    echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
+                    shift
+                    set -- "zigbuild" "$@"
                   ;;
-                  "--no-wrapper")
-                    # Remove '--no-wrapper' from args, then run unwrapped exec.
-                    set -- "''${@:1:$((TARGET_ARG_NO - 1))}" \
-                           "''${@:$((TARGET_ARG_NO + 1))}"
-                    export BF_NO_WRAPPER="1"
-                    exec ${rust-toolchain}/bin/cargo "$@"
+                  *-pc-windows-msvc)
+                    echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
+                    set -- "xwin" "$@"
                   ;;
                 esac
-              done
 
-              # Insert glibc version for Linux targets.
-              if [[ $BF_TARGET == *"-unknown-linux-gnu" ]]; then
-                args=("$@")
-                args[TARGET_ARG_NO-1]="$BF_TARGET.${config.linux.glibcVersion}"
-                set -- "''${args[@]}"
+                ${optionalString (pkgs.stdenv.isDarwin) ''
+                  # Stops `cargo-zigbuild` from jamming on MacOS systems.
+                  ulimit -n 4096
+                ''}
               fi
-
-              # Set linker for specific targets.
-              case $BF_TARGET in
-                *-apple-darwin)
-                  ${optionalString (config.macos.sdk == "") ''
-                    printf "%s%s\n" \
-                      "bevy-flake: Building to MacOS target without SDK, " \
-                      "compilation will most likely fail." 1>&2
-                  ''}
-                ;&
-                *-unknown-linux-gnu);&
-                "wasm32-unknown-unknown")
-                  echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
-                  shift
-                  set -- "zigbuild" "$@"
-                ;;
-                *-pc-windows-msvc)
-                  echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
-                  set -- "xwin" "$@"
-                ;;
-              esac
-
-              # Stops `cargo-zigbuild` from jamming on MacOS systems.
-              ${optionalString (pkgs.stdenv.isDarwin) "ulimit -n 4096"}
             '';
           };
         in 
@@ -370,10 +375,8 @@
               name = "bevy";
               extraRuntimeInputs = [ pkgs.lld pkgs.wasm-bindgen-cli_0_2_104 ];
               execPath = "${bevy-cli}/bin/bevy";
-              argParser = ''
-                if [[ "$@" == *"--no-wrapper"* ]]; then
-                  export BF_NO_WRAPPER="1"
-                elif [[ "$@" == *" web"* ]]; then
+              argParser = config.defaultArgParser + ''
+                if [[ "$@" == *" web"* ]]; then
                   export BF_TARGET="wasm32-unknown-unknown"
                 fi
               '';
@@ -382,7 +385,7 @@
       });
     in {
       inherit (config) systems;
-      inherit eachSystem packages;
+      inherit config eachSystem packages;
 
       devShells = eachSystem (system: {
         default = nixpkgs.legacyPackages.${system}.mkShell {
