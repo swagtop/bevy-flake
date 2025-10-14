@@ -91,7 +91,7 @@ environment needed for it yourself. More on that [here.](docs/tweaks.md)
                                   ║  x86_64-unknown-linux-gnu/ ◄──────┤ 
                                   ║  x86_64-pc-windows-msvc/ ◄────────┤        
                                   ║  aarch64-apple-darwin/ ◄──────────┤  
-                                  ║     (...and so on)   ◄────────────╯  
+                                  ║    (...and so on. )  ◄────────────╯  
                                   ╚═════════════════════════════╝
 
                     (1) Local Nix System:             (2) Other Systems:
