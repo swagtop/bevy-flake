@@ -1,10 +1,10 @@
 # Cross-compiling for Windows
 
-## Reasoning
+## Information
 
-This flake primarily focuses on using the `-msvc` ABI. It is generally said that
-if you are building for Windows, you should be using `-msvc`. Compiling to the
-`-gnu` targets is viable as well, and you can configure `bevy-flake` to use
+This flake primarily focuses on using the MSVC ABI. It is generally said that
+if you are building for Windows, you should be using `*-msvc`. Compiling to the
+`*-gnu` targets is viable as well, and you can configure `bevy-flake` to use
 these targets with a little extra setup.
 
 To support the `-msvc` targets, `bevy-flake` uses `cargo-xwin` to pull the
