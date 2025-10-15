@@ -25,18 +25,18 @@ The configuration of `bevy-flake` should be system-agnostic. Therefore all usage
 of packages need to be done through these 'mk' functions. These are functions
 that return either a package, or a list of packages, given an input 'pkgs'.
 
-### `mkRustToolchain` (Single package) Defining the Rust toolchain
+### `mkRustToolchain` _(Single package)_ - Defining the Rust toolchain
 
 _This function also takes in a `targets` argument, which is produced from the_
 _`config.targetEnvironments` attribute names._
 
 
 
-### `mkStdenv` (Single package) Defining the stdenv
+### `mkStdenv` _(Single package)_ - Defining the stdenv
 
-### `mkRuntimeInputs` (List of packages) Defining the base runtime inputs
+### `mkRuntimeInputs` _(List of packages)_ - Defining the base runtime inputs
 
-### `mkHeaderInputs` (List of packages) Defining the headers
+### `mkHeaderInputs` _(List of packages)_ - Defining the headers
 
 ## The operating systems
 
@@ -52,17 +52,17 @@ If you want to test how these builds run with these settings on your Nix
 machine, just compile them with '--target' and run those. On NixOS you will
 probably find `steam-run` to be useful here.
 
-### `linux` Configuring the Linux builds.
+### `linux` - Configuring the Linux builds.
 
-### `windows` Windows
+### `windows` - Windows
 
-### `macos` MacOS
+### `macos` - MacOS
 
 ## Rustflags
 
-### `localDevRustflags` Configuring the local development builds.
+### `localDevRustflags` - Configuring the local development builds.
 
-### `crossPlatformRustflags` Configuring the cross-compiled builds.
+### `crossPlatformRustflags` - Configuring the cross-compiled builds.
 
 ## Environments
 
