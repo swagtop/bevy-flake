@@ -1,6 +1,6 @@
 {
   description =
-    "A flake for development and distribution of Bevy projects.";
+    "A flake for painless development and distribution of Bevy projects.";
 
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
