@@ -27,10 +27,11 @@ First, navigate to your Bevy project root:
 cd /path/to/bevy/project
 ```
 
-Then, use the template with your preferred rust toolchain provider
+Then, use the template with your preferred rust toolchain provider (switching
+down later is super easy):
 
 ```sh
-# The default with no cross-compilation, but much faster evaluation:
+# The default with no cross-compilation, but faster evaluation:
 nix flake init --template github:swagtop/bevy-flake/dev#nixpkgs
 
 # The one using oxalica's rust-overlay:
