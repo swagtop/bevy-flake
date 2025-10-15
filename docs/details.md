@@ -3,39 +3,51 @@
 ## Who is this for?
 
 This flake is for Nix users, who want to work with Bevy. Its goal is to be as
-ergonomic for power user as for beginners. The flake provides a suite of
-packages useful for Bevy development, that all are configured from a single
-place.
+ergonomic for power users to use, easy to use for beginners. The flake provides
+a suite of packages useful for Bevy development, that all are configured from a
+single place.
 
 It is for the developer who wants to use a Nix environment to compile portable
 binaries for the major desktop platforms on their own computer, instead of
 having to resort to using Docker, GitHub actions, or the like.
 
+The flake is easy to configure and extend, should you want support for a target,
+or a package wrapped, that isn't included by default.
+
 ## What is the schema of `bevy-flake`?
 
 ```nix
 {
+  # The config used for this instance.
   config = <config>;
 
+  # Systems supported and the eachSystem helper function for this instance.
   systems = [ <strings> ];
   eachSystem = <function>;
 
+  # The default devShell, includes the packages that don't need to be built.
   devShells."<system>".default = <derivation>;
+
+  # All packages pre-wrapped by bevy-flake.
   packages."<system>" = {
-    rust-toolchain = <derivation>;
+    rust-toolchain = <derivation>; # Includes the wrapper function, 'wrapInEnv'.
     dioxus-cli = <derivation>;
     bevy-cli = <derivation>;
   };
 
+  # The general templates for the different toolchains.
   templates."<name>" = <templates>;
 
+  # Read more on how to configure bevy-flake in docs/configuration.md
   override = <function>;
 }
 ```
 
 ## What does `bevy-flake` do?
 
-The flake provides 
+The flake provides a preconfigured environment for the rust toolchain, and a
+couple of packages that are helpful for Bevy development. The environment for
+these packages can be overridden with ones own configuration.
 
 ## How does `bevy-flake` work?
 
