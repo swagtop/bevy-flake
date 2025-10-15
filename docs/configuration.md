@@ -25,7 +25,9 @@ The configuration of `bevy-flake` should be system-agnostic. Therefore all usage
 of packages need to be done through these 'mk' functions. These are functions
 that return either a package, or a list of packages, given an input 'pkgs'.
 
-### `mkRustToolchain` _(Single package)_ - Defining the Rust toolchain
+### `mkRustToolchain` - Defining the Rust toolchain
+
+_(Single package)_
 
 _This function also takes in a `targets` argument, which is produced from the_
 _`config.targetEnvironments` attribute names._
@@ -33,7 +35,9 @@ _`config.targetEnvironments` attribute names._
 
 
 
-### `mkStdenv` _(Single package)_ - Defining the stdenv
+### `mkStdenv` - Defining the stdenv
+
+_(Single package)_
 
 The `bevy-flake` uses the stdenv created by this functions output for its C
 compiler toolchain. By default this is set by `bevy-flake` to be clang.
@@ -52,7 +56,9 @@ bf = bevy-flake.override {
 };
 ```
 
-### `mkRuntimeInputs` _(List of packages)_ - Defining the base runtime inputs
+### `mkRuntimeInputs` - Defining the base runtime inputs
+
+_(List of packages)_ 
 
 ## The operating systems
 
@@ -76,11 +82,17 @@ probably find `steam-run` to be useful here.
 
 ## Rustflags
 
-### `localDevRustflags` - Configuring the local development builds.
+### `devRustflags` - Configuring the local development builds.
 
 ### `crossPlatformRustflags` - Configuring the cross-compiled builds.
 
 ## Environments
+
+### `sharedEnvironment`
+
+### `devEnvironment`
+
+### `targetEnvironment`
 
 ## Wrapper
 

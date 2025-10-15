@@ -35,10 +35,10 @@
         sdk = "";
       };
 
-      localDevRustflags = [ ];
+      devRustflags = [ ];
 
       crossPlatformRustflags = [
-        "--remap-path-prefix \${HOME}=/build"
+        "--remap-path-prefix $HOME=/build"
       ];
 
       # Base environment for every target to build on.
@@ -46,6 +46,8 @@
         # Stops blake3 from messing builds up every once in a while.
         CARGO_FEATURE_PURE = "1";
       };
+
+      devEnvironment = { };
 
       # Environment variables set for individual targets.
       targetEnvironment =

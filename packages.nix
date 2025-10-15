@@ -6,11 +6,12 @@
   windows,
   macos,
 
-  localDevRustflags,
+  devRustflags,
   crossPlatformRustflags,
 
   sharedEnvironment,
   targetEnvironment,
+  devEnvironment,
 
   defaultArgParser,
   extraScript,
@@ -82,17 +83,20 @@ in
 
           case $BF_TARGET in
             "")
+              ${exportEnv devEnvironment}
               ${exportEnv (optionalAttrs (pkgs.stdenv.isLinux) {
-                PKG_CONFIG_PATH = makeSearchPath "lib/pkgconfig"
+                PKG_CONFIG_PATH = "${makeSearchPath "lib/pkgconfig"
                   (map (p: p.dev or null)
-                    (runtimeInputsBase ++ extraRuntimeInputs));
+                    (runtimeInputsBase ++ extraRuntimeInputs))
+                }:$PKG_CONFIG_PATH";
                 RUSTFLAGS = concatStringsSep " " [
                   (optionalString (pkgs.stdenv.isLinux)
                     "-C link-args=-Wl,-rpath,${
                       makeSearchPath "lib"
                         (runtimeInputsBase ++ extraRuntimeInputs)}
                     ")
-                  "${concatStringsSep " " localDevRustflags}"
+                  "${concatStringsSep " " devRustflags}"
+                  "$RUSTFLAGS"
                 ];
               })}
             ;;
