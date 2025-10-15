@@ -135,10 +135,11 @@
         optionals (pkgs.stdenv.isLinux)
           (with pkgs; [
             alsa-lib-with-plugins
+            libGL
             libxkbcommon
+            openssl
             udev
             vulkan-loader
-            libGL
             wayland
             xorg.libX11
             xorg.libXcursor
