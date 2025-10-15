@@ -28,7 +28,7 @@ cd /path/to/bevy/project
 ```
 
 Then, use the template with your preferred rust toolchain provider (switching
-down later is super easy):
+to a different one later is super easy):
 
 ```sh
 # The default with no cross-compilation, but faster evaluation:
