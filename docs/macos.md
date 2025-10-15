@@ -18,6 +18,7 @@ override:
 
 ```nix
 bf = bevy-flake.override {
+  # ...
   mac.sdk = builtins.fetchTarball {
     url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
     sha256 = "sha256:some-long-hash-string-goes-here";

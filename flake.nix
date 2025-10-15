@@ -2,9 +2,7 @@
   description =
     "A flake for painless development and distribution of Bevy projects.";
 
-  inputs = {
-    nixpkgs.url = "nixpkgs/nixos-unstable";
-  };
+  inputs.nixpkgs.url = "nixpkgs/nixos-unstable";
   
   outputs = { nixpkgs, ... }:
   let
@@ -14,8 +12,6 @@
       optionals genAttrs makeSearchPath makeOverridable;
 
     config = {
-      inherit mkStdenv mkRuntimeInputs mkRustToolchain;
-
       systems = [
         "x86_64-linux"
         "aarch64-linux"
@@ -119,37 +115,37 @@
       '';
 
       extraScript = "";
+
+      mkRustToolchain = targets: pkgs:
+        pkgs.symlinkJoin {
+          name = "nixpkgs-rust-toolchain";
+          pname = "cargo";
+          paths = with pkgs; [
+            cargo
+            clippy
+            rust-analyzer
+            rustc
+            rustfmt
+          ];
+        };
+
+      mkRuntimeInputs = pkgs:
+        optionals (pkgs.stdenv.isLinux)
+          (with pkgs; [
+            alsa-lib-with-plugins
+            libxkbcommon
+            udev
+            vulkan-loader
+            libGL
+            wayland
+            xorg.libX11
+            xorg.libXcursor
+            xorg.libXi
+            xorg.libXrandr
+          ]);
+
+      mkStdenv = pkgs: pkgs.clangStdenv;
     };
-
-    mkRustToolchain = targets: pkgs:
-      pkgs.symlinkJoin {
-        name = "nixpkgs-rust-toolchain";
-        pname = "cargo";
-        paths = with pkgs; [
-          cargo
-          clippy
-          rust-analyzer
-          rustc
-          rustfmt
-        ];
-      };
-
-    mkRuntimeInputs = pkgs:
-      optionals (pkgs.stdenv.isLinux)
-        (with pkgs; [
-          alsa-lib-with-plugins
-          libxkbcommon
-          udev
-          vulkan-loader
-          libGL
-          wayland
-          xorg.libX11
-          xorg.libXcursor
-          xorg.libXi
-          xorg.libXrandr
-        ]);
-
-    mkStdenv = pkgs: pkgs.clangStdenv;
   in
     makeOverridable (config:
     let
