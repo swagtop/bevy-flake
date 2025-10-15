@@ -34,14 +34,13 @@ any version no longer working.
 
 ### SDK
 
-You cannot specify the build version with `xwin`, so the dates corresponding to
-the version will be that of the latest build of the latest patch for the SDK.
+You cannot fourth and lowest version number with `xwin`, so the dates
+corresponding to the version will be that of the latest build of the latest
+patch for the SDK.
 
 More information on Windows SDK versions here: [Wikipedia][sdk_wiki].
 
 [sdk_wiki]: https://en.wikipedia.org/wiki/Microsoft_Windows_SDK
-
-The table is sorted from newest to oldest.
 
 | Manifests  | SDK Version  | Release      |
 |------------|--------------|--------------|
@@ -53,9 +52,9 @@ The table is sorted from newest to oldest.
 | `16`       | `10.0.17763` | `2018-10-02` |
 | `16`       | `10.0.17134` | `2018-05-08` |
 
-### CRT
-
 The table is sorted from newest to oldest.
+
+### CRT
 
 | Manifests  | CRT Version   |
 |------------|---------------|
@@ -76,3 +75,5 @@ The table is sorted from newest to oldest.
 | `17`       | `14.30.17.0`  |
 | `17`       | `14.29.16.11` |
 | `16`       | `14.29.16.10` |
+
+The table is sorted from newest to oldest.

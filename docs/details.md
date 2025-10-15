@@ -3,8 +3,9 @@
 ## Who is this for?
 
 This flake is for Nix users, who want to work with Bevy. Its goal is to be as
-ergonomic for power user as for beginners. The flake provides suite of packages
-useful for Bevy development, that all are configured from a single place.
+ergonomic for power user as for beginners. The flake provides a suite of
+packages useful for Bevy development, that all are configured from a single
+place.
 
 It is for the developer who wants to use a Nix environment to compile portable
 binaries for the major desktop platforms on their own computer, instead of
