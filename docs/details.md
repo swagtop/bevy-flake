@@ -112,3 +112,15 @@ and CRT, like using [windows-msvc-sysroot,][sysroot] or getting a PR through to
 `cargo-xwin` that lets it use read-only directories.
 
 [sysroot]: https://github.com/trcrsired/windows-msvc-sysroot
+
+## What am I allowed to do with the `bevy-flake` repo?
+
+You can do whatever you want with it.
+
+If you find that you dislike the structure of it, or the opinonated design, you
+can just fork it or copy it or just take the bits you find useful for yourself.
+You don't have to provide any credit or include the license or anything like
+that.
+
+This flake is just the culmination of a lot of trial and error, with the goal of
+making Bevy easier to use with Nix.
