@@ -32,7 +32,25 @@ _`config.targetEnvironments` attribute names._
 
 
 
+
 ### `mkStdenv` _(Single package)_ - Defining the stdenv
+
+The `bevy-flake` uses the stdenv created by this functions output for its C
+compiler toolchain. By default this is set by `bevy-flake` to be clang.
+
+This chosen because NixOS uses a GNU stdenv by default, while MacOS uses clang.
+For more similar builds between host systems, we just set NixOS to use clang as
+well.
+
+Here is an example of setting some other stdenv:
+
+```nix
+bf = bevy-flake.override {
+  # ...
+  mkStdenv = pkgs: pkgs.stdenvAdapters.useMoldLinker pkgs.clangStdenv;
+  # ...
+};
+```
 
 ### `mkRuntimeInputs` _(List of packages)_ - Defining the base runtime inputs
 
