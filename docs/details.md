@@ -18,11 +18,11 @@ or a package wrapped, that isn't included by default.
 
 ```nix
 {
-  # The config used for this instance.
+  # The config used for creating this instance.
   config = <config>;
 
   # Systems supported and the eachSystem helper function for this instance.
-  systems = [ <strings> ];
+  systems = [ <string> ];
   eachSystem = <function>;
 
   # The default devShell, includes the packages that don't need to be built.
