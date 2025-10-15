@@ -22,7 +22,7 @@
 }:
 let
   inherit (builtins)
-    attrNames concatStringsSep;
+    attrNames concatStringsSep warn;
   inherit (nixpkgs.lib)
     genAttrs optionalString makeOverridable mapAttrsToList makeSearchPath;
 in
@@ -230,7 +230,13 @@ in
       makeOverridable (bevy-cli:
         wrapWithEnv {
           name = "bevy";
-          extraRuntimeInputs = [ pkgs.lld pkgs.wasm-bindgen-cli_0_2_104 ];
+          extraRuntimeInputs = [
+            pkgs.lld
+            (pkgs.wasm-bindgen-cli_0_2_104
+              or (warn "Your nixpkgs is too old for bevy-cli web builds."
+                pkgs.emptyDirectory)
+            )
+          ];
           execPath = "${bevy-cli}/bin/bevy";
           argParser = defaultArgParser + ''
             if [[ $* == *" web"* ]]; then

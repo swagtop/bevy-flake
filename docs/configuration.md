@@ -25,32 +25,44 @@ The configuration of `bevy-flake` should be system-agnostic. Therefore all usage
 of packages need to be done through these 'mk' functions. These are functions
 that return either a package, or a list of packages, given an input 'pkgs'.
 
-### `mkRustToolchain`: Defining the Rust toolchain
+### `mkRustToolchain` (Single package) Defining the Rust toolchain
 
 _This function also takes in a `targets` argument, which is produced from the_
 _`config.targetEnvironments` attribute names._
 
 
 
-### `mkStdenv`: Defining the stdenv
+### `mkStdenv` (Single package) Defining the stdenv
 
-### `mkRuntimeInputs`: 
+### `mkRuntimeInputs` (List of packages) Defining the base runtime inputs
 
-### `mkHeaderInputs`: 
+### `mkHeaderInputs` (List of packages) Defining the headers
 
 ## The operating systems
 
-### `linux`: Configuring the Linux builds.
+These define the cross-compiled builds of the targets. For example, setting the
+`linux.glibcVersion` will not change the glibc version used when running
+`cargo build`, but only when running
+`cargo build --target x86_64-unknown-linux-gnu`.
 
-### `windows`: Windows
+Likewise, setting the MacOS SDK will not change your local build created by
+`cargo build` on MacOS systems.
 
-### `macos`: MacOS
+If you want to test how these builds run with these settings on your Nix
+machine, just compile them with '--target' and run those. On NixOS you will
+probably find `steam-run` to be useful here.
+
+### `linux` Configuring the Linux builds.
+
+### `windows` Windows
+
+### `macos` MacOS
 
 ## Rustflags
 
-### `localDevRustflags`: Configuring the local development builds.
+### `localDevRustflags` Configuring the local development builds.
 
-### `crossPlatformRustflags`: Configuring the cross-compiled builds.
+### `crossPlatformRustflags` Configuring the cross-compiled builds.
 
 ## Environments
 
