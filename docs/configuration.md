@@ -25,9 +25,7 @@ The configuration of `bevy-flake` should be system-agnostic. Therefore all usage
 of packages need to be done through these 'mk' functions. These are functions
 that return either a package, or a list of packages, given an input 'pkgs'.
 
-### `mkRustToolchain` - Single package
-
-_(Single package)_
+### `mkRustToolchain` _- Single package_
 
 _This function also takes in a `targets` argument, which is produced from the_
 _`config.targetEnvironments` attribute names._
@@ -35,9 +33,7 @@ _`config.targetEnvironments` attribute names._
 
 
 
-### `mkStdenv` - Single package
-
-_(Single package)_
+### `mkStdenv` _- Single package_
 
 The `bevy-flake` uses the stdenv created by this functions output for its C
 compiler toolchain. By default this is set by `bevy-flake` to be clang.
@@ -56,9 +52,7 @@ bf = bevy-flake.override {
 };
 ```
 
-### `mkRuntimeInputs` - List of packages
-
-_(List of packages)_ 
+### `mkRuntimeInputs` _- List of packages_
 
 ## The operating systems
 
