@@ -51,13 +51,37 @@ BF_NO_WRAPPER
 # set it through the `config.macos.sdk` attribute.
 BF_MACOS_SDK_PATH
 
-# The environment wrapper uses this 
+# The environment wrapper uses this variable to switch to the appropriate
+# environment for compilation. It includes a default arg parser, that sets this
+# variable to the arg after '--target'. You can swap this parser out for your
+# own, should you use a tool that uses different keywords (see bevy-cli).
 BF_TARGET
 ```
 
-
 ## How do I use `bevy-flake` to wrap one of my own packages?
 
+Lets say you are wrapping `cowsay`:
+
+```nix
+let
+  inherit (bevy-flake.packages.${system}.rust-toolchain) wrapInEnv;
+  wrapped-cowsay = wrapInEnv {
+    name = "cowsay";
+    execPath = "${pkgs.cowsay}/bin/cowsay";
+  };
+in
+  # ...
+    packages = [
+      wrapped-cowsay
+    ];
+  # ...
+```
+
+Now, when you run `cowsay`, the program's PATH includes the toolchain you've
+configured `bevy-flake` to use.
+
+Remember to use `bf` (or whatever you've called it) instead of `bevy-flake` if
+you've overrided it with your own config.
 
 ## Where is `bevy-flake` lacking?
 

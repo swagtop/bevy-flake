@@ -61,6 +61,7 @@ cargo build --target x86_64-unknown-linux-gnu
 cargo build --target x86_64-pc-windows-msvc
 cargo build --target aarch64-apple-darwin # <-- Read docs/macos.md!
 cargo build --target wasm32-unknown-unknown
+# (...and so on. )
 ```
 
 You can compile to every target with a `config.targetEnvironment` entry.
