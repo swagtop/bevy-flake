@@ -6,12 +6,11 @@
   windows,
   macos,
 
-  devRustflags,
   crossPlatformRustflags,
 
   sharedEnvironment,
-  targetEnvironment,
   devEnvironment,
+  targetEnvironment,
 
   defaultArgParser,
   extraScript,
@@ -24,7 +23,7 @@ let
   inherit (builtins)
     attrNames concatStringsSep warn;
   inherit (nixpkgs.lib)
-    genAttrs optionalAttrs optionalString makeOverridable mapAttrsToList makeSearchPath;
+    optionalString genAttrs mapAttrsToList makeOverridable makeSearchPath;
 in
   genAttrs systems (system:
   let
@@ -83,21 +82,16 @@ in
 
           case $BF_TARGET in
             "")
-              ${exportEnv devEnvironment}
-              ${exportEnv (optionalAttrs (pkgs.stdenv.isLinux) {
-                PKG_CONFIG_PATH = "${makeSearchPath "lib/pkgconfig"
-                  (map (p: p.dev or null)
-                    (runtimeInputsBase ++ extraRuntimeInputs))
-                }:$PKG_CONFIG_PATH";
-                RUSTFLAGS = concatStringsSep " " [
-                  (optionalString (pkgs.stdenv.isLinux)
-                    "-C link-args=-Wl,-rpath,${
-                      makeSearchPath "lib"
-                        (runtimeInputsBase ++ extraRuntimeInputs)}
-                    ")
-                  "${concatStringsSep " " devRustflags}"
-                  "$RUSTFLAGS"
-                ];
+              ${exportEnv (devEnvironment // {
+                PKG_CONFIG_PATH = (devEnvironment.PKG_CONFIG_PATH or "")
+                  + makeSearchPath "lib/pkgconfig"
+                    (map (p: p.dev or null)
+                      (runtimeInputsBase ++ extraRuntimeInputs));
+                RUSTFLAGS =
+                  (devEnvironment.RUSTFLAGS or "")
+                    + optionalString (pkgs.stdenv.isLinux)
+                      "-C link-args=-Wl,-rpath,${makeSearchPath "lib"
+                        (runtimeInputsBase ++ extraRuntimeInputs)}";
               })}
             ;;
 
@@ -105,10 +99,11 @@ in
               (mapAttrsToList
                 (target: env: ''
                   ${target}*)
-                  ${exportEnv env}
-                  export RUSTFLAGS="${
-                    concatStringsSep " " crossPlatformRustflags
-                  } $RUSTFLAGS"
+                  ${exportEnv (env // {
+                    RUSTFLAGS =
+                      (env.RUSTFLAGS or "") + " "
+                        + concatStringsSep " " crossPlatformRustflags;
+                  })}
                   ;;
                 '')
               targetEnvironment)}

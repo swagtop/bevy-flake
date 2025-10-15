@@ -35,8 +35,6 @@
         sdk = "";
       };
 
-      devRustflags = [ ];
-
       crossPlatformRustflags = [
         "--remap-path-prefix $HOME=/build"
       ];
