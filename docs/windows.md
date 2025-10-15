@@ -1,5 +1,21 @@
 # Cross-compiling for Windows
 
+## Reasoning
+
+This flake primarily focuses on using the `-msvc` ABI. It is generally said that
+if you are building for Windows, you should be using `-msvc`. Compiling to the
+`-gnu` targets is viable as well, and you can configure `bevy-flake` to use
+these targets with a little extra setup.
+
+To support the `-msvc` targets, `bevy-flake` uses `cargo-xwin` to pull the
+Windows SDK and CRT from Microsoft servers. The versions pulled are defined in
+the `config.windows.sdkVersion` and `config.windows.crtVersion` attributes.
+
+It should also be said that there is room for improvement with these targets.
+Read more on that [here.](details.md#where-is-bevy-flake-lacking)
+
+## Supported SDK and CRT versions
+
 As of `2025-06-02`, these are the Windows SDK and CRT versions that have been
 tested, and confirmed to succesfully be fetched, and used for compiling the
 `*-pc-windows-msvc` targets.
@@ -16,7 +32,7 @@ If you get any version not listed here, please feel free to open an issue or
 pull request where its added to the list. Likewise, please report if you find
 any version no longer working.
 
-## Supported Windows SDK versions
+### SDK
 
 You cannot specify the build version with `xwin`, so the dates corresponding to
 the version will be that of the latest build of the latest patch for the SDK.
@@ -37,7 +53,7 @@ The table is sorted from newest to oldest.
 | `16`       | `10.0.17763` | `2018-10-02` |
 | `16`       | `10.0.17134` | `2018-05-08` |
 
-## Supported Windows CRT versions
+### CRT
 
 The table is sorted from newest to oldest.
 
