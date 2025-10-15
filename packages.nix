@@ -12,8 +12,8 @@
   sharedEnvironment,
   targetEnvironment,
 
-  extraScript,
   defaultArgParser,
+  extraScript,
 
   mkRustToolchain,
   mkRuntimeInputs,

@@ -91,8 +91,6 @@
         "aarch64-pc-windows-msvc" = { };
       };
 
-      extraScript = "";
-
       defaultArgParser = ''
         # Check if what the adapter is being run with.
         TARGET_ARG_NO=0
@@ -113,6 +111,8 @@
           esac
         done
       '';
+
+      extraScript = "";
     };
 
     mkRustToolchain = targets: pkgs:
