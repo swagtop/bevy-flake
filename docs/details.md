@@ -43,15 +43,15 @@ The environment adapter makes use of the following environment variables:
 ```bash
 # If this variable is set to "1", the environment wrapper runs the execPath
 # without changing the environment.
-$BF_NO_WRAPPER 
+BF_NO_WRAPPER 
 
 # The environment wrapper sets up the MacOS environment variables based on the
 # path given by this environment variable. You should not set this yourself, but
 # set it through the `config.macos.sdk` attribute.
-$BF_MACOS_SDK_PATH
+BF_MACOS_SDK_PATH
 
 # The environment wrapper uses this 
-$BF_TARGET
+BF_TARGET
 ```
 
 
@@ -67,8 +67,8 @@ the Windows SDK and CRT are not sourced from a derivation.
 
 The reason why we can't just put the SDK and CRT pulled by `cargo-xwin` in a
 tarball and then put it in the store, is that `cargo-xwin` writes to the
-directory it is reading the SDK and CRT from. It updates some scripts, and
-creates symlinks to your toolchain inside of the directory.
+directory it is reading the SDK and CRT from on usage. It updates some scripts,
+and creates symlinks to your toolchain inside of the directory.
 
 For this to be solved, we either need to find a different way to include the SDK
 and CRT, like using [windows-msvc-sysroot,][sysroot] or getting a PR through to

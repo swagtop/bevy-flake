@@ -8,10 +8,6 @@ With `bevy-flake` you can easily compile and run your project on NixOS and
 MacOS, as well as reproducibly[^1] cross-compile portable binaries for non-Nix
 Linux, Windows and MacOS targets.
 
-With bevy-flake you can easily run the same project on NixOS and
-MacOS, and cross-compile portable binaries for non-Nix Linux,
-Windows and MacOS targets.
-
 [bevy]: https://github.com/bevyengine/bevy
 [^1]: This may not always be true for Windows targets for now, read more
       [here.](docs/details.md#where-is-bevy-flake-lacking)
