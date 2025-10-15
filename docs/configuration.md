@@ -54,8 +54,6 @@ bf = bevy-flake.override {
 
 ### `mkRuntimeInputs` _(List of packages)_ - Defining the base runtime inputs
 
-### `mkHeaderInputs` _(List of packages)_ - Defining the headers
-
 ## The operating systems
 
 These define the cross-compiled builds of the targets. For example, setting the

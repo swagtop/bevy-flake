@@ -14,7 +14,7 @@
       optionals genAttrs makeSearchPath makeOverridable;
 
     config = {
-      inherit mkStdenv mkHeaderInputs mkRuntimeInputs mkRustToolchain;
+      inherit mkStdenv mkRuntimeInputs mkRustToolchain;
 
       systems = [
         "x86_64-linux"
@@ -70,16 +70,22 @@
             "-L framework=${frameworks}"
           ];
         };
+        linuxHeaders = system: makeSearchPath "lib/pkgconfig"
+          (with nixpkgs.legacyPackages.${system}; [
+            alsa-lib-with-plugins.dev
+            libxkbcommon.dev
+            openssl.dev
+            udev.dev
+            wayland.dev
+          ]);
       in {
         "x86_64-apple-darwin" = macos;
         "aarch64-apple-darwin" = macos;
         "x86_64-unknown-linux-gnu" = {
-          PKG_CONFIG_PATH = makeSearchPath "lib/pkgconfig"
-            (mkHeaderInputs nixpkgs.legacyPackages."x86_64-linux");
+          PKG_CONFIG_PATH = linuxHeaders "x86_64-linux";
         };
         "aarch64-unknown-linux-gnu" = {
-          PKG_CONFIG_PATH = makeSearchPath "lib/pkgconfig"
-            (mkHeaderInputs nixpkgs.legacyPackages."aarch64-linux");
+          PKG_CONFIG_PATH = linuxHeaders "aarch64-linux";
         };
         "wasm32-unknown-unknown" = {
           RUSTFLAGS = concatStringsSep " " [
@@ -141,16 +147,6 @@
           xorg.libXcursor
           xorg.libXi
           xorg.libXrandr
-        ]);
-
-    mkHeaderInputs = pkgs:
-      optionals (pkgs.stdenv.isLinux)
-        (with pkgs; [
-          alsa-lib-with-plugins.dev
-          libxkbcommon.dev
-          openssl.dev
-          udev.dev
-          wayland.dev
         ]);
 
     mkStdenv = pkgs: pkgs.clangStdenv;

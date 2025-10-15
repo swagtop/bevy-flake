@@ -17,14 +17,13 @@
 
   mkRustToolchain,
   mkRuntimeInputs,
-  mkHeaderInputs,
   mkStdenv,
 }:
 let
   inherit (builtins)
     attrNames concatStringsSep warn;
   inherit (nixpkgs.lib)
-    genAttrs optionalString makeOverridable mapAttrsToList makeSearchPath;
+    genAttrs optionalAttrs optionalString makeOverridable mapAttrsToList makeSearchPath;
 in
   genAttrs systems (system:
   let
@@ -83,9 +82,10 @@ in
 
           case $BF_TARGET in
             "")
-              ${exportEnv {
-                PKG_CONFIG_PATH =
-                  makeSearchPath "lib/pkgconfig" (mkHeaderInputs pkgs);
+              ${exportEnv (optionalAttrs (pkgs.stdenv.isLinux) {
+                PKG_CONFIG_PATH = makeSearchPath "lib/pkgconfig"
+                  (map (p: p.dev or null)
+                    (runtimeInputsBase ++ extraRuntimeInputs));
                 RUSTFLAGS = concatStringsSep " " [
                   (optionalString (pkgs.stdenv.isLinux)
                     "-C link-args=-Wl,-rpath,${
@@ -94,7 +94,7 @@ in
                     ")
                   "${concatStringsSep " " localDevRustflags}"
                 ];
-              }}
+              })}
             ;;
 
             ${concatStringsSep "\n"
