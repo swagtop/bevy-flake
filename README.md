@@ -100,6 +100,7 @@ environment needed for it yourself. More on that [here.](docs/configuration.md)
                                   ║    (...and so on. )  ◄────────────╯
                                   ╚═════════════════════════════╝
 
+
                     (1) Local Nix System:             (2) Other Systems:
 
                     - Runtime packages                - Each targets libraries
