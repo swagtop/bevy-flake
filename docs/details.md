@@ -2,10 +2,10 @@
 
 ## Who is this for?
 
-This flake is for Nix users, who want to work with Bevy. Its goal is to be as
-ergonomic for power users to use, easy to use for beginners. The flake provides
-a suite of packages useful for Bevy development, that all are configured from a
-single place.
+This flake is for Nix users, who want to work with Bevy. Its goal is to be
+as easy to use for beginners, as it is ergonomic to use for power users. The
+flake provides a suite of packages useful for Bevy development, that all are
+configured from a single place.
 
 It is for the developer who wants to use a Nix environment to compile portable
 binaries for the major desktop platforms on their own computer, instead of
@@ -36,7 +36,7 @@ or a package wrapped, that isn't included by default.
   };
 
   # The general templates for the different toolchains.
-  templates."<name>" = <templates>;
+  templates."<name>" = <template>;
 
   # Read more on how to configure bevy-flake in docs/configuration.md
   override = <function>;
@@ -45,7 +45,7 @@ or a package wrapped, that isn't included by default.
 
 ## What does `bevy-flake` do?
 
-The flake provides a preconfigured environment for the rust toolchain, and a
+The flake provides a preconfigured environment for the Rust toolchain, and a
 couple of packages that are helpful for Bevy development. The environment for
 these packages can be overridden with ones own configuration.
 
@@ -89,8 +89,9 @@ in
   # ...
 ```
 
-Now, when you run `cowsay`, the program's PATH includes the toolchain you've
-configured `bevy-flake` to use.
+Now, when you run `cowsay`, the program is run at the end of the enfironment
+adapter script, while its PATH includes the toolchain you've configured
+`bevy-flake` to use.
 
 Remember to use `bf` (or whatever you've called it) instead of `bevy-flake` if
 you've overrided it with your own config.
