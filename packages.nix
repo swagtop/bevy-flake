@@ -140,17 +140,17 @@ in
           cargo-xwin
         ];
         execPath = "${built-rust-toolchain}/bin/cargo";
-        argParser = defaultArgParser + ''
-          if [[ $BF_NO_WRAPPER != "1" ]]; then
-            # Insert glibc version for Linux targets.
-            if [[ $BF_TARGET == *"-unknown-linux-gnu" ]]; then
-              # args=("$@")
-              # args[TARGET_ARG_NO-1]="$BF_TARGET.${linux.glibcVersion}"
-              # set -- "''${args[@]}"
-            fi
+        # argParser = defaultArgParser + ''
+        #   if [[ $BF_NO_WRAPPER != "1" ]]; then
+        #     # Insert glibc version for Linux targets.
+        #     if [[ $BF_TARGET == *"-unknown-linux-gnu" ]]; then
+        #       # args=("$@")
+        #       # args[TARGET_ARG_NO-1]="$BF_TARGET.${linux.glibcVersion}"
+        #       # set -- "''${args[@]}"
+        #     fi
 
-          fi
-        '';
+        #   fi
+        # '';
         postScript = ''
           ${optionalString (pkgs.stdenv.isDarwin) ''
             # Stops `cargo-zigbuild` from jamming on MacOS systems.
