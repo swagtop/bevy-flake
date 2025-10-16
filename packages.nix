@@ -262,15 +262,32 @@ in
         }
       ) bevy-cli-package;
 
-    buildFromSource = src: stdenv.mkDerivation {
-      name = "cool-name";
-      inherit src;
-      nativeBuildInputs = [ rust-toolchain ];
-      buildPhase = ''
-        ${concatStringsSep "\n" (map (target: "${rust-toolchain}/bin/cargo build --target ${target} --locked") targets)}
-      '';
-      installPhase = ''
-        echo $(ls)
-      '';
+    buildFromSource = src:
+    let
+      rustPlatform = pkgs.makeRustPlatform {
+        cargo = rust-toolchain;
+        rustc = rust-toolchain;
+      };
+    in pkgs.symlinkJoin {
+      name = "finished-build";
+      paths = (map (target:
+        (rustPlatform.buildRustPackage {
+          pname = "my-project";
+          version = "1.0.0";
+
+          src = ./.;
+
+          cargoLock = {
+            lockFile = ./Cargo.lock;
+          };
+
+          cargoBuildFlags = [ "--target" target ];
+
+          postInstall = ''
+            mkdir -p $out/${target}/bin
+            mv $out/bin/* $out/${target}/bin/
+          '';
+        })
+      ) targets);
     };
   })
