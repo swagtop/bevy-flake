@@ -144,9 +144,9 @@ in
           if [[ $BF_NO_WRAPPER != "1" ]]; then
             # Insert glibc version for Linux targets.
             if [[ $BF_TARGET == *"-unknown-linux-gnu" ]]; then
-              args=("$@")
-              args[TARGET_ARG_NO-1]="$BF_TARGET.${linux.glibcVersion}"
-              set -- "''${args[@]}"
+              # args=("$@")
+              # args[TARGET_ARG_NO-1]="$BF_TARGET.${linux.glibcVersion}"
+              # set -- "''${args[@]}"
             fi
 
           fi
