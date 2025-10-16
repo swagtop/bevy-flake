@@ -158,12 +158,11 @@ in
               *-unknown-linux-gnu);&
               "wasm32-unknown-unknown")
                 echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
-                shift
-                set -- "zigbuild" "$@"
+                export CARGO_ALIAS_BUILD="zigbuild"
               ;;
               *-pc-windows-msvc)
                 echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
-                set -- "xwin" "$@"
+                export CARGO_ALIAS_BUILD="xwin build"
               ;;
             esac
 
