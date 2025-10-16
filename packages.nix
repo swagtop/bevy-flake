@@ -258,5 +258,4 @@ in
           '';
         }
       ) bevy-cli-package;
-
   })

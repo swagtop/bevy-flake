@@ -14,6 +14,12 @@ the `config.windows.sdkVersion` and `config.windows.crtVersion` attributes.
 It should also be said that there is room for improvement with these targets.
 Read more on that [here.](details.md#where-is-bevy-flake-lacking)
 
+## Fetching the SDK and CRT
+
+
+
+## Packageing the SDK and CRT
+
 ## Supported SDK and CRT versions
 
 As of `2025-06-02`, these are the Windows SDK and CRT versions that have been

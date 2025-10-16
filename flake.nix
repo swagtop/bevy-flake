@@ -105,10 +105,10 @@
               export BF_TARGET="$BF_TARGET"
             ;;
             "--no-wrapper")
-              # Remove '--no-wrapper' from args, then run unwrapped exec.
               set -- "''${@:1:$((TARGET_ARG_NO - 1))}" \
                      "''${@:$((TARGET_ARG_NO + 1))}"
               export BF_NO_WRAPPER="1"
+              break
             ;;
           esac
         done
