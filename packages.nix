@@ -263,6 +263,7 @@ in
       ) bevy-cli-package;
 
     buildFromSource = src: stdenv.mkDerivation {
+      name = "cool-name";
       inherit src;
       nativeBuildInputs = [ rust-toolchain ];
       buildPhase = ''
