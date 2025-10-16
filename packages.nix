@@ -195,7 +195,7 @@ in
       let
         rustPlatform = pkgs.makeRustPlatform {
           cargo = target-adapter-package;
-          rustc = built-rust-toolchain // { targetPlatforms = systems; badTargetPlatforms = []; };
+          rustc = target-adapter-package // { targetPlatforms = systems; badTargetPlatforms = []; };
         };
       in pkgs.symlinkJoin {
         name = "finished-build";
@@ -215,16 +215,15 @@ in
 
             cargoLock.lockFile = "${src}/Cargo.lock";
 
-            cargoBuildCommand = ''
-              ${target-adapter-package}/bin/cargo zigbuild --target ${target} --release
-            '';
+            CARGO = "${target-adapter-package}/bin/cargo";
+            CARGO_BUILD_TARGET = target;
             BF_TARGET = target;
             HOME = ".";
 
-            postInstall = ''
-              mkdir -p $out/${target}/bin
-              cp -r target/${target}/release $out/${target}/release
-            '';
+            # postInstall = ''
+            #   mkdir -p $out/${target}/bin
+            #   cp -r target/${target}/release $out/${target}/release
+            # '';
           })
         ) [ "x86_64-pc-windows-msvc" "aarch64-pc-windows-msvc" ]);
       };
