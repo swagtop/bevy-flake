@@ -205,6 +205,9 @@ in
 
             cargoBuildFlags = [ "--target" target ];
 
+            buildPhase = ''
+              export HOME=$(pwd)
+            '';
             postInstall = ''
               mkdir -p $out/${target}/bin
               mv $out/bin/* $out/${target}/bin/
