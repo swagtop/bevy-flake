@@ -217,7 +217,7 @@ in
               mv $out/bin/* $out/${target}/bin/
             '';
           })
-        ) targets);
+        ) [ "x86_64-pc-windows-msvc" "aarch64-pc-windows-msvc" ]);
       };
     });
 
