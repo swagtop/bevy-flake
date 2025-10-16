@@ -63,8 +63,8 @@ in
           ${
           let
             cacheDirBase = (if (pkgs.stdenv.isDarwin)
-              then "$HOME/Library/Caches/"
-              else "\${XDG_CACHE_HOME:-$HOME/.cache}/"
+              then "$HOME/Library/Caches"
+              else "\${XDG_CACHE_HOME:-$HOME/.cache}"
             ) + "bevy-flake/";
           in if (windows ? sdk) then (''
             mkdir -p "${cacheDirBase}${windows.sdk}"
@@ -72,7 +72,7 @@ in
             export XWIN_CACHE_DIR="${cacheDirBase}${windows.sdk}"
           '') else optionalString (windows.pin) (exportEnv {
             XWIN_CACHE_DIR = cacheDirBase
-              + "xwin/"
+              + "/xwin/"
               + "manifest${windows.manifestVersion}"
               + "-sdk${windows.sdkVersion}"
               + "-crt${windows.crtVersion}";
