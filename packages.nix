@@ -195,7 +195,7 @@ in
       let
         rustPlatform = pkgs.makeRustPlatform {
           cargo = target-adapter-package;
-          rustc = built-rust-toolchain // { targetPlatforms = []; badTargetPlatforms = []; };
+          rustc = built-rust-toolchain // { targetPlatforms = systems; badTargetPlatforms = []; };
         };
       in pkgs.symlinkJoin {
         name = "finished-build";
