@@ -236,7 +236,7 @@ in
             #   cp -r target/${target}/release $out/${target}/release
             # '';
           })
-        ) [ "x86_64-pc-windows-msvc" "aarch64-pc-windows-msvc" ]);
+        ) targets);
       };
     });
 
