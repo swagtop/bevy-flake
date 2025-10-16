@@ -267,7 +267,7 @@ in
       inherit src;
       nativeBuildInputs = [ rust-toolchain ];
       buildPhase = ''
-        ${concatStringsSep "\n" (map (target: "cargo build --target ${target} --locked") targets)}
+        ${concatStringsSep "\n" (map (target: "${rust-toolchain}/bin/cargo build --target ${target} --locked") targets)}
       '';
       installPhase = ''
         echo $(ls)
