@@ -25,7 +25,7 @@ The configuration of `bevy-flake` should be system-agnostic. Therefore all usage
 of packages need to be done through these 'mk' functions. These are functions
 that return either a package, or a list of packages, given an input 'pkgs'.
 
-### `mkRustToolchain` _- Single package_
+### `mkRustToolchain`
 
 _This function also takes in a `targets` argument, which is produced from the_
 _`config.targetEnvironments` attribute names._
@@ -33,7 +33,7 @@ _`config.targetEnvironments` attribute names._
 
 
 
-### `mkStdenv` _- Single package_
+### `mkStdenv`
 
 The `bevy-flake` uses the stdenv created by this functions output for its C
 compiler toolchain. By default this is set by `bevy-flake` to be clang.
@@ -52,7 +52,7 @@ bf = bevy-flake.override {
 };
 ```
 
-### `mkRuntimeInputs` _- List of packages_
+### `mkRuntimeInputs`
 
 ## The operating systems
 
@@ -70,6 +70,13 @@ probably find `steam-run` to be useful here.
 
 ### `linux`
 
+Setting the `glibcVersion` variable only affects the builds made with the
+wrapped `cargo` included with the `rust-toolchain` package. It works by changing
+the target you are using to include the glibc version you are targeting, for
+`cargo-zigbuild` to consume. Read more about this [here.][glibc]
+
+[glibc]: https://github.com/rust-cross/cargo-zigbuild?tab=readme-ov-file#specify-glibc-version
+
 ### `windows`
 
 ### `macos`
@@ -78,7 +85,16 @@ probably find `steam-run` to be useful here.
 
 ### `crossPlatformRustflags`
 
-## Environments
+This is a shortcut for adding rustflags to every target that is not the dev
+environment. By default it is used for the `--remap-path-prefix $HOME=/build`
+rustflag, that tries to anonymize the build a little by removing your home
+directory from the final binary strings.
+
+Adding this rustflag would not be needed if we could use the Nix build system
+with the wrapped toolchain, but that will not be possible until the Windows
+builds problem is solved.[^1]
+
+[^1]: Read more about this [here.](docs/details.md#where-is-bevy-flake-lacking)
 
 ### `sharedEnvironment`
 

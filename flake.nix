@@ -148,8 +148,7 @@
       mkStdenv = pkgs: pkgs.clangStdenv;
     };
 
-    mkBf = bf: config:
-      removeAttrs (makeOverridable (bf) config) [ "overrideDerivation" ];
+    mkBf = bf: removeAttrs (makeOverridable bf config) [ "overrideDerivation" ];
   in
     mkBf (config:
     let
@@ -184,5 +183,5 @@
           description = "Get the rust toolchain through nix-community's fenix.";
         };
       };
-  }) config;
+  });
 }
