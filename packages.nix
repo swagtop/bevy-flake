@@ -213,6 +213,7 @@ in
               mv $out/bin/* $out/${target}/bin/
             '';
             checkPhase = "true";
+            installPhase = "true";
           })
         ) targets);
       };
