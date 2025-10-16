@@ -212,7 +212,7 @@ in
               mkdir -p $out/${target}/bin
               mv $out/bin/* $out/${target}/bin/
             '';
-            dontCheck = true;
+            cargoCheckHook = "";
           })
         ) targets);
       };
