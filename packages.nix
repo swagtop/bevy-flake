@@ -68,7 +68,7 @@ in
             ) + "bevy-flake";
           in if (windows ? sdk) then (''
             mkdir -p "${cacheDirBase}${windows.sdk}"
-            ln -s "${windows.sdk}" "${cacheDirBase}${windows.sdk}/xwin" || true
+            ln -s ${windows.sdk} "${cacheDirBase}${windows.sdk}/xwin" || true
             export XWIN_CACHE_DIR="${cacheDirBase}${windows.sdk}"
           '') else optionalString (windows.pin) (exportEnv {
             XWIN_CACHE_DIR = cacheDirBase
