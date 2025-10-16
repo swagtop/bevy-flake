@@ -203,17 +203,16 @@ in
 
             cargoLock.lockFile = "${src}/Cargo.lock";
 
-            cargoBuildFlags = [ "--target" target ];
+            CARGO_BUILD_TARGET = target;
+            BF_TARGET = target;
 
-            buildPhase = ''
+            preBuildPhase = ''
               export HOME=$(pwd)
             '';
             postInstall = ''
               mkdir -p $out/${target}/bin
               mv $out/bin/* $out/${target}/bin/
             '';
-            checkPhase = "true";
-            installPhase = "true";
           })
         ) targets);
       };
