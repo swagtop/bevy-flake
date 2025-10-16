@@ -114,6 +114,15 @@ and CRT, like using [windows-msvc-sysroot,][sysroot] or getting a PR through to
 
 [sysroot]: https://github.com/trcrsired/windows-msvc-sysroot
 
+## What is the future of `bevy-flake`?
+
+I would like for `bevy-flake` to provide a `rustPlatform` configured to use its
+wrapped Rust toolchain. The main blocker for this right now, are the Windows
+MSVC targets, with the reasoning listed above.
+
+With this, users would be able to build _truly_ reproducable programs, with the
+Nix build system.
+
 ## What am I allowed to do with the `bevy-flake` repo?
 
 You can do whatever you want with it.

@@ -148,9 +148,7 @@ probably be annoying. It could be helpful here to use `lib.recursiveUpdate`:
 
 ```nix
 let
-  inherit (nixpkgs.lib)
-    recursiveUpdate;
-in
+  inherit (nixpkgs.lib) recursiveUpdate;
   bf = bevy-flake.override (old: {
     # ...
     targetEnvironment = recursiveUpdate old.targetEnvironment {
@@ -159,7 +157,8 @@ in
       };
     };
     # ...
-  })
+  });
+in
 ```
 
 ## Wrapper
