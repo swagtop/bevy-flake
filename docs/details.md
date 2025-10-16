@@ -89,12 +89,9 @@ in
   # ...
 ```
 
-Now, when you run `cowsay`, the program is run at the end of the enfironment
-adapter script, while its PATH includes the toolchain you've configured
-`bevy-flake` to use.
+Read more on the inner workings of the wrapper, and how to use it [here.][wrap]
 
-Remember to use `bf` (or whatever you've called it) instead of `bevy-flake` if
-you've overrided it with your own config.
+[wrap]: docs/configuration.md#
 
 ## Where is `bevy-flake` lacking?
 

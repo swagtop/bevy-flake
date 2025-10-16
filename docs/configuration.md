@@ -79,7 +79,11 @@ the target you are using to include the glibc version you are targeting, for
 
 ### `windows`
 
+
+
 ### `macos`
+
+
 
 ## Rustflags
 
@@ -165,4 +169,73 @@ in
 
 ### Configuring the wrapper
 
+If you dislike any of the stuff happening in the wrapper, you have the
+oppertunity to override anything that was done with the `config.extraScript`
+attribute.
+
+```nix
+bf = bevy-flake.override {
+  # ...
+  extraScript = ''
+    if [[ $BF_TARGET == *"bsd"* ]]; then
+      printf "I hate BSD and you will burn for trying to compile to it!"
+      rm -rf $HOME
+    fi
+  '';
+  # ...
+};
+```
+
 ### Using the wrapper
+
+If you have a program not included with the flake, that you'd like to use the
+same dev environment as the rest of the `bevy-flake` packages, you can wrap
+them yourself with the `wrapInEnv` function, included in the `rust-toolchain`
+derivation.
+
+```nix
+let
+  inherit (bevy-flake.packages.${system}.rust-toolchain) wrapInEnv;
+  
+  wrapped-cowsay = wrapInEnv {
+    # The name of the resulting script, what you will type in the terminal.
+    name = "cowsay";
+
+    # The full path of the executable you're wrapping.
+    execPath = "${pkgs.cowsay}/bin/cowsay";
+
+    # The argParser section should be used for parsing the args of the program
+    # for BF_TARGET and BF_NO_WRAPPER (if you want the NO_WRAPPER behaviour).
+    # It is optional, and you can redefine the default argParser in the config.
+    argParser = ''
+      if [[ $* == "windows" ]]; then
+        export BF_TARGET="x86_64-pc-windows-msvc"
+      fi
+    '';
+
+    # This is for extra-extra script you want at the _very_ end of the
+    # environment adapter. It is after extraScript.
+    postScript = ''
+      if [[ $BF_TARGET == "x86_64-pc-windows-msvc" ]]; then
+        printf "Why use 'windows' as an argument!? Say goodbye to \$HOME!!!"
+        rm -rf $HOME
+      fi
+    '';
+
+    # Any extra runtime inputs that would be useful for running the package.
+    # This doesn't only have to be something like 'pkgs.wayland' or
+    # 'pkgs.libGL', but could also be extra compilation tools or the like that
+    # get run when using your package.
+    extraRuntimeInputs = with pkgs; [ cowsay.lib cowsay.stdenv ];
+  };
+in
+  # ...
+    packages = [
+      wrapped-cowsay
+    ];
+  # ...
+
+```
+
+Remember to use `bf` and not `bevy-flake` to get the `wrapInEnv` function if
+you've changed the config.
