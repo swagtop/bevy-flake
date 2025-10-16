@@ -136,7 +136,7 @@ in
 
         # Insert glibc version for Linux targets.
         argParser = defaultArgParser + ''
-          if [[ $BF_WRAPPER != "1"
+          if [[ $BF_NO_WRAPPER != "1"
              && $BF_TARGET == *"-unknown-linux-gnu" ]]; then
             args=("$@")
             args[TARGET_ARG_NO-1]="$BF_TARGET.${linux.glibcVersion}"
