@@ -159,7 +159,7 @@ in
                   "compilation will most likely fail." 1>&2
               ''}
             ;&
-            *-unknown-linux-gnu);&
+            *-unknown-linux-gnu*);&
             "wasm32-unknown-unknown")
               if [[ "$1" == "build" ]]; then
                 echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
