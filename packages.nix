@@ -272,14 +272,12 @@ in
       name = "finished-build";
       paths = (map (target:
         (rustPlatform.buildRustPackage {
+          inherit src;
+
           pname = "my-project";
           version = "1.0.0";
 
-          src = ./.;
-
-          cargoLock = {
-            lockFile = ./Cargo.lock;
-          };
+          cargoLock.lockFile = "${src}/Cargo.lock";
 
           cargoBuildFlags = [ "--target" target ];
 
