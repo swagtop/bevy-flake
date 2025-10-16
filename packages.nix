@@ -133,16 +133,14 @@ in
           cargo-xwin
         ];
         execPath = "${built-rust-toolchain}/bin/cargo";
+
+        # Insert glibc version for Linux targets.
         argParser = defaultArgParser + ''
-          if [[ $BF_NO_WRAPPER != "1" ]]; then
-
-            # Insert glibc version for Linux targets.
-            if [[ $BF_TARGET == *"-unknown-linux-gnu" ]]; then
-              # args=("$@")
-              # args[TARGET_ARG_NO-1]="$BF_TARGET.${linux.glibcVersion}"
-              # set -- "''${args[@]}"
-            fi
-
+          if [[ $BF_WRAPPER != "1"
+             && $BF_TARGET == *"-unknown-linux-gnu" ]]; then
+            args=("$@")
+            args[TARGET_ARG_NO-1]="$BF_TARGET.${linux.glibcVersion}"
+            set -- "''${args[@]}"
           fi
         '';
 
