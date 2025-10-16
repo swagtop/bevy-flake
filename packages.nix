@@ -164,7 +164,7 @@ in
               if [[ "$1" == "build" ]]; then
                 echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
                 shift
-                ${pkgs.cargo-zigbuild}/bin/cargo-zigbuild zigbuild "$@"
+                ${pkgs.built-rust-toolchain}/bin/cargo zigbuild "$@"
               fi
             ;;
             *-pc-windows-msvc)
