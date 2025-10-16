@@ -68,8 +68,10 @@ in
             ) + "bevy-flake";
           in if (windows ? sdk) then (''
             mkdir -p "${cacheDirBase}${windows.sdk}/xwin"
-            ln -s ${windows.sdk}/crt "${cacheDirBase}${windows.sdk}/xwin/crt" || true
-            ln -s ${windows.sdk}/sdk "${cacheDirBase}${windows.sdk}/xwin/sdk" || true
+            WINDOWS_SDK_PATH=$(realpath "${cacheDirBase}${windows.sdk}/xwin") || true
+            if [[ $WINDOWS_SDK_PATH != ${windows.sdk} ]]; then
+              ln -s ${windows.sdk}/* "${cacheDirBase}${windows.sdk}/xwin/"
+            fi
             ${exportEnv {
               XWIN_CACHE_DIR = "${cacheDirBase}${windows.sdk}";
               XWIN_VERSION = windows.manifestVersion;
