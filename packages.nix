@@ -41,6 +41,7 @@ in
       name,
       execPath,
       argParser ? defaultArgParser,
+      postScript ? "",
       extraRuntimeInputs ? []
     }:
       pkgs.writeShellApplication {
@@ -124,6 +125,8 @@ in
 
           ${extraScript}
 
+          ${postScript}
+
           exec ${execPath} "$@"
         '';
     };
@@ -146,31 +149,34 @@ in
               set -- "''${args[@]}"
             fi
 
-            # Set linker for specific targets.
-            case $BF_TARGET in
-              *-apple-darwin)
-                ${optionalString (macos.sdk == "") ''
-                  printf "%s%s\n" \
-                    "bevy-flake: Building to MacOS target without SDK, " \
-                    "compilation will most likely fail." 1>&2
-                ''}
-              ;&
-              *-unknown-linux-gnu);&
-              "wasm32-unknown-unknown")
-                echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
-                export CARGO_ALIAS_BUILD="zigbuild"
-              ;;
-              *-pc-windows-msvc)
-                echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
-                export CARGO_ALIAS_BUILD="xwin build"
-              ;;
-            esac
-
-            ${optionalString (pkgs.stdenv.isDarwin) ''
-              # Stops `cargo-zigbuild` from jamming on MacOS systems.
-              ulimit -n 4096
-            ''}
           fi
+        '';
+        postScript = ''
+          ${optionalString (pkgs.stdenv.isDarwin) ''
+            # Stops `cargo-zigbuild` from jamming on MacOS systems.
+            ulimit -n 4096
+          ''}
+
+          # Set linker for specific targets.
+          case $BF_TARGET in
+            *-apple-darwin)
+              ${optionalString (macos.sdk == "") ''
+                printf "%s%s\n" \
+                  "bevy-flake: Building to MacOS target without SDK, " \
+                  "compilation will most likely fail." 1>&2
+              ''}
+            ;&
+            *-unknown-linux-gnu);&
+            "wasm32-unknown-unknown")
+              echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
+              shift
+              ${pkgs.cargo-zigbuild}/bin/cargo-zigbuild zigbuild "$@"
+            ;;
+            *-pc-windows-msvc)
+              echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
+              ${pkgs.cargo-zigbuild}/bin/cargo-xwin xwin "$@"
+            ;;
+          esac
         '';
       };
     in 
