@@ -205,10 +205,8 @@ in
 
             CARGO_BUILD_TARGET = target;
             BF_TARGET = target;
+            HOME = ".";
 
-            preBuildPhase = ''
-              export HOME=$(pwd)
-            '';
             postInstall = ''
               mkdir -p $out/${target}/bin
               mv $out/bin/* $out/${target}/bin/
