@@ -58,35 +58,28 @@ in
             exec ${execPath} "$@"
           fi
 
-          # Set up MacOS SDK if provided through 
+          # Set up MacOS SDK if configured.
           export BF_MACOS_SDK_PATH="${macos.sdk}"
 
           # Set up Windows SDK and CRT if pinning is enabled.
-          ${
-          let
-            cacheDirBase = (if (pkgs.stdenv.isDarwin)
-              then "$HOME/Library/Caches/"
-              else "\${XDG_CACHE_HOME:-$HOME/.cache/}"
-            ) + "bevy-flake";
-          in if (windows ? sdk) then (''
-            mkdir -p "${cacheDirBase}${windows.sdk}/xwin"
-            ln -s ${windows.sdk}/* "${cacheDirBase}${windows.sdk}/xwin/" || true
-            ${exportEnv {
-              XWIN_CACHE_DIR = "${cacheDirBase}${windows.sdk}";
-              XWIN_VERSION = windows.manifestVersion;
-              XWIN_SDK_VERSION = windows.sdkVersion;
-              XWIN_CRT_VERSION = windows.crtVersion;
-            }}
-          '') else optionalString (windows.pin) (exportEnv {
-            XWIN_CACHE_DIR = cacheDirBase
-              + "/xwin/"
-              + "manifest${windows.manifestVersion}"
-              + "-sdk${windows.sdkVersion}"
-              + "-crt${windows.crtVersion}";
-            XWIN_VERSION = windows.manifestVersion;
-            XWIN_SDK_VERSION = windows.sdkVersion;
-            XWIN_CRT_VERSION = windows.crtVersion;
-          })}
+          ${let
+              cacheDirBase = (if (pkgs.stdenv.isDarwin)
+                then "$HOME/Library/Caches/"
+                else "\${XDG_CACHE_HOME:-$HOME/.cache/}"
+              ) + "bevy-flake";
+            in
+              optionalString (windows.pin) (exportEnv {
+                XWIN_CACHE_DIR = cacheDirBase + (windows.sdk or (
+                  "/xwin/"
+                  + "manifest${windows.manifestVersion}"
+                  + "-sdk${windows.sdkVersion}"
+                  + "-crt${windows.crtVersion}")
+                );
+                XWIN_VERSION = windows.manifestVersion;
+                XWIN_SDK_VERSION = windows.sdkVersion;
+                XWIN_CRT_VERSION = windows.crtVersion;
+              })
+          }
 
           # Base environment for all targets.
           export PKG_CONFIG_ALLOW_CROSS="1"
@@ -140,17 +133,19 @@ in
           cargo-xwin
         ];
         execPath = "${built-rust-toolchain}/bin/cargo";
-        # argParser = defaultArgParser + ''
-        #   if [[ $BF_NO_WRAPPER != "1" ]]; then
-        #     # Insert glibc version for Linux targets.
-        #     if [[ $BF_TARGET == *"-unknown-linux-gnu" ]]; then
-        #       # args=("$@")
-        #       # args[TARGET_ARG_NO-1]="$BF_TARGET.${linux.glibcVersion}"
-        #       # set -- "''${args[@]}"
-        #     fi
+        argParser = defaultArgParser + ''
+          if [[ $BF_NO_WRAPPER != "1" ]]; then
 
-        #   fi
-        # '';
+            # Insert glibc version for Linux targets.
+            if [[ $BF_TARGET == *"-unknown-linux-gnu" ]]; then
+              # args=("$@")
+              # args[TARGET_ARG_NO-1]="$BF_TARGET.${linux.glibcVersion}"
+              # set -- "''${args[@]}"
+            fi
+
+          fi
+        '';
+
         postScript = ''
           ${optionalString (pkgs.stdenv.isDarwin) ''
             # Stops `cargo-zigbuild` from jamming on MacOS systems.
@@ -168,13 +163,17 @@ in
             ;&
             *-unknown-linux-gnu);&
             "wasm32-unknown-unknown")
-              echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
-              shift
-              ${pkgs.cargo-zigbuild}/bin/cargo-zigbuild zigbuild "$@"
+              if [[ "$1" == "build" ]]; then
+                echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
+                shift
+                ${pkgs.cargo-zigbuild}/bin/cargo-zigbuild zigbuild "$@"
+              fi
             ;;
             *-pc-windows-msvc)
-              echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
-              ${pkgs.cargo-zigbuild}/bin/cargo-xwin xwin "$@"
+              if [[ "$1" == "build" || "$1" == "run" ]]; then
+                echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
+                ${pkgs.cargo-xwin}/bin/cargo-xwin xwin "$@"
+              fi
             ;;
           esac
         '';
