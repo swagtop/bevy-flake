@@ -70,7 +70,12 @@ in
             mkdir -p "${cacheDirBase}${windows.sdk}/xwin"
             ln -s ${windows.sdk}/crt "${cacheDirBase}${windows.sdk}/xwin/crt" || true
             ln -s ${windows.sdk}/sdk "${cacheDirBase}${windows.sdk}/xwin/sdk" || true
-            export XWIN_CACHE_DIR="${cacheDirBase}${windows.sdk}"
+            ${exportEnv {
+              XWIN_CACHE_DIR = "${cacheDirBase}${windows.sdk}";
+              XWIN_VERSION = windows.manifestVersion;
+              XWIN_SDK_VERSION = windows.sdkVersion;
+              XWIN_CRT_VERSION = windows.crtVersion;
+            }}
           '') else optionalString (windows.pin) (exportEnv {
             XWIN_CACHE_DIR = cacheDirBase
               + "/xwin/"
