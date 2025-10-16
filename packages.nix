@@ -67,7 +67,7 @@ in
               else "\${XDG_CACHE_HOME:-$HOME/.cache/}"
             ) + "bevy-flake";
           in if (windows ? sdk) then (''
-            mkdir -p "${cacheDirBase}${windows.sdk}"
+            mkdir -p "${cacheDirBase}${windows.sdk}/xwin"
             ln -s "${windows.sdk}/crt" "${cacheDirBase}${windows.sdk}/xwin/crt"
             ln -s "${windows.sdk}/sdk" "${cacheDirBase}${windows.sdk}/xwin/sdk"
             export XWIN_CACHE_DIR="${cacheDirBase}${windows.sdk}"
