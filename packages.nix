@@ -32,7 +32,8 @@ in
       (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env)
     }";
 
-    rust-toolchain = mkRustToolchain (attrNames targetEnvironment) pkgs;
+    targets = (attrNames targetEnvironment);
+    built-rust-toolchain = mkRustToolchain targets pkgs;
     runtimeInputsBase = mkRuntimeInputs pkgs;
     stdenv = mkStdenv pkgs;
 
@@ -46,7 +47,7 @@ in
         inherit name;
         runtimeInputs = runtimeInputsBase ++ extraRuntimeInputs ++ [
           stdenv.cc
-          rust-toolchain
+          built-rust-toolchain
         ];
         bashOptions = [ "errexit" "pipefail" ];
         text = ''
@@ -126,7 +127,7 @@ in
           exec ${execPath} "$@"
         '';
     };
-  in {
+
     rust-toolchain = (
     let
       target-adapter-package = wrapWithEnv {
@@ -174,15 +175,19 @@ in
         '';
       };
     in 
-      makeOverridable (target-adapter: pkgs.symlinkJoin {
+      (makeOverridable (target-adapter: pkgs.symlinkJoin {
         name = "bf-wrapped-rust-toolchain";
         ignoreCollisions = true;
         paths = [
           target-adapter
           rust-toolchain
         ];
-      }) target-adapter-package
-    ) // { inherit wrapWithEnv; };
+      }) target-adapter-package)
+     // {
+      inherit wrapWithEnv;
+    });
+  in {
+    inherit rust-toolchain;
 
     # For now we have to override the package for hot-reloading.
     dioxus-cli = 
@@ -256,4 +261,15 @@ in
           '';
         }
       ) bevy-cli-package;
+
+    buildFromSource = src: stdenv.mkDerivation {
+      inherit src;
+      nativeBuildInputs = [ rust-toolchain ];
+      buildPhase = ''
+        ${map (target: "cargo build --target ${target} --locked") targets}
+      '';
+      installPhase = ''
+        echo $(ls)
+      '';
+    };
   })
