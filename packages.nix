@@ -127,8 +127,8 @@ in
           exec ${execPath} "$@"
         '';
     };
-
-    rust-toolchain = (
+  in {
+    rust-toolchain =
     let
       target-adapter-package = wrapWithEnv {
         name = "cargo";
@@ -136,7 +136,7 @@ in
           cargo-zigbuild
           cargo-xwin
         ];
-        execPath = "${rust-toolchain}/bin/cargo";
+        execPath = "${built-rust-toolchain}/bin/cargo";
         argParser = defaultArgParser + ''
           if [[ $BF_NO_WRAPPER != "1" ]]; then
             # Insert glibc version for Linux targets.
@@ -175,19 +175,44 @@ in
         '';
       };
     in 
-      (makeOverridable (target-adapter: pkgs.symlinkJoin {
+      ((makeOverridable (target-adapter: pkgs.symlinkJoin {
         name = "bf-wrapped-rust-toolchain";
         ignoreCollisions = true;
         paths = [
           target-adapter
-          rust-toolchain
+          built-rust-toolchain
         ];
       }) target-adapter-package)
      // {
       inherit wrapWithEnv;
+
+      buildSource = src:
+      let
+        rustPlatform = pkgs.makeRustPlatform {
+          cargo = target-adapter-package;
+          rustc = built-rust-toolchain // { targetPlatforms = systems; badTargetPlatforms = []; };
+        };
+      in pkgs.symlinkJoin {
+        name = "finished-build";
+        paths = (map (target:
+          (rustPlatform.buildRustPackage {
+            inherit src;
+
+            pname = "my-project";
+            version = "1.0.0";
+
+            cargoLock.lockFile = "${src}/Cargo.lock";
+
+            cargoBuildFlags = [ "--target" target ];
+
+            postInstall = ''
+              mkdir -p $out/${target}/bin
+              mv $out/bin/* $out/${target}/bin/
+            '';
+          })
+        ) targets);
+      };
     });
-  in {
-    inherit rust-toolchain;
 
     # For now we have to override the package for hot-reloading.
     dioxus-cli = 
@@ -262,30 +287,4 @@ in
         }
       ) bevy-cli-package;
 
-    buildFromSource = src:
-    let
-      rustPlatform = pkgs.makeRustPlatform {
-        cargo = rust-toolchain;
-        rustc = rust-toolchain // { targetPlatforms = systems; badTargetPlatforms = []; };
-      };
-    in pkgs.symlinkJoin {
-      name = "finished-build";
-      paths = (map (target:
-        (rustPlatform.buildRustPackage {
-          inherit src;
-
-          pname = "my-project";
-          version = "1.0.0";
-
-          cargoLock.lockFile = "${src}/Cargo.lock";
-
-          cargoBuildFlags = [ "--target" target ];
-
-          postInstall = ''
-            mkdir -p $out/${target}/bin
-            mv $out/bin/* $out/${target}/bin/
-          '';
-        })
-      ) targets);
-    };
   })
