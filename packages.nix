@@ -214,6 +214,10 @@ in
 
             cargoLock.lockFile = "${src}/Cargo.lock";
 
+            cargoBuildCommand = ''
+              ${target-adapter-package}/bin/cargo --target ${target} --profile release --offline --locked
+            '';
+
             CARGO = "${target-adapter-package}/bin/cargo";
             CARGO_LOG = "cargo::ops::cargo_rustc=trace";
             CARGO_BUILD_TARGET = target;
