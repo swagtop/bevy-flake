@@ -177,60 +177,14 @@ in
         '';
       };
     in 
-      ((makeOverridable (target-adapter: pkgs.symlinkJoin {
+      (makeOverridable (target-adapter: pkgs.symlinkJoin {
         name = "bf-wrapped-rust-toolchain";
         ignoreCollisions = true;
         paths = [
           target-adapter
           built-rust-toolchain
         ];
-      }) target-adapter-package)
-     // {
-      inherit wrapWithEnv;
-
-      buildSource = src:
-      let
-        rustPlatform = pkgs.makeRustPlatform {
-          cargo = target-adapter-package;
-          rustc = target-adapter-package // { targetPlatforms = systems; badTargetPlatforms = []; };
-        };
-      in pkgs.symlinkJoin {
-        name = "finished-build";
-        paths = (map (target:
-          (rustPlatform.buildRustPackage {
-            inherit src;
-
-            nativeBuildInputs = [
-              target-adapter-package
-              pkgs.cargo-xwin
-              pkgs.cargo-zigbuild
-              stdenv.cc
-              stdenv.cc.cc.lib
-              pkgs.libclang.lib
-            ];
-
-            pname = "my-project";
-            version = "1.0.0";
-
-            cargoLock.lockFile = "${src}/Cargo.lock";
-
-            buildPhase = ''
-              "${target-adapter-package}/bin/cargo" build --profile="release" -j="12" --target="${target}" --offline 
-            '';
-
-            HOME = ".";
-
-            # postInstall = ''
-            #   mkdir -p $out/${target}/bin
-            #   cp -r target/${target}/release $out/${target}/release
-            # '';
-          })
-        ) [
-          "x86_64-pc-windows-msvc"
-          "aarch64-pc-windows-msvc"
-        ]);
-      };
-    });
+      }) target-adapter-package);
 
     # For now we have to override the package for hot-reloading.
     dioxus-cli = 
