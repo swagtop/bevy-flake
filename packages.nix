@@ -164,13 +164,13 @@ in
               if [[ "$1" == "build" ]]; then
                 echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
                 shift
-                ${pkgs.built-rust-toolchain}/bin/cargo zigbuild "$@"
+                exec ${pkgs.built-rust-toolchain}/bin/cargo zigbuild "$@"
               fi
             ;;
             *-pc-windows-msvc)
               if [[ "$1" == "build" || "$1" == "run" ]]; then
                 echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
-                ${pkgs.cargo-xwin}/bin/cargo-xwin xwin "$@"
+                exec ${pkgs.cargo-xwin}/bin/cargo-xwin xwin "$@"
               fi
             ;;
           esac
