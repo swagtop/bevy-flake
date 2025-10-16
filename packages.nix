@@ -60,12 +60,19 @@ in
           export BF_MACOS_SDK_PATH="${macos.sdk}"
 
           # Set up Windows SDK and CRT if pinning is enabled.
-          ${optionalString (windows.pin) (exportEnv {
-            XWIN_CACHE_DIR = (
-              if (pkgs.stdenv.isDarwin)
-                then "$HOME/Library/Caches/"
-                else "\${XDG_CACHE_HOME:-$HOME/.cache}/"
-            ) + "bevy-flake/xwin/"
+          ${
+          let
+            cacheDirBase = (if (pkgs.stdenv.isDarwin)
+              then "$HOME/Library/Caches/"
+              else "\${XDG_CACHE_HOME:-$HOME/.cache}/"
+            ) + "bevy-flake/";
+          in if (windows ? sdk) then (''
+            mkdir -p "${cacheDirBase}${windows.sdk}"
+            ln -s ${windows.sdk} ${cacheDirBase}${windows.sdk}/xwin
+            export XWIN_CACHE_DIR="${cacheDirBase}${windows.sdk}"
+          '') else optionalString (windows.pin) (exportEnv {
+            XWIN_CACHE_DIR = cacheDirBase
+              + "xwin/"
               + "manifest${windows.manifestVersion}"
               + "-sdk${windows.sdkVersion}"
               + "-crt${windows.crtVersion}";
