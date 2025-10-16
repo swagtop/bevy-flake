@@ -135,14 +135,14 @@ in
         execPath = "${built-rust-toolchain}/bin/cargo";
 
         # Insert glibc version for Linux targets.
-        # argParser = defaultArgParser + ''
-        #   if [[ $BF_NO_WRAPPER != "1"
-        #      && $BF_TARGET == *"-unknown-linux-gnu" ]]; then
-        #     args=("$@")
-        #     args[TARGET_ARG_NO-1]="$BF_TARGET.${linux.glibcVersion}"
-        #     set -- "''${args[@]}"
-        #   fi
-        # '';
+        argParser = defaultArgParser + ''
+          if [[ $BF_NO_WRAPPER != "1"
+             && $BF_TARGET == *"-unknown-linux-gnu" ]]; then
+            args=("$@")
+            args[TARGET_ARG_NO-1]="$BF_TARGET.${linux.glibcVersion}"
+            set -- "''${args[@]}"
+          fi
+        '';
 
         postScript = ''
           ${optionalString (pkgs.stdenv.isDarwin) ''
