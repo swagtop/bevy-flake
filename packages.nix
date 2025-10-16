@@ -215,7 +215,7 @@ in
             cargoLock.lockFile = "${src}/Cargo.lock";
 
             buildPhase = ''
-              "${target-adapter-package}/bin/cargo" build --profile release -j 12 --target ${target} --offline 
+              "${target-adapter-package}/bin/cargo" build --profile="release" -j="12" --target="${target}" --offline 
             '';
 
             CARGO = "${target-adapter-package}/bin/cargo";
