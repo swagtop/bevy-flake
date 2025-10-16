@@ -91,7 +91,7 @@ in
 
 Read more on the inner workings of the wrapper, and how to use it [here.][wrap]
 
-[wrap]: docs/configuration.md#wrapper
+[wrap]: configuration.md#wrapper
 
 ## Where is `bevy-flake` lacking?
 

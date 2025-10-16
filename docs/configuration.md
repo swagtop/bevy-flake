@@ -98,7 +98,7 @@ Adding this rustflag would not be needed if we could use the Nix build system
 with the wrapped toolchain, but that will not be possible until the Windows
 builds problem is solved.[^1]
 
-[^1]: Read more about this [here.](docs/details.md#where-is-bevy-flake-lacking)
+[^1]: Read more about this [here.](details.md#where-is-bevy-flake-lacking)
 
 ### `sharedEnvironment`
 
