@@ -218,10 +218,6 @@ in
               "${target-adapter-package}/bin/cargo" build --profile="release" -j="12" --target="${target}" --offline 
             '';
 
-            CARGO = "${target-adapter-package}/bin/cargo";
-            CARGO_LOG = "cargo::ops::cargo_rustc=trace";
-            CARGO_BUILD_TARGET = target;
-            BF_TARGET = target;
             HOME = ".";
 
             # postInstall = ''
