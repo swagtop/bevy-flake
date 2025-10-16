@@ -266,7 +266,7 @@ in
     let
       rustPlatform = pkgs.makeRustPlatform {
         cargo = rust-toolchain;
-        rustc = rust-toolchain;
+        rustc = rust-toolchain // { targetPlatforms = systems; };
       };
     in pkgs.symlinkJoin {
       name = "finished-build";
