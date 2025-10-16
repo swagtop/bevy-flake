@@ -216,7 +216,7 @@ in
             cargoLock.lockFile = "${src}/Cargo.lock";
 
             cargoBuildCommand = ''
-              cargo zigbuild --target ${target} --release
+              ${target-adapter-package}/bin/cargo zigbuild --target ${target} --release
             '';
             BF_TARGET = target;
             HOME = ".";
