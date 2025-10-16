@@ -222,7 +222,7 @@ in
             # ];
             # 
             buildPhase = ''
-              $CARGO build --release --target ${target} --offline -j 12
+              "${target-adapter-package}/bin/cargo" build --release --target ${target} --offline -j 12
             '';
 
             CARGO = "${target-adapter-package}/bin/cargo";
@@ -236,7 +236,13 @@ in
             #   cp -r target/${target}/release $out/${target}/release
             # '';
           })
-        ) targets);
+        ) [
+          "x86_64-unknown-linux-gnu"
+          "aarch64-unknown-linux-gnu"
+          "x86_64-apple-darwin"
+          "aarch64-apple-darwin"
+          "wasm32-unknown-unknown"
+        ]);
       };
     });
 
