@@ -147,8 +147,11 @@
 
       mkStdenv = pkgs: pkgs.clangStdenv;
     };
+
+    mkBf = bf: config:
+      removeAttrs (makeOverridable (bf) config) [ "overrideDerivation" ];
   in
-    makeOverridable (config:
+    mkBf (config:
     let
       eachSystem = genAttrs config.systems;
       packages = import ./packages.nix (config // { inherit nixpkgs; });
