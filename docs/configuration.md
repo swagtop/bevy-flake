@@ -47,7 +47,7 @@ Here is an example of setting some other stdenv:
 ```nix
 bf = bevy-flake.override {
   # ...
-  mkStdenv = pkgs: pkgs.stdenvAdapters.useMoldLinker pkgs.clangStdenv;
+  mkStdenv = pkgs: pkgs.gnuStdenv;
   # ...
 };
 ```
