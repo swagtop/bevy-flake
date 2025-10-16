@@ -208,6 +208,8 @@ in
               pkgs.cargo-xwin
               pkgs.cargo-zigbuild
               stdenv.cc
+              stdenv.cc.cc.lib
+              pkgs.libclang.lib
             ];
 
             pname = "my-project";
