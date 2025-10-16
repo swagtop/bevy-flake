@@ -215,14 +215,15 @@ in
 
             cargoLock.lockFile = "${src}/Cargo.lock";
 
-            cargoBuildFlags = [ "--target" target ];
-            CARGO_BUILD_TARGET = target;
+            cargoBuildCommand = ''
+              cargo zigbuild --target ${target} --release
+            '';
             BF_TARGET = target;
             HOME = ".";
 
             postInstall = ''
               mkdir -p $out/${target}/bin
-              mv $out/bin/* $out/${target}/bin/
+              cp -r target/${target}/release $out/${target}/release
             '';
           })
         ) [ "x86_64-pc-windows-msvc" "aarch64-pc-windows-msvc" ]);
