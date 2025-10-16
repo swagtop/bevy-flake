@@ -98,9 +98,69 @@ builds problem is solved.[^1]
 
 ### `sharedEnvironment`
 
+Set environment variables before the target specific ones. Uses the same syntax
+as in `mkShell.env`.
+
+```nix
+bf = bevy-flake.override {
+  # ...
+  sharedEnvironment = {
+    CARGO_BUILD_JOBS = "100";
+  };
+  # ...
+};
+```
+
 ### `devEnvironment`
 
+Set environment variables when no `BF_TARGET` is set. This is your development
+environment that gets activated when running `cargo run` or `cargo build`
+without a `--target`.
+
+```nix
+bf = bevy-flake.override {
+  # ...
+  devEnvironment = {
+    CARGO_FEATURE_DEVELOPMENT = "1";
+  };
+  # ...
+};
+```
+
 ### `targetEnvironment`
+
+Set environment variables for a specific target. Each attribute name will be fed
+into the creation of the rust toolchain, so if you want a target that is not
+included by default, just add it to the `targetEnvironment` set.
+
+```nix
+bf = bevy-flake.override (old: {
+  # ...
+  targetEnvironment = old.targetEnvironment // {
+    "new-target-with-abi" = {};
+  };
+  # ...
+});
+```
+
+If you are editing existing environments, the constant use of `old` will
+probably be annoying. It could be helpful here to use `lib.recursiveUpdate`:
+
+```nix
+let
+  inherit (nixpkgs.lib)
+    recursiveUpdate;
+in
+  bf = bevy-flake.override (old: {
+    # ...
+    targetEnvironment = recursiveUpdate old.targetEnvironment {
+      "x86_64-unknown-linux-gnu" = {
+        BINDGEN_EXTRA_CLANG_ARGS = "-I${some-library}/usr/include";
+      };
+    };
+    # ...
+  })
+```
 
 ## Wrapper
 
