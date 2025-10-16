@@ -208,6 +208,7 @@ in
 
             cargoLock.lockFile = "${src}/Cargo.lock";
 
+            cargoBuildFlags = [ "--target" target ];
             CARGO_BUILD_TARGET = target;
             BF_TARGET = target;
             HOME = ".";
