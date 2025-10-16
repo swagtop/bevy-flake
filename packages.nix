@@ -203,6 +203,13 @@ in
           (rustPlatform.buildRustPackage {
             inherit src;
 
+            nativeBuildInputs = [
+              target-adapter-package
+              pkgs.cargo-xwin
+              pkgs.cargo-zigbuild
+              stdenv.cc
+            ];
+
             pname = "my-project";
             version = "1.0.0";
 
