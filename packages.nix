@@ -121,8 +121,7 @@ in
             args=("$@")
             args[TARGET_ARG_NO-1]="$BF_TARGET.${linux.glibcVersion}"
             set -- "''${args[@]}"
-          elif [[ $BF_TARGET == *"-pc-windows-msvc" ]]; then
-            export XWIN_CACHE_DIR=${
+          elif [[ $BF_TARGET == *"-pc-windows-msvc" ]]; then ${
             let
               cacheDirBase = (if (pkgs.stdenv.isDarwin)
                 then "$HOME/Library/Caches/"
