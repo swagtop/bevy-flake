@@ -174,7 +174,7 @@ in
             ;;
             *-pc-windows-msvc)
               # Set up links to /nix/store Windows SDK if configured.
-              ${optionalString ((windows ? sdk) && (windows.sdk != "")) ''
+              ${optionalString (windows ? sdk) ''
                 mkdir -p "$XWIN_CACHE_DIR/xwin"
                 ln -sf ${windows.sdk}/* "$XWIN_CACHE_DIR/xwin/"
               ''}
