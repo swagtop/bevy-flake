@@ -16,9 +16,64 @@ Read more on that [here.](details.md#where-is-bevy-flake-lacking)
 
 ## Fetching the SDK and CRT
 
+To fetch the SDK and CRT defined in `config.windows`, begin a compilation for
+a `-msvc` target by running `cargo build --target x86_64-pc-windows-msvc`.
 
+This will fetch the SDK and CRT, into your `$XDG_CACHE_DIR/bevy-flake/xwin`
+directory, or just `$HOME/.cache/bevy-flake/xwin` if you do not have the former
+configured.
 
 ## Packageing the SDK and CRT
+
+Go to the directory where the SDK and CRT has been fetched to. It should look
+something like this:
+
+```
+path/to/bevy-flake/xwin/manifest<>-sdk<>-crt<>/
+  ├─ clang_cl
+  ├─ cmake/
+  ├─ lld-link
+  ├─ llvm-dlltool
+  ├─ llvm-lib
+  ╰─ xwin/
+```
+
+Make a tarball from the `xwin` subdirectory, it would be useful for you to call
+it the name of the directory you are in, so you don't forget the version numbers
+of the SDK and CRT:
+
+```bash
+tar -czf "manifest<>-sdk<>-crt<>.tar.gz" ./xwin
+```
+
+Then upload this tarball somewhere, and it in your `config.windows`
+configuration like so:
+
+```nix
+bf = bevy-flake.override {
+  # ...
+  windows = {
+    sdk = pkgs.fetchTarball {
+      url = "https://website.com/path/to/windows/sdk/manifest<>-sdk<>-crt<>.tar.gz";
+      sha256 = "sha256:some-long-hash-string-goes-here";
+    };
+    manifestVersion = "17";
+    sdkVersion = "10.0.19041";
+    crtVersion = "14.30.17.0";
+    declarative = true;
+  };
+  # ...
+};
+```
+
+When unpacked into the store, the contents should look like this:
+
+```
+/nix/store/sdk/
+  ├─ crt/
+  ├─ sdk/
+  ╰─ DONE
+```
 
 ## Supported SDK and CRT versions
 
