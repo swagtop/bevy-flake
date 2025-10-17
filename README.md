@@ -44,7 +44,7 @@ nix flake init --template github:swagtop/bevy-flake/dev#fenix
 If you get your toolchain from elsewhere, you should very easily be able to slot
 it in. More on this [here.][config-toolchain]
 
-[config-toolchain]: docs/configuration.md#mkrusttoolchain-single-package---defining-the-rust-toolchain
+[config-toolchain]: docs/config.md#mkrusttoolchain-single-package---defining-the-rust-toolchain
 
 ## How to use
 
@@ -68,9 +68,9 @@ cargo build --target wasm32-unknown-unknown
 
 You can compile to every target with a `config.targetEnvironment` entry.
 If the target you want isn't in the config, you can add it, and set up the
-environment needed for it yourself. More on that [here.](docs/configuration.md)
+environment needed for it yourself. More on that [here.](docs/config.md)
 
-- [Configuration](docs/configuration.md)
+- [Configuration](docs/config.md)
 - [Pitfalls](docs/pitfalls.md)
 - [Windows](docs/windows.md)
 - [MacOS](docs/macos.md)
