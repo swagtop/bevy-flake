@@ -128,10 +128,13 @@ in
                 else "\${XDG_CACHE_HOME:-$HOME/.cache}/"
               ) + "bevy-flake";
             in
-              optionalString ((windows ? sysroot) && windows.sysroot != "")
-                (exportEnv {
-                  XWIN_CACHE_DIR = cacheDirBase + windows.sysroot;
-                })
+              (exportEnv {
+                XWIN_CACHE_DIR = cacheDirBase + (
+                  if (windows ? sysroot)
+                    then windows.sysroot
+                    else "/xwin"
+                );
+              })
             }
           fi
         '';
