@@ -24,10 +24,13 @@
 
       windows = {
         # sdk = "";
+        # For deterministic Windows builds, read how to package the Windows SDK
+        # and CRT in `docs/windows.md`
         manifestVersion = "17";
         sdkVersion = "10.0.22621";
         crtVersion = "14.44.17.14";
-        ignore = false;
+        # Set this to false if you want `cargo-xwin` to handle itself.
+        declarative = true;
       };
 
       macos = {

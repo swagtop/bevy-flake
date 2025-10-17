@@ -63,6 +63,14 @@ BF_NO_WRAPPER
 # set it through the `config.macos.sdk` attribute.
 BF_MACOS_SDK_PATH
 
+# By default `bevy-flake` uses `cargo-xwin` to fetch a specific version of the
+# SDK and CRT. This is not # fully deterministic however, as no hashes are
+# checked.
+# You can package this fetched SDK and CRT however, and when that is done, this
+# environment variable points to it.
+# Read more on how to do this in `docs/windows.md`.
+BF_WINDOWS_SDK_PATH
+
 # The environment wrapper uses this variable to switch to the appropriate
 # environment for compilation. It includes a default arg parser, that sets this
 # variable to the arg after '--target'. You can swap this parser out for your
@@ -93,32 +101,14 @@ Read more on the inner workings of the wrapper, and how to use it [here.][wrap]
 
 [wrap]: configuration.md#wrapper
 
-## Where is `bevy-flake` lacking?
-
-The weakest part of the flake, that makes some builds not fully deterministic,
-are the `*-pc-windows-msvc` targets. The solution implemented now is a hack to
-at least make the version you are using declarative. No hashes are checked, and
-the Windows SDK and CRT are not sourced from a derivation.
-
-The reason why we can't just put the SDK and CRT pulled by `cargo-xwin` in a
-tarball and then put it in the store, is that `cargo-xwin` writes to the
-directory it is reading the SDK and CRT from on usage. It updates some scripts,
-and creates symlinks to your toolchain inside of the directory.
-
-For this to be solved, we either need to find a different way to include the SDK
-and CRT, like using [windows-msvc-sysroot,][sysroot] or getting a PR through to
-`cargo-xwin` that lets it use read-only directories.
-
-[sysroot]: https://github.com/trcrsired/windows-msvc-sysroot
-
 ## What is the future of `bevy-flake`?
 
-I would like for `bevy-flake` to provide a `rustPlatform` configured to use its
-wrapped Rust toolchain. The main blocker for this right now, are the Windows
-MSVC targets, with the reasoning listed above.
+The flake should include a builder for your Bevy project, such that the Nix
+build system handles everything deterministically. I have made an attempt at
+getting this set up, using `makeRustPlatform` with our wrapped Rust toolchain,
+but could not get it to work.
 
-With this, users would be able to build _truly_ reproducable programs, with the
-Nix build system.
+If you manage to set one up, please open a pull request!
 
 ## What am I allowed to do with the `bevy-flake` repo?
 
