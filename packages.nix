@@ -164,18 +164,20 @@ in
             *-unknown-linux-gnu*);&
             "wasm32-unknown-unknown")
               if [[ "$1" == "build" ]]; then
-                echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
+                echo "bevy-flake: Switching to 'cargo-zigbuild zigbuild'" 1>&2 
                 shift
                 exec ${pkgs.cargo-zigbuild}/bin/cargo-zigbuild zigbuild "$@"
               fi
             ;;
             *-pc-windows-msvc)
+              # Set up links to /nix/store Windows SDK if configured.
               if [[ $BF_WINDOWS_SDK_PATH != "" ]]; then
                 mkdir -p "$XWIN_CACHE_DIR/xwin"
                 ln -sf ${windows.sdk}/* "$XWIN_CACHE_DIR/xwin/"
               fi
+
               if [[ "$1" == "build" || "$1" == "run" ]]; then
-                echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
+                echo "bevy-flake: Switching to 'cargo-xwin xwin $1'" 1>&2 
                 exec ${pkgs.cargo-xwin}/bin/cargo-xwin xwin "$@"
               fi
             ;;
