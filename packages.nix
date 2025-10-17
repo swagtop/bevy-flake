@@ -23,7 +23,7 @@ let
   inherit (builtins)
     attrNames concatStringsSep warn;
   inherit (nixpkgs.lib)
-    optionalString optionalAttrs genAttrs mapAttrsToList makeOverridable makeSearchPath;
+    optionalString genAttrs mapAttrsToList makeOverridable makeSearchPath;
 in
   genAttrs systems (system:
   let
