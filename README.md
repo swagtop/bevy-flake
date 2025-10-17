@@ -13,9 +13,8 @@ Linux, Windows and MacOS targets.
       [here.](docs/windows.md#packageing-the-sdk-and-crt)
 
 > [!NOTE]
-> By fetching the Windows SDK and CRT, and compiling to the `*-pc-windows-msvc`
-> targets, you may be considered to be accepting the
-> [Microsoft Software License Terms.][license]
+> By compiling to the `*-pc-windows-msvc` > targets, you may be considered to be
+> accepting the [Microsoft Software License Terms.][license]
 
 [license]: https://go.microsoft.com/fwlink/?LinkId=2086102
 
