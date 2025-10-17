@@ -38,7 +38,7 @@ or a package wrapped, that isn't included by default.
   # The general templates for the different toolchains.
   templates."<name>" = <template>;
 
-  # Read more on how to configure bevy-flake in docs/configuration.md
+  # Read more on how to configure bevy-flake in docs/config.md
   override = <function>;
 }
 ```
@@ -99,7 +99,7 @@ in
 
 Read more on the inner workings of the wrapper, and how to use it [here.][wrap]
 
-[wrap]: configuration.md#wrapper
+[wrap]: config.md#wrapper
 
 ## What is the future of `bevy-flake`?
 

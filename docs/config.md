@@ -1,4 +1,4 @@
-# Configuration
+# Configuring `bevy-flake`
 
 ## Overview
 
@@ -18,6 +18,55 @@ in
 
 Afterwards, all usage of `bevy-flake` should be done through this new `bf`
 variable. Anything using this will be using your customized configuration.
+
+## General configuration
+
+### `systems`
+
+If you find that a system you want to use `bevy-flake` isn't included by
+default, or if you want to exclude a system, you can set this up yourself by
+overriding the `systems` attribute.
+
+```nix
+bf = bevy-flake.override {
+  # ...
+  systems = [
+    "x86_64-darwin"
+  ];
+  # ...
+};
+```
+
+## The operating systems
+
+These define the cross-compiled builds of the targets. For example, setting the
+`linux.glibcVersion` will not change the glibc version used when running
+`cargo build`, but only when running
+`cargo build --target x86_64-unknown-linux-gnu`.
+
+Likewise, setting the MacOS SDK will not change your local build created by
+`cargo build` on MacOS systems.
+
+If you want to test how these builds run with these settings on your Nix
+machine, just compile them with '--target' and run those. On NixOS you will
+probably find `steam-run` to be useful here.
+
+### `linux`
+
+Setting the `glibcVersion` variable only affects the builds made with the
+wrapped `cargo` included with the `rust-toolchain` package. It works by changing
+the target you are using to include the glibc version you are targeting, for
+`cargo-zigbuild` to consume. Read more about this [here.][glibc]
+
+[glibc]: https://github.com/rust-cross/cargo-zigbuild?tab=readme-ov-file#specify-glibc-version
+
+### `windows`
+
+
+
+### `macos`
+
+
 
 ## The `mk` functions
 
@@ -53,36 +102,6 @@ bf = bevy-flake.override {
 ```
 
 ### `mkRuntimeInputs`
-
-## The operating systems
-
-These define the cross-compiled builds of the targets. For example, setting the
-`linux.glibcVersion` will not change the glibc version used when running
-`cargo build`, but only when running
-`cargo build --target x86_64-unknown-linux-gnu`.
-
-Likewise, setting the MacOS SDK will not change your local build created by
-`cargo build` on MacOS systems.
-
-If you want to test how these builds run with these settings on your Nix
-machine, just compile them with '--target' and run those. On NixOS you will
-probably find `steam-run` to be useful here.
-
-### `linux`
-
-Setting the `glibcVersion` variable only affects the builds made with the
-wrapped `cargo` included with the `rust-toolchain` package. It works by changing
-the target you are using to include the glibc version you are targeting, for
-`cargo-zigbuild` to consume. Read more about this [here.][glibc]
-
-[glibc]: https://github.com/rust-cross/cargo-zigbuild?tab=readme-ov-file#specify-glibc-version
-
-### `windows`
-
-
-
-### `macos`
-
 
 
 ## Rustflags
