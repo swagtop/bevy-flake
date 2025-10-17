@@ -10,7 +10,7 @@ Linux, Windows and MacOS targets.
 
 [bevy]: https://github.com/bevyengine/bevy
 [^1]: This may not always be true for Windows targets for now, read more
-      [here.](docs/details.md#where-is-bevy-flake-lacking)
+      [here.](docs/windows.md)
 
 > [!NOTE]
 > By fetching the Windows SDK and CRT, and compiling to the `*-pc-windows-msvc`
