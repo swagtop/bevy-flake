@@ -64,8 +64,9 @@ BF_NO_WRAPPER
 BF_MACOS_SDK_PATH
 
 # By default `bevy-flake` uses `cargo-xwin` to fetch a specific version of the
-# SDK and CRT. This is not # fully deterministic however, as no hashes are
-# checked.
+# SDK and CRT. The problem is that this does not produce reproducible builds,
+# as no hashes are checked, and Microsoft could host different files with the
+# same versioning, or stop hosting them all together.
 # You can package this fetched SDK and CRT however, and when that is done, this
 # environment variable points to it.
 # Read more on how to do this in `docs/windows.md`.

@@ -24,7 +24,7 @@
 
       windows = {
         # sdk = "";
-        # For deterministic Windows builds, read how to package the Windows SDK
+        # For reproducible Windows builds, read how to package the Windows SDK
         # and CRT in `docs/windows.md`
         manifestVersion = "17";
         sdkVersion = "10.0.22621";
