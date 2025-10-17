@@ -37,7 +37,7 @@ in
     runtimeInputsBase = mkRuntimeInputs pkgs;
     stdenv = mkStdenv pkgs;
 
-    wrapWithEnv = {
+    envWrap = {
       name,
       execPath,
       argParser ? defaultArgParser,
@@ -131,7 +131,7 @@ in
   in {
     rust-toolchain =
     let
-      target-adapter-package = wrapWithEnv {
+      target-adapter-package = envWrap {
         name = "cargo";
         extraRuntimeInputs = with pkgs; [
           cargo-zigbuild
@@ -195,7 +195,7 @@ in
           target-adapter
           built-rust-toolchain
         ];
-      }) target-adapter-package);
+      }) target-adapter-package) // { inherit envWrap; };
 
     # For now we have to override the package for hot-reloading.
     dioxus-cli = 
@@ -223,7 +223,7 @@ in
         };
       });
     in
-      makeOverridable (dx: wrapWithEnv {
+      makeOverridable (dx: envWrap {
         name = "dx";
         extraRuntimeInputs = [ pkgs.lld ];
         execPath = "${dx}/bin/dx";
@@ -252,7 +252,7 @@ in
       });
     in
       makeOverridable (bevy-cli:
-        wrapWithEnv {
+        envWrap {
           name = "bevy";
           extraRuntimeInputs = [
             pkgs.lld
