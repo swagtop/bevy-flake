@@ -23,6 +23,9 @@ This will fetch the SDK and CRT, into your `$XDG_CACHE_DIR/bevy-flake/xwin`
 directory, or just `$HOME/.cache/bevy-flake/xwin` if you do not have the former
 configured.
 
+If you are on MacOS, it will be in the `$HOME/Library/Caches/bevy-flake`
+directory.
+
 ## Packageing the SDK and CRT
 
 Go to the directory where the SDK and CRT has been fetched to. It should look
@@ -52,19 +55,16 @@ configuration like so:
 ```nix
 bf = bevy-flake.override {
   # ...
-  windows = {
-    sdk = pkgs.fetchTarball {
-      url = "https://website.com/path/to/windows/sdk/manifest<>-sdk<>-crt<>.tar.gz";
-      sha256 = "sha256:some-long-hash-string-goes-here";
-    };
-    manifestVersion = "17";
-    sdkVersion = "10.0.19041";
-    crtVersion = "14.30.17.0";
-    declarative = true;
+  windows.sdk = pkgs.fetchTarball {
+    url = "https://website.com/path/to/windows/sdk/manifest<>-sdk<>-crt<>.tar.gz";
+    sha256 = "sha256:some-long-hash-string-goes-here";
   };
   # ...
 };
 ```
+
+When `config.windows` has a defined `sdk` attribute, it ignores all the other
+variables, and you no longer have to worry about them being unset.
 
 When unpacked into the store, the contents should look like this:
 
