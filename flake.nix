@@ -23,14 +23,8 @@
       };
 
       windows = {
-        # sdk = "";
-        # For reproducible Windows builds, read how to package the Windows SDK
-        # and CRT in `docs/windows.md`
-        manifestVersion = "17";
-        sdkVersion = "10.0.22621";
-        crtVersion = "14.44.17.14";
-        # Set this to false if you want `cargo-xwin` to handle itself.
-        declarative = true;
+        # The latest sysroot will be fetched if you have it packaged and set.
+        sysroot = "";
       };
 
       macos = {
@@ -77,9 +71,10 @@
             udev.dev
             wayland.dev
           ]);
+        windows = {
+          XWIN_CROSS_COMPILER = "clang";
+        };
       in {
-        "x86_64-apple-darwin" = macos;
-        "aarch64-apple-darwin" = macos;
         "x86_64-unknown-linux-gnu" = {
           PKG_CONFIG_PATH = linuxHeaders "x86_64-linux";
         };
@@ -91,9 +86,10 @@
             ''--cfg getrandom_backend=\"wasm_js\"''
           ];
         };
-        # No environment setup needed for Windows targets.
-        "x86_64-pc-windows-msvc" = { };
-        "aarch64-pc-windows-msvc" = { };
+        "x86_64-apple-darwin" = macos;
+        "aarch64-apple-darwin" = macos;
+        "x86_64-pc-windows-msvc" = windows;
+        "aarch64-pc-windows-msvc" = windows;
       };
 
       defaultArgParser = ''

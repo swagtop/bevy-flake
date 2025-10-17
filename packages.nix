@@ -61,32 +61,6 @@ in
           # Set up MacOS SDK if configured.
           export BF_MACOS_SDK_PATH="${macos.sdk}"
 
-          export BF_WINDOWS_MSVC_SYSROOT_PATH="${windows.sdk or ""}"
-
-          export XWIN_CROSS_COMPILER="clang"
-          # Set up Windows SDK and CRT if pinning is enabled.
-          ${let
-              cacheDirBase = (if (pkgs.stdenv.isDarwin)
-                then "$HOME/Library/Caches/"
-                else "\${XDG_CACHE_HOME:-$HOME/.cache}/"
-              ) + "bevy-flake";
-            in
-              optionalString ((windows ? sdk) || (windows ? declarative)) (
-                exportEnv ((optionalAttrs (true) {
-                  XWIN_VERSION = windows.manifestVersion;
-                  XWIN_SDK_VERSION = windows.sdkVersion;
-                  XWIN_CRT_VERSION = windows.crtVersion;
-                } // {
-                  XWIN_CACHE_DIR = cacheDirBase + (windows.sdk or (
-                    "/xwin/"
-                    + "manifest${windows.manifestVersion}"
-                    + "-sdk${windows.sdkVersion}"
-                    + "-crt${windows.crtVersion}")
-                  );
-                })
-              ))
-          }
-
           # Base environment for all targets.
           export PKG_CONFIG_ALLOW_CROSS="1"
           export LIBCLANG_PATH="${pkgs.libclang.lib}/lib";
@@ -147,6 +121,19 @@ in
             args=("$@")
             args[TARGET_ARG_NO-1]="$BF_TARGET.${linux.glibcVersion}"
             set -- "''${args[@]}"
+          elif [[ $BF_TARGET == *"-pc-windows-msvc" ]]; then
+            export XWIN_CACHE_DIR=${
+            let
+              cacheDirBase = (if (pkgs.stdenv.isDarwin)
+                then "$HOME/Library/Caches/"
+                else "\${XDG_CACHE_HOME:-$HOME/.cache}/"
+              ) + "bevy-flake";
+            in
+              optionalString ((windows ? sysroot) && windows.sysroot != "")
+                (exportEnv {
+                  XWIN_CACHE_DIR = cacheDirBase + windows.sysroot;
+                })
+            }
           fi
         '';
 
@@ -174,7 +161,7 @@ in
             ;;
             *-pc-windows-msvc)
               # Set up links to /nix/store Windows SDK if configured.
-              ${optionalString (windows ? sdk) ''
+              ${optionalString (windows ? sysroot) ''
                 mkdir -p "$XWIN_CACHE_DIR/windows-msvc-sysroot"
                 ln -sf ${windows.sdk}/* "$XWIN_CACHE_DIR/windows-msvc-sysroot/"
               ''}
