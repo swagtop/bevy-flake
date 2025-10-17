@@ -216,14 +216,14 @@ bf = bevy-flake.override {
 
 If you have a program not included with the flake, that you'd like to use the
 same dev environment as the rest of the `bevy-flake` packages, you can wrap
-them yourself with the `wrapInEnv` function, included in the `rust-toolchain`
+them yourself with the `envWrap` function, included in the `rust-toolchain`
 derivation.
 
 ```nix
 let
-  inherit (bevy-flake.packages.${system}.rust-toolchain) wrapInEnv;
+  inherit (bevy-flake.packages.${system}.rust-toolchain) envWrap;
   
-  wrapped-cowsay = wrapInEnv {
+  wrapped-cowsay = envWrap {
     # The name of the resulting script, what you will type in the terminal.
     name = "cowsay";
 
@@ -263,5 +263,5 @@ in
 
 ```
 
-Remember to use `bf` and not `bevy-flake` to get the `wrapInEnv` function if
+Remember to use `bf` and not `bevy-flake` to get the `envWrap` function if
 you've changed the config.
