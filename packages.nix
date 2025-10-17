@@ -150,11 +150,6 @@ in
         '';
 
         postScript = ''
-          ${optionalString (pkgs.stdenv.isDarwin) ''
-            # Stops `cargo-zigbuild` from jamming on MacOS systems.
-            ulimit -n 4096
-          ''}
-
           # Set linker for specific targets.
           case $BF_TARGET in
             *-apple-darwin)
@@ -166,6 +161,10 @@ in
             ;&
             *-unknown-linux-gnu*);&
             "wasm32-unknown-unknown")
+              ${optionalString (pkgs.stdenv.isDarwin) ''
+                # Stops `cargo-zigbuild` from jamming with Zig on MacOS systems.
+                ulimit -n 4096
+              ''}
               if [[ "$1" == "build" ]]; then
                 echo "bevy-flake: Switching to 'cargo-zigbuild zigbuild'" 1>&2 
                 shift
@@ -181,7 +180,7 @@ in
 
               if [[ "$1" == "build" || "$1" == "run" ]]; then
                 echo "bevy-flake: Switching to 'cargo-xwin xwin $1'" 1>&2 
-                exec ${pkgs.cargo-xwin}/bin/cargo-xwin xwin "$@"
+                exec ${built-rust-toolchain}/bin/cargo xwin "$@"
               fi
             ;;
           esac
