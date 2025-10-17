@@ -61,7 +61,7 @@ in
           # Set up MacOS SDK if configured.
           export BF_MACOS_SDK_PATH="${macos.sdk}"
 
-          export BF_WINDOWS_SDK_PATH="${windows.sdk}"
+          export BF_WINDOWS_SDK_PATH="${windows.sdk or ""}"
 
           # Set up Windows SDK and CRT if pinning is enabled.
           ${let

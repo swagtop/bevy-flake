@@ -5,7 +5,7 @@
 Regardless of if you are on MacOS or not, you need to add a MacOS SDK to your
 bevy-flake instance to compile a portable MacOS binary for non-Nix systems.
 
-This is done by first getting your hands on a SDK. You can make one yourself by
+This is done by first getting your hands on an SDK. You can make one yourself by
 using [osxcross][osxcross], but you can probably find one already packaged for
 you somewhere on the internet.
 
