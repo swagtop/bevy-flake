@@ -27,7 +27,7 @@ you've fetched. Go to the directory where the sysroot has been fetched to. It
 should look something like this:
 
 ```
-path/to/bevy-flake/xwin/manifest<>-sdk<>-crt<>/
+path/to/cache/bevy-flake/xwin/
   ├─ clang_cl
   ├─ cmake/
   ├─ lld-link
