@@ -170,7 +170,7 @@ in
               fi
             ;;
             *-pc-windows-msvc)
-              if [[ $BF_WINDOWS_SDK != "" ]]; then
+              if [[ $BF_WINDOWS_SDK_PATH != "" ]]; then
                 mkdir -p "$XWIN_CACHE_DIR"
                 ln -s ${windows.sdk}/* "$XWIN_CACHE_DIR/xwin/" || true
               fi
