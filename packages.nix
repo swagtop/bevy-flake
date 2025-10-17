@@ -171,8 +171,8 @@ in
             ;;
             *-pc-windows-msvc)
               if [[ $BF_WINDOWS_SDK != "" ]]; then
-                mkdir -p $XWIN_CACHE_DIR
-                ln -s ${windows.sdk}/* $XWIN_CACHE_DIR/xwin/ || true
+                mkdir -p "$XWIN_CACHE_DIR"
+                ln -s ${windows.sdk}/* "$XWIN_CACHE_DIR/xwin/" || true
               fi
               if [[ "$1" == "build" || "$1" == "run" ]]; then
                 echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
