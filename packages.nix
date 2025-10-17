@@ -67,7 +67,7 @@ in
           ${let
               cacheDirBase = (if (pkgs.stdenv.isDarwin)
                 then "$HOME/Library/Caches/"
-                else "\${XDG_CACHE_HOME:-$HOME/.cache/}"
+                else "\${XDG_CACHE_HOME:-$HOME/.cache}/"
               ) + "bevy-flake";
             in
               optionalString ((windows ? sdk) || (windows ? declarative)) (
