@@ -71,7 +71,7 @@ in
               ) + "bevy-flake";
             in
               optionalString ((windows ? sdk) || (windows ? declarative)) (
-                exportEnv ((optionalAttrs (windows.declarative or false) {
+                exportEnv ((optionalAttrs (true) {
                   XWIN_VERSION = windows.manifestVersion;
                   XWIN_SDK_VERSION = windows.sdkVersion;
                   XWIN_CRT_VERSION = windows.crtVersion;
