@@ -61,8 +61,9 @@ in
           # Set up MacOS SDK if configured.
           export BF_MACOS_SDK_PATH="${macos.sdk}"
 
-          export BF_WINDOWS_SDK_PATH="${windows.sdk or ""}"
+          export BF_WINDOWS_MSVC_SYSROOT_PATH="${windows.sdk or ""}"
 
+          export XWIN_CROSS_COMPILER="clang"
           # Set up Windows SDK and CRT if pinning is enabled.
           ${let
               cacheDirBase = (if (pkgs.stdenv.isDarwin)
@@ -174,8 +175,8 @@ in
             *-pc-windows-msvc)
               # Set up links to /nix/store Windows SDK if configured.
               ${optionalString (windows ? sdk) ''
-                mkdir -p "$XWIN_CACHE_DIR/xwin"
-                ln -sf ${windows.sdk}/* "$XWIN_CACHE_DIR/xwin/"
+                mkdir -p "$XWIN_CACHE_DIR/windows-msvc-sysroot"
+                ln -sf ${windows.sdk}/* "$XWIN_CACHE_DIR/windows-msvc-sysroot/"
               ''}
 
               if [[ "$1" == "build" || "$1" == "run" ]]; then
