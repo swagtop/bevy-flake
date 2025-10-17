@@ -23,7 +23,7 @@ let
   inherit (builtins)
     attrNames concatStringsSep warn;
   inherit (nixpkgs.lib)
-    optionalString genAttrs mapAttrsToList makeOverridable makeSearchPath;
+    optionalString optionalAttrs genAttrs mapAttrsToList makeOverridable makeSearchPath;
 in
   genAttrs systems (system:
   let
@@ -70,17 +70,20 @@ in
                 else "\${XDG_CACHE_HOME:-$HOME/.cache/}"
               ) + "bevy-flake";
             in
-              optionalString (windows.declarative || windows ? sdk) (exportEnv {
-                XWIN_CACHE_DIR = cacheDirBase + (windows.sdk or (
-                  "/xwin/"
-                  + "manifest${windows.manifestVersion}"
-                  + "-sdk${windows.sdkVersion}"
-                  + "-crt${windows.crtVersion}")
-                );
-                XWIN_VERSION = windows.manifestVersion;
-                XWIN_SDK_VERSION = windows.sdkVersion;
-                XWIN_CRT_VERSION = windows.crtVersion;
-              })
+              optionalString (windows.declarative || (windows ? sdk)) (
+                exportEnv ({
+                  XWIN_CACHE_DIR = cacheDirBase + (windows.sdk or (
+                    "/xwin/"
+                    + "manifest${windows.manifestVersion}"
+                    + "-sdk${windows.sdkVersion}"
+                    + "-crt${windows.crtVersion}")
+                  );
+                } // (optionalAttrs (!(windows ? sdk)) {
+                  XWIN_VERSION = windows.manifestVersion;
+                  XWIN_SDK_VERSION = windows.sdkVersion;
+                  XWIN_CRT_VERSION = windows.crtVersion;
+                }))
+              )
           }
 
           # Base environment for all targets.
