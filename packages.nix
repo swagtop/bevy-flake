@@ -70,7 +70,7 @@ in
                 else "\${XDG_CACHE_HOME:-$HOME/.cache/}"
               ) + "bevy-flake";
             in
-              optionalString (windows.declarative || (windows ? sdk)) (
+              optionalString ((windows ? sdk) || windows.declarative) (
                 exportEnv ({
                   XWIN_CACHE_DIR = cacheDirBase + (windows.sdk or (
                     "/xwin/"
