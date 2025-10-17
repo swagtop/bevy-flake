@@ -70,20 +70,20 @@ in
                 else "\${XDG_CACHE_HOME:-$HOME/.cache/}"
               ) + "bevy-flake";
             in
-              optionalString ((windows ? sdk) || windows.declarative) (
-                exportEnv ({
+              optionalString ((windows ? sdk) || (windows ? declarative)) (
+                exportEnv ((optionalAttrs (windows.declarative or false) {
+                  XWIN_VERSION = windows.manifestVersion;
+                  XWIN_SDK_VERSION = windows.sdkVersion;
+                  XWIN_CRT_VERSION = windows.crtVersion;
+                } // {
                   XWIN_CACHE_DIR = cacheDirBase + (windows.sdk or (
                     "/xwin/"
                     + "manifest${windows.manifestVersion}"
                     + "-sdk${windows.sdkVersion}"
                     + "-crt${windows.crtVersion}")
                   );
-                } // (optionalAttrs (!(windows ? sdk)) {
-                  XWIN_VERSION = windows.manifestVersion;
-                  XWIN_SDK_VERSION = windows.sdkVersion;
-                  XWIN_CRT_VERSION = windows.crtVersion;
-                }))
-              )
+                })
+              ))
           }
 
           # Base environment for all targets.
