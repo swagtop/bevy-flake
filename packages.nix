@@ -163,7 +163,7 @@ in
               # Set up links to /nix/store Windows SDK if configured.
               ${optionalString (windows ? sysroot) ''
                 mkdir -p "$XWIN_CACHE_DIR/windows-msvc-sysroot"
-                ln -sf ${windows.sdk}/* "$XWIN_CACHE_DIR/windows-msvc-sysroot/"
+                ln -sf ${windows.sysroot}/* "$XWIN_CACHE_DIR/windows-msvc-sysroot/"
               ''}
 
               if [[ "$1" == "build" || "$1" == "run" ]]; then
