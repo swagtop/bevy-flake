@@ -61,6 +61,8 @@ in
           # Set up MacOS SDK if configured.
           export BF_MACOS_SDK_PATH="${macos.sdk}"
 
+          export BF_WINDOWS_SDK_PATH="${windows.sdk}"
+
           # Set up Windows SDK and CRT if pinning is enabled.
           ${let
               cacheDirBase = (if (pkgs.stdenv.isDarwin)
@@ -168,6 +170,10 @@ in
               fi
             ;;
             *-pc-windows-msvc)
+              if [[ $BF_WINDOWS_SDK != "" ]]; then
+                mkdir -p $XWIN_CACHE_DIR
+                ln -s ${windows.sdk}/* $XWIN_CACHE_DIR/xwin/ || true
+              fi
               if [[ "$1" == "build" || "$1" == "run" ]]; then
                 echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
                 exec ${pkgs.cargo-xwin}/bin/cargo-xwin xwin "$@"

@@ -19,10 +19,11 @@
     bf = bevy-flake.override {
       mkRustToolchain = targets: pkgs:
       let
-        fx = (import nixpkgs {
-          inherit (pkgs) system;
-          overlays = [ (fenix.overlays.default ) ];
-        }).fenix;
+        fx =
+          (import nixpkgs {
+            inherit (pkgs) system;
+            overlays = [ (fenix.overlays.default ) ];
+          }).fenix;
         channel = "stable"; # For nightly, use "latest".
       in
         fx.combine (

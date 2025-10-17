@@ -23,11 +23,11 @@
       };
 
       windows = {
-        # Set to false if you don't want bevy-flake to manage cargo-xwin.
-        pin = true;
+        # sdk = "";
         manifestVersion = "17";
         sdkVersion = "10.0.22621";
         crtVersion = "14.44.17.14";
+        ignore = false;
       };
 
       macos = {

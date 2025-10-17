@@ -19,10 +19,11 @@
     bf = bevy-flake.override {
       mkRustToolchain = targets: pkgs:
       let
-        pkgs-with-overlay = (import nixpkgs {
-          inherit (pkgs) system;
-          overlays = [ (import rust-overlay ) ];
-        });
+        pkgs-with-overlay =
+          (import nixpkgs {
+            inherit (pkgs) system;
+            overlays = [ (import rust-overlay ) ];
+          });
         channel = "stable"; # For nightly, use "nightly".
       in
         pkgs-with-overlay.rust-bin.${channel}.latest.default.override {
