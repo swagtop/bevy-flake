@@ -62,49 +62,11 @@ the target you are using to include the glibc version you are targeting, for
 
 ### `windows`
 
-You can specify the versions of the Windows SDK and CRT like so:
+If you have not packaged and included the sysroot used by Windows, the latest
+version of the sysroot `cargo-xwin` uses will be fetched. You should package it
+youself as soon as possible, if you care about reproducibility.
 
-```nix
-bf = bevy-flake.override {
-  # ...
-  windows = {
-    manifestVersion = "17";
-    sdkVersion = "10.0.19041";
-    crtVersion = "14.30.17.0";
-    declarative = true;
-  };
-  # ...
-};
-```
-
-If you care a lot about reproducability, you should package the SDK and CRT
-produced from this configuration. When packaged, you can add the 'sdk' attribute
-to the Windows configuration:
-
-```nix
-bf = bevy-flake.override {
-  # ...
-  windows = {
-    sdk = pkgs.fetchTarball {
-      # ...
-    };
-    manifestVersion = "17";
-    sdkVersion = "10.0.19041";
-    crtVersion = "14.30.17.0";
-    declarative = true;
-  };
-  # ...
-};
-```
-
-This will make `cargo-xwin` use this specific SDK and CRT, through symlinks to
-the nix store.
-
-Read more on how to do this, and about the SDK and CRT versions available
-[here.](windows.md)
-
-If you don't care about any of this, you can just let `cargo-xwin` handle
-everything itself, by setting `config.windows.declarative` to false.
+Read more on how to do this [here.](windows.md)
 
 
 ### `macos`
