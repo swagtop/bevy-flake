@@ -9,8 +9,8 @@ MacOS, as well as reproducibly[^1] cross-compile portable binaries for non-Nix
 Linux, Windows and MacOS targets.
 
 [bevy]: https://github.com/bevyengine/bevy
-[^1]: This may not always be true for Windows targets for now, read more
-      [here.](docs/windows.md)
+[^1]: This requires extra setup for Windows targets. Read more
+      [here.](docs/windows.md#packageing-the-sdk-and-crt)
 
 > [!NOTE]
 > By fetching the Windows SDK and CRT, and compiling to the `*-pc-windows-msvc`
