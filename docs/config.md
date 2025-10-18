@@ -87,7 +87,7 @@ that return either a package, or a list of packages, given an input 'pkgs'.
 This function also takes in a `targets` argument, which is produced from the
 `config.targetEnvironments` attribute names.
 
-You can think of this function as the recipe of building the rust toolchain you
+You can think of this function as the recipe of building the Rust toolchain you
 want to use. The toolchain you make should have all the binaries needed for
 compilation, `cargo`, `rustc`, etc.
 
@@ -203,7 +203,7 @@ bf = bevy-flake.override {
 ### `targetEnvironment`
 
 Set environment variables for a specific target. Each attribute name will be fed
-into the creation of the rust toolchain, so if you want a target that is not
+into the creation of the Rust toolchain, so if you want a target that is not
 included by default, just add it to the `targetEnvironment` set.
 
 ```nix

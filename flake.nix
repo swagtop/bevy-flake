@@ -47,6 +47,17 @@
       # Environment variables set for individual targets.
       targetEnvironment =
       let
+        linuxHeaders = system: makeSearchPath "lib/pkgconfig"
+          (with nixpkgs.legacyPackages.${system}; [
+            alsa-lib-with-plugins.dev
+            libxkbcommon.dev
+            openssl.dev
+            udev.dev
+            wayland.dev
+          ]);
+        windows = {
+          XWIN_CROSS_COMPILER = "clang";
+        };
         macos =
         let
           frameworks = "$BF_MACOS_SDK_PATH/System/Library/Frameworks";
@@ -62,17 +73,6 @@
             "-L $BF_MACOS_SDK_PATH/usr/lib"
             "-L framework=${frameworks}"
           ];
-        };
-        linuxHeaders = system: makeSearchPath "lib/pkgconfig"
-          (with nixpkgs.legacyPackages.${system}; [
-            alsa-lib-with-plugins.dev
-            libxkbcommon.dev
-            openssl.dev
-            udev.dev
-            wayland.dev
-          ]);
-        windows = {
-          XWIN_CROSS_COMPILER = "clang";
         };
       in {
         "x86_64-unknown-linux-gnu" = {
@@ -171,15 +171,15 @@
       templates = {
         nixpkgs = warn "This template does not support any cross-compilation." {
           path = ./templates/nixpkgs;
-          description = "Get the rust toolchain from nixpkgs.";
+          description = "Get the Rust toolchain from nixpkgs.";
         };
         rust-overlay = {
           path = ./templates/rust-overlay;
-          description = "Get the rust toolchain through oxalica's rust-overlay.";
+          description = "Get the Rust toolchain through oxalica's rust-overlay.";
         };
         fenix = {
           path = ./templates/fenix;
-          description = "Get the rust toolchain through nix-community's fenix.";
+          description = "Get the Rust toolchain through nix-community's fenix.";
         };
       };
   });
