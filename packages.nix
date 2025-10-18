@@ -155,11 +155,11 @@ in
                 # Stops `cargo-zigbuild` from jamming with Zig on MacOS systems.
                 ulimit -n 4096
               ''}
-              if [[ "$1" == "build" ]]; then
-                echo "bevy-flake: Switching to 'cargo-zigbuild zigbuild'" 1>&2 
-                shift
+              # if [[ "$1" == "build" ]]; then
+                # echo "bevy-flake: Switching to 'cargo-zigbuild zigbuild'" 1>&2 
+                # shift
                 # exec ${pkgs.cargo-zigbuild}/bin/cargo-zigbuild zigbuild "$@"
-              fi
+              # fi
             ;;
             *-pc-windows-msvc)
               # Set up links to /nix/store Windows SDK if configured.
