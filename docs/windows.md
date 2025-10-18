@@ -8,7 +8,7 @@ if you are building for Windows, you should be using `*-msvc`. Compiling to the
 these targets with a little extra setup.
 
 To support the `-msvc` targets, `bevy-flake` uses `cargo-xwin` configured to
-use [windows-msvc-sysroot](https://github.com/trcrsired/windows-msvc-sysroot).
+use [windows-msvc-sysroot.](https://github.com/trcrsired/windows-msvc-sysroot)
 
 ## Fetching the SDK and CRT
 
