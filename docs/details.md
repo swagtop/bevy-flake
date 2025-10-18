@@ -38,7 +38,7 @@ or a package wrapped, that isn't included by default.
   # The general templates for the different toolchains.
   templates."<name>" = <template>;
 
-  # Read more on how to configure bevy-flake in docs/config.md
+  # The function used for configuring bevy-flake. Read docs/config.md for info.
   override = <function>;
 }
 ```

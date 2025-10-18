@@ -84,11 +84,30 @@ that return either a package, or a list of packages, given an input 'pkgs'.
 
 ### `mkRustToolchain`
 
-_This function also takes in a `targets` argument, which is produced from the_
-_`config.targetEnvironments` attribute names._
+This function also takes in a `targets` argument, which is produced from the
+`config.targetEnvironments` attribute names.
 
+You can think of this function as the recipe of building the rust toolchain you
+want to use. The toolchain you make should have all the binaries needed for
+compilation, `cargo`, `rustc`, etc.
 
-
+```nix
+bf = bevy-flake.override {
+  mkRustToolchain = targets: pkgs:
+  let
+    fx =
+      (import nixpkgs {
+        inherit (pkgs) system;
+        overlays = [ (fenix.overlays.default ) ];
+      }).fenix;
+    channel = "stable"; # For nightly, use "latest".
+  in
+    fx.combine (
+      [ fx.${channel}.toolchain ]
+      ++ map (target: fx.targets.${target}.${channel}.rust-std) targets
+    );
+};
+```
 
 ### `mkStdenv`
 
@@ -111,6 +130,30 @@ bf = bevy-flake.override {
 
 ### `mkRuntimeInputs`
 
+This should return a list of packages that are needed for the system you are on
+to actually run the program. This will mostly be graphics libraries and the
+like. Right now it contains X, Wayland, OpenGL and Vulkan headers for graphics.
+You could configure `bevy-flake` to just use some of these by for example
+removing the X and OpenGL libaries:
+
+```nix
+bf = bevy-flake.override {
+  # ...
+  mkRuntimeInputs = pkgs:
+    # Only including there for Linux, they aren't needed for MacOS, and would
+    # actually break evaluation if we did not do this.
+    optionals (pkgs.stdenv.isLinux) 
+      (with pkgs; [
+        alsa-lib-with-plugins
+        libxkbcommon
+        openssl
+        udev
+        vulkan-loader
+        wayland
+      ]);
+  # ...
+};
+```
 
 ## Rustflags
 
