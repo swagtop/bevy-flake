@@ -63,15 +63,6 @@ BF_NO_WRAPPER
 # set it through the `config.macos.sdk` attribute.
 BF_MACOS_SDK_PATH
 
-# By default `bevy-flake` uses `cargo-xwin` to fetch a specific version of the
-# SDK and CRT. The problem is that this does not produce reproducible builds,
-# as no hashes are checked, and Microsoft could host different files with the
-# same versioning, or stop hosting them all together.
-# You can package this fetched SDK and CRT however, and when that is done, this
-# environment variable points to it.
-# Read more on how to do this in `docs/windows.md`.
-BF_WINDOWS_SDK_PATH
-
 # The environment wrapper uses this variable to switch to the appropriate
 # environment for compilation. It includes a default arg parser, that sets this
 # variable to the arg after '--target'. You can swap this parser out for your
@@ -108,6 +99,9 @@ The flake should include a builder for your Bevy project, such that the Nix
 build system handles everything deterministically. I have made an attempt at
 getting this set up, using `makeRustPlatform` with our wrapped Rust toolchain,
 but could not get it to work.
+
+Right now all targets can be compiled to, with all libraries used being
+referenced from the store.
 
 If you manage to set one up, please open a pull request!
 
