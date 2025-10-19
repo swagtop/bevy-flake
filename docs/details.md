@@ -113,6 +113,8 @@ There are a couple of things that I would like to be added to `bevy-flake`.
    package should return a derivation that builds every single target, using the
    wrapped `rust-toolchain` package as the builder.
 
+   With this setup, a user could just run `nix build` for a full build.
+
    Right now all targets can be compiled to with no internet access, and all
    libraries used being referenced from the store.
 
