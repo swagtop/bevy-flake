@@ -21,7 +21,7 @@
 }:
 let
   inherit (builtins)
-    attrNames concatStringsSep warn;
+    attrNames concatStringsSep warn throw;
   inherit (nixpkgs.lib)
     optionalString genAttrs mapAttrsToList makeOverridable makeSearchPath;
 in
@@ -105,7 +105,7 @@ in
   in {
     rust-toolchain =
     let
-      target-adapter-package = envWrap {
+      wrapArgs = {
         name = "cargo";
         extraRuntimeInputs = with pkgs; [
           cargo-zigbuild
@@ -176,14 +176,20 @@ in
         '';
       };
     in 
-      pkgs.symlinkJoin {
-        name = "bf-wrapped-rust-toolchain";
-        ignoreCollisions = true;
-        paths = [
-          target-adapter-package
-          built-rust-toolchain
-        ];
-      } // { inherit envWrap; };
+      (makeOverridable (wrapArgsInput:
+        if (wrapArgsInput.execPath != wrapArgs.execPath)
+          then throw
+            "Don't override the toolchain like this. Set it through the config."
+          else
+            pkgs.symlinkJoin {
+              name = "bf-wrapped-rust-toolchain";
+              ignoreCollisions = true;
+              paths = [
+                (envWrap wrapArgsInput)
+                built-rust-toolchain
+              ];
+            } // { inherit envWrap; }
+      ) wrapArgs);
 
     # For now we have to override the package for hot-reloading.
     dioxus-cli = 
