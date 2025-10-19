@@ -20,7 +20,7 @@ you don't have one defined. It gets put into your
 If you are on MacOS, it will be in the `$HOME/Library/Caches/bevy-flake`
 directory.
 
-## Packageing the SDK and CRT
+## Packaging the SDK and CRT
 
 To make sure you're always using the same sysroot, you can package the one
 you've fetched. Go to the directory where the sysroot has been fetched to. It
@@ -49,7 +49,7 @@ configuration like so:
 ```nix
 bf = bevy-flake.override {
   # ...
-  windows.sdk = pkgs.fetchTarball {
+  windows.sysroot = pkgs.fetchTarball {
     url = "https://website.com/path/to/sysroot/windows-msvc-sysroot-date.tar.xz";
     sha256 = "sha256:some-long-hash-string-goes-here";
   };
@@ -60,7 +60,7 @@ bf = bevy-flake.override {
 When unpacked into the store, the contents should look like this:
 
 ```
-/nix/store/windows-msvc-sysroot/
+/nix/store/<hash>-windows-msvc-sysroot/
   ├─ DONE
   ╰─ windows-msvc-sysroot/
        ├─ bin/

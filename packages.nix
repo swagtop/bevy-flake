@@ -28,9 +28,8 @@ in
   genAttrs systems (system:
   let
     pkgs = nixpkgs.legacyPackages.${system};
-    exportEnv = env: "${concatStringsSep "\n"
-      (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env)
-    }";
+    exportEnv = env: concatStringsSep "\n"
+      (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env);
 
     targets = (attrNames targetEnvironment);
     built-rust-toolchain = mkRustToolchain targets pkgs;
@@ -163,7 +162,7 @@ in
             ;;
             *-pc-windows-msvc)
               # Set up links to /nix/store Windows SDK if configured.
-              ${optionalString (windows ? sysroot) ''
+              ${optionalString (windows.sysroot != "") ''
                 mkdir -p "$XWIN_CACHE_DIR/windows-msvc-sysroot"
                 ln -sf ${windows.sysroot}/* "$XWIN_CACHE_DIR/windows-msvc-sysroot/"
               ''}
@@ -177,20 +176,20 @@ in
         '';
       };
     in 
-      (makeOverridable (target-adapter: pkgs.symlinkJoin {
+      pkgs.symlinkJoin {
         name = "bf-wrapped-rust-toolchain";
         ignoreCollisions = true;
         paths = [
-          target-adapter
+          target-adapter-package
           built-rust-toolchain
         ];
-      }) target-adapter-package) // { inherit envWrap; };
+      } // { inherit envWrap; };
 
     # For now we have to override the package for hot-reloading.
     dioxus-cli = 
     let
       version = "0.7.0-rc.1";
-      dx-package = pkgs.dioxus-cli.override (old: {
+      dioxus-cli-package = pkgs.dioxus-cli.override (old: {
         rustPlatform = old.rustPlatform // {
           buildRustPackage = args:
             old.rustPlatform.buildRustPackage (
@@ -212,11 +211,11 @@ in
         };
       });
     in
-      makeOverridable (dx: envWrap {
+      makeOverridable envWrap {
         name = "dx";
         extraRuntimeInputs = [ pkgs.lld ];
-        execPath = "${dx}/bin/dx";
-      }) dx-package;
+        execPath = "${dioxus-cli-package}/bin/dx";
+      };
 
     # For now we package 'bevy-cli' ourselves, as it is not in nixpkgs yet.
     bevy-cli =
@@ -240,22 +239,20 @@ in
         doCheck = false;
       });
     in
-      makeOverridable (bevy-cli:
-        envWrap {
-          name = "bevy";
-          extraRuntimeInputs = [
-            pkgs.lld
-            (pkgs.wasm-bindgen-cli_0_2_104
-              or (warn "Your nixpkgs is too old for bevy-cli web builds."
-                pkgs.emptyDirectory)
-            )
-          ];
-          execPath = "${bevy-cli}/bin/bevy";
-          argParser = defaultArgParser + ''
-            if [[ $* == *" web"* ]]; then
-              export BF_TARGET="wasm32-unknown-unknown"
-            fi
-          '';
-        }
-      ) bevy-cli-package;
+      makeOverridable envWrap {
+        name = "bevy";
+        extraRuntimeInputs = [
+          pkgs.lld
+          (pkgs.wasm-bindgen-cli_0_2_104
+            or (warn "Your nixpkgs is too old for bevy-cli web builds."
+              pkgs.emptyDirectory)
+          )
+        ];
+        execPath = "${bevy-cli-package}/bin/bevy";
+        argParser = defaultArgParser + ''
+          if [[ $* == *" web"* ]]; then
+            export BF_TARGET="wasm32-unknown-unknown"
+          fi
+        '';
+      };
   })
