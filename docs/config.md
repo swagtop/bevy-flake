@@ -372,7 +372,7 @@ let
     ];
     postScript = (old.postScript or "") + ''
       if [[ $BF_FLAKE == "aarch64-linux-android" ]]; then
-        echo "bevy-flake: Switching to 'cargo-ndk ndk'"
+        echo "bevy-flake: Switching to 'cargo-ndk'"
         exec ${nixpkgs.legacyPackages.${system}.cargo-ndk}/bin/cargo-ndk ndk "$@"
       fi
     '';
