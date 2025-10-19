@@ -14,6 +14,7 @@ having to resort to using Docker, GitHub actions, or the like.
 The flake is easy to configure and extend, should you want support for a target,
 or a package wrapped, that isn't included by default.
 
+
 ## What is the schema of `bevy-flake`?
 
 ```nix
@@ -43,11 +44,13 @@ or a package wrapped, that isn't included by default.
 }
 ```
 
+
 ## What does `bevy-flake` do?
 
 The flake provides a preconfigured environment for the Rust toolchain, and a
 couple of packages that are helpful for Bevy development. The environment for
 these packages can be overridden with ones own configuration.
+
 
 ## How does `bevy-flake` work?
 
@@ -69,6 +72,7 @@ BF_MACOS_SDK_PATH
 # own, should you use a tool that uses different keywords (see bevy-cli).
 BF_TARGET
 ```
+
 
 ## How do I use `bevy-flake` to wrap one of my own packages?
 
@@ -93,6 +97,7 @@ Read more on the inner workings of the wrapper, and how to use it [here.][wrap]
 
 [wrap]: config.md#wrapper
 
+
 ## What is the future of `bevy-flake`?
 
 There are a couple of things that I would like to be added to `bevy-flake`.
@@ -111,6 +116,7 @@ There are a couple of things that I would like to be added to `bevy-flake`.
 
 If you manage to configure any of this stuff yourself, please open a pull
 request!
+
 
 ## What am I allowed to do with the `bevy-flake` repo?
 
