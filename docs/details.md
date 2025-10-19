@@ -102,8 +102,8 @@ There are a couple of things that I would like to be added to `bevy-flake`.
    getting this set up, using `makeRustPlatform` with our wrapped Rust
    toolchain, but could not get it to work.
 
-   Right now all targets can be compiled to, with all libraries used being
-   referenced from the store.
+   Right now all targets can be compiled to with no internet access, and all
+   libraries used being referenced from the store.
 
 2. The flake should support the mobile targets, ie. Android and iOS. I've tried
    myself to set it up for a bit, but couldn't get iOS working and therefore put
