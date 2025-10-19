@@ -19,6 +19,11 @@ in
 Afterwards, all usage of `bevy-flake` should be done through this new `bf`
 variable. Anything using this will be using your customized configuration.
 
+If you find most of this Nix stuff confusing, you can browse the old version of
+`bevy-flake` [here.][old-bevy-flake] You may find it easier to configure.
+
+[old-bevy-flake]: https://github.com/swagtop/bevy-flake/tree/594f6251a9254ae652561816c09fe4fd28f89d28
+
 
 ## General configuration
 
