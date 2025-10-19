@@ -95,15 +95,22 @@ Read more on the inner workings of the wrapper, and how to use it [here.][wrap]
 
 ## What is the future of `bevy-flake`?
 
-The flake should include a builder for your Bevy project, such that the Nix
-build system handles everything deterministically. I have made an attempt at
-getting this set up, using `makeRustPlatform` with our wrapped Rust toolchain,
-but could not get it to work.
+There are a couple of things that I would like to be added to `bevy-flake`.
 
-Right now all targets can be compiled to, with all libraries used being
-referenced from the store.
+1. The flake should include a builder for your Bevy project, such that the Nix
+   build system handles everything deterministically. I have made an attempt at
+   getting this set up, using `makeRustPlatform` with our wrapped Rust
+   toolchain, but could not get it to work.
 
-If you manage to set one up, please open a pull request!
+   Right now all targets can be compiled to, with all libraries used being
+   referenced from the store.
+
+2. The flake should support the mobile targets, ie. Android and iOS. I've tried
+   myself to set it up for a bit, but couldn't get iOS working and therefore put
+   it on the backburner. I might look into it more later.
+
+If you manage to configure any of this stuff yourself, please open a pull
+request!
 
 ## What am I allowed to do with the `bevy-flake` repo?
 
