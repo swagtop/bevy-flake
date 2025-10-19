@@ -116,6 +116,7 @@ compilation, `cargo`, `rustc`, etc.
 
 ```nix
 bf = bevy-flake.override {
+  # ...
   mkRustToolchain = targets: pkgs:
   let
     fx =
@@ -129,6 +130,7 @@ bf = bevy-flake.override {
       [ fx.${channel}.toolchain ]
       ++ map (target: fx.targets.${target}.${channel}.rust-std) targets
     );
+  # ...
 };
 ```
 
