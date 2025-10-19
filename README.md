@@ -1,3 +1,6 @@
+> [!WARNING]
+> Cool warning here before anything!
+
 <div align="center"> <img src="bevy-flake.svg" width="200"/> </div>
 
 # bevy-flake
