@@ -19,6 +19,7 @@ in
 Afterwards, all usage of `bevy-flake` should be done through this new `bf`
 variable. Anything using this will be using your customized configuration.
 
+
 ## General configuration
 
 ### `systems`
@@ -37,6 +38,20 @@ bf = bevy-flake.override {
 };
 ```
 
+Now `bf.eachSystem` produces the systems you have input. If you want to add onto
+the existing ones, this could be done like so:
+
+```nix
+bf = bevy-flake.override (old: {
+  # ...
+  systems = old.systems ++ [
+    "x86_64-darwin"
+  ];
+  # ...
+});
+```
+
+
 ## The operating systems
 
 These define the cross-compiled builds of the targets. For example, setting the
@@ -51,6 +66,7 @@ If you want to test how these builds run with these settings on your Nix
 machine, just compile them with '--target' and run those. On NixOS you will
 probably find `steam-run` to be useful here.
 
+
 ### `linux`
 
 Setting the `glibcVersion` variable only affects the builds made with the
@@ -59,6 +75,7 @@ the target you are using to include the glibc version you are targeting, for
 `cargo-zigbuild` to consume. Read more about this [here.][glibc]
 
 [glibc]: https://github.com/rust-cross/cargo-zigbuild?tab=readme-ov-file#specify-glibc-version
+
 
 ### `windows`
 
@@ -81,6 +98,7 @@ Read how you can do this [here.](macos.md)
 The configuration of `bevy-flake` should be system-agnostic. Therefore all usage
 of packages need to be done through these 'mk' functions. These are functions
 that return either a package, or a list of packages, given an input 'pkgs'.
+
 
 ### `mkRustToolchain`
 
@@ -109,6 +127,7 @@ bf = bevy-flake.override {
 };
 ```
 
+
 ### `mkStdenv`
 
 The `bevy-flake` uses the stdenv created by this functions output for its C
@@ -127,6 +146,7 @@ bf = bevy-flake.override {
   # ...
 };
 ```
+
 
 ### `mkRuntimeInputs`
 
@@ -155,6 +175,7 @@ bf = bevy-flake.override {
 };
 ```
 
+
 ## Rustflags
 
 ### `crossPlatformRustflags`
@@ -168,6 +189,7 @@ Adding this rustflag would not be needed if we could use the Nix build system
 with the wrapped toolchain..[^1]
 
 [^1]: Read more about this [here.](docs/details.md#what-is-the-future-of-bevy-flake)
+
 
 ### `sharedEnvironment`
 
@@ -184,6 +206,7 @@ bf = bevy-flake.override {
 };
 ```
 
+
 ### `devEnvironment`
 
 Set environment variables when no `BF_TARGET` is set. This is your development
@@ -199,6 +222,7 @@ bf = bevy-flake.override {
   # ...
 };
 ```
+
 
 ### `targetEnvironment`
 
@@ -234,6 +258,7 @@ let
 in
 ```
 
+
 ## Wrapper
 
 ### Configuring the wrapper
@@ -254,6 +279,7 @@ bf = bevy-flake.override {
   # ...
 };
 ```
+
 
 ### Using the wrapper
 
@@ -308,3 +334,30 @@ in
 
 Remember to use `bf` and not `bevy-flake` to get the `envWrap` function if
 you've changed the config.
+
+
+## Other 
+
+### I want to reference a package, but can't outside of `eachSystem`
+
+You should be doing this with an override of the wrapper of the package you're
+using:
+
+```nix
+let
+  rust-toolchain' = bf.packages.rust-toolchain.override (old: {
+    extraRuntimeInputs = old.extraRuntimeInputs ++ [
+      nixpkgs.legacyPackages.${system}.valgrind
+    ];
+    postScript = old.postScript + ''
+      echo "BOO!"
+    '';
+  });
+in
+  packages = [
+    rust-toolchain'
+  ];
+```
+
+Alternatively you could just override `bevy-flake` inside of an `eachSystem`,
+but the flake isn't designed for that, and therefore YMMV.

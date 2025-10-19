@@ -18,6 +18,7 @@ Linux, Windows and MacOS targets.
 
 [license]: https://go.microsoft.com/fwlink/?LinkId=2086102
 
+
 ## Quick setup
 
 First, navigate to your Bevy project root:
@@ -44,6 +45,7 @@ If you get your toolchain from elsewhere, you should very easily be able to slot
 it in. More on this [here.][config-toolchain]
 
 [config-toolchain]: docs/config.md#mkrusttoolchain-single-package---defining-the-rust-toolchain
+
 
 ## How to use
 

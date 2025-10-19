@@ -27,6 +27,7 @@ bf = bevy-flake.override {
 };
 ```
 
+
 ## Structure of the SDK
 
 The base directory of the SDK should look something like this:
@@ -50,6 +51,7 @@ macos.sdk = "${builtins.fetchTarball {
   sha256 = "sha256:some-long-hash-string-goes-here";
 }}/sub-path";
 ```
+
 
 ## General advice
 
