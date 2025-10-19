@@ -122,7 +122,7 @@ that return either a package, or a list of packages, given an input 'pkgs'.
 ### `mkRustToolchain`
 
 This function also takes in a `targets` argument, which is produced from the
-`config.targetEnvironments` attribute names.
+`config.targetEnvironment` attribute names.
 
 You can think of this function as the recipe of building the Rust toolchain you
 want to use. The toolchain you make should have all the binaries needed for
