@@ -345,17 +345,17 @@ using:
 
 ```nix
 let
-  rust-toolchain' = bf.packages.rust-toolchain.override (old: {
+  dioxus-cli' = bf.packages.dioxus-cli.override (old: {
     extraRuntimeInputs = old.extraRuntimeInputs ++ [
       nixpkgs.legacyPackages.${system}.valgrind
     ];
-    postScript = old.postScript + ''
+    postScript = (old.postScript or "") + ''
       echo "BOO!"
     '';
   });
 in
   packages = [
-    rust-toolchain'
+    dioxus-cli'
   ];
 ```
 
