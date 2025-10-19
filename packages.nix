@@ -155,7 +155,7 @@ in
                 ulimit -n 4096
               ''}
               if [[ "$1" == "build" ]]; then
-                echo "bevy-flake: Switching to 'cargo-zigbuild zigbuild'" 1>&2 
+                echo "bevy-flake: Switching to 'cargo-zigbuild'" 1>&2 
                 shift
                 exec ${pkgs.cargo-zigbuild}/bin/cargo-zigbuild zigbuild "$@"
               fi
@@ -168,7 +168,7 @@ in
               ''}
 
               if [[ "$1" == "build" || "$1" == "run" ]]; then
-                echo "bevy-flake: Switching to 'cargo-xwin xwin $1'" 1>&2 
+                echo "bevy-flake: Switching to 'cargo-xwin'" 1>&2 
                 exec ${built-rust-toolchain}/bin/cargo xwin "$@"
               fi
             ;;

@@ -11,6 +11,8 @@
   };
 
   outputs = { nixpkgs, bevy-flake, ... }: {
+    inherit (bevy-flake) packages;
+    
     devShells = bevy-flake.eachSystem (system:
     let
       pkgs = import nixpkgs { inherit system; };
