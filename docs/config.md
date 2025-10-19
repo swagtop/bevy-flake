@@ -167,7 +167,7 @@ removing the X and OpenGL libaries:
 bf = bevy-flake.override {
   # ...
   mkRuntimeInputs = pkgs:
-    # Only including there for Linux, they aren't needed for MacOS, and would
+    # Only including these for Linux, they aren't needed for MacOS, and would
     # actually break evaluation on MacOS if we did not do this.
     optionals (pkgs.stdenv.isLinux) 
       (with pkgs; [
