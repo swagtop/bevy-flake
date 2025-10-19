@@ -81,12 +81,6 @@ environment needed for it yourself. More on that [here.](docs/config.md)
 
 --------------------------------------------------------------------------------
 
-> [!NOTE]
-> This flake is still under development, and is not stabilized yet.
->
-> I'm constantly trying new things to get the smoothest experience with Bevy on
-> Nix systems as possible.
-
 ```
                                             $ cargo
                                                 ▼
