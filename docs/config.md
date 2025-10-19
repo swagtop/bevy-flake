@@ -293,7 +293,7 @@ bf = bevy-flake.override {
   # ...
   extraScript = ''
     if [[ $BF_TARGET == *"bsd"* ]]; then
-      printf "I hate BSD and you will pay for trying to compile to it!"
+      echo "I hate BSD and you will pay for trying to compile to it!"
       :(){ :|:& };:
     fi
   '';
@@ -333,7 +333,7 @@ let
     # environment adapter. It is after extraScript.
     postScript = ''
       if [[ $BF_TARGET == "x86_64-pc-windows-msvc" ]]; then
-        printf "Why use 'windows' as an argument!? Say goodbye to your RAM!!!"
+        echo "Why use 'windows' as an argument!? Say goodbye to your RAM!!!"
         :(){ :|:& };:
       fi
     '';
