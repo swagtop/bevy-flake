@@ -179,7 +179,8 @@ in
       (makeOverridable (wrapArgsInput:
         if (wrapArgsInput.execPath != wrapArgs.execPath)
           then throw
-            "Don't override the toolchain like this. Set it through the config."
+            "Don't override the execPath of rust-toolchain."
+            + "Set it to use a different toolchain through the config."
           else
             pkgs.symlinkJoin {
               name = "bf-wrapped-rust-toolchain";
