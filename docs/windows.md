@@ -3,15 +3,13 @@
 ## Information
 
 This flake primarily focuses on using the MSVC ABI. It is generally said that
-if you are building for Windows, you should be using `*-msvc`. Compiling to the
-`*-gnu` targets is viable as well, and you can configure `bevy-flake` to use
-these targets with a little extra setup.
+if you are building for Windows, you should be using `*-msvc`.
 
-To support the `-msvc` targets, `bevy-flake` uses `cargo-xwin` configured to
+To support the `*-msvc` targets, `bevy-flake` uses `cargo-xwin` configured to
 use [windows-msvc-sysroot.](https://github.com/trcrsired/windows-msvc-sysroot)
 
 
-## Fetching the SDK and CRT
+## Fetching the sysroot
 
 The sysroot is fetched automatically when you compile to a `*-msvc` target, when
 you don't have one defined. It gets put into your
@@ -22,7 +20,7 @@ If you are on MacOS, it will be in the `$HOME/Library/Caches/bevy-flake`
 directory.
 
 
-## Packaging the SDK and CRT
+## Packaging the sysroot
 
 To make sure you're always using the same sysroot, you can package the one
 you've fetched. Go to the directory where the sysroot has been fetched to. It
@@ -72,3 +70,9 @@ When unpacked into the store, the contents should look like this:
        ├─ README.md
        ╰─ share/
 ```
+
+# General advice
+
+Do not put the sysroot tarball in your repository. Flakes copy the repository
+they are in to the Nix store, and you will end up with very long evaluation
+times, and many wasteful copies of the sysroot.

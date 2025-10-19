@@ -13,7 +13,7 @@ Linux, Windows and MacOS targets.
 
 [bevy]: https://github.com/bevyengine/bevy
 [^1]: This requires extra setup for Windows targets. Read more
-      [here.](docs/windows.md#packageing-the-sdk-and-crt)
+      [here.](docs/windows.md#packaging-the-sysroot)
 
 > [!NOTE]
 > By compiling to the `*-pc-windows-msvc` targets, you are likely considered to
@@ -47,7 +47,7 @@ nix flake init --template github:swagtop/bevy-flake/dev#fenix
 If you get your toolchain from elsewhere, you should very easily be able to slot
 it in. More on this [here.][config-toolchain]
 
-[config-toolchain]: docs/config.md#mkrusttoolchain-single-package---defining-the-rust-toolchain
+[config-toolchain]: docs/config.md#mkrusttoolchain
 
 
 ## How to use
