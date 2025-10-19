@@ -31,7 +31,7 @@ or a package wrapped, that isn't included by default.
 
   # All packages pre-wrapped by bevy-flake.
   packages."<system>" = {
-    rust-toolchain = <derivation>; # Includes the wrapper function, 'wrapInEnv'.
+    rust-toolchain = <derivation>; # Includes the wrapper function, 'envWrap'.
     dioxus-cli = <derivation>;
     bevy-cli = <derivation>;
   };
@@ -80,8 +80,8 @@ Lets say you are wrapping `cowsay`:
 
 ```nix
 let
-  inherit (bevy-flake.packages.${system}.rust-toolchain) wrapInEnv;
-  wrapped-cowsay = wrapInEnv {
+  inherit (bevy-flake.packages.${system}.rust-toolchain) envWrap;
+  wrapped-cowsay = envWrap {
     name = "cowsay";
     execPath = "${pkgs.cowsay}/bin/cowsay";
   };
