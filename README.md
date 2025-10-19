@@ -54,13 +54,15 @@ it in. More on this [here.][config-toolchain]
 
 ## How to use
 
-Add the `rust-toolchain` package to your environment, either through
-`nix develop`, `nix shell .#rust-toolchain`, or your own preferred way.
+Add the packages you want from `bevy-flake` to your environment, either through
+a devshell, with `nix shell`, or other means.
 
-Then, you can just use `cargo` like so:
+Then, you can use them like so:
 
 ```sh
-# For your own Nix system:
+# With 'rust-toolchain':
+
+# For your Nix system you can run:
 cargo build
 cargo run
 
@@ -70,6 +72,18 @@ cargo build --target x86_64-pc-windows-msvc
 cargo build --target aarch64-apple-darwin # <-- Read docs/macos.md!
 cargo build --target wasm32-unknown-unknown
 # (...and so on. )
+
+
+# With `dioxus-cli`
+
+# Develop your program with hot-reloading (remember to enable it in Cargo.toml)
+BEVY_ASSET_ROOT="." dx serve --hot-patch
+
+
+# With `bevy-cli`
+
+bevy run
+bevy run web --open
 ```
 
 You can compile to every target with a `config.targetEnvironment` entry.
