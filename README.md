@@ -1,6 +1,6 @@
 > [!WARNING]
-> This flake will remain stable until January 1st 2025, where there may be an
-> update with breaking changes based on feedback on this initial release.
+> This flake will remain stable until January 1st 2025, where will be an update
+> that may have breaking changes, based on feedback on this initial release.
 > After that, you can again count on the flake being stable.
 
 <div align="center"> <img src="bevy-flake.svg" width="200"/> </div>
