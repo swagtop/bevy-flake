@@ -81,6 +81,16 @@ the target you are using to include the glibc version you are targeting, for
 
 [glibc]: https://github.com/rust-cross/cargo-zigbuild?tab=readme-ov-file#specify-glibc-version
 
+Set it like so:
+
+```nix
+bf = bevy-flake.override {
+  # ...
+  linux.glibcVersion = "2.34";
+  # ...
+};
+```
+
 
 ### `windows`
 
@@ -88,12 +98,16 @@ If you have not packaged and included the sysroot used by Windows, the latest
 version of the sysroot `cargo-xwin` uses will be fetched. You should package it
 youself as soon as possible, if you care about reproducibility.
 
+After packaging, set the `config.windows.sysroot` to it, and you should now be
+reliably be using the same sysroot always.
+
 Read more on how to do this [here.](windows.md)
 
 
 ### `macos`
 
-You will not be able to cross-compile to MacOS targets without an SDK.
+You will not be able to cross-compile to MacOS targets without an SDK. Setting
+the `config.macos.sdk` to a prepackaged one will do the trick.
 
 Read how you can do this [here.](macos.md)
 
