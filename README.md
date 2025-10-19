@@ -1,11 +1,7 @@
 > [!WARNING]
 > This flake will remain stable until January 1st 2025, where there may be an
-> update with breaking changes, based on feedback on this initial release.
->
+> update with breaking changes based on feedback on this initial release.
 > After that, you can again count on the flake being stable.
->
-> If you have any feedback at all about the structure or design of this flake,
-> please open an issue. I am open to any feedback!
 
 <div align="center"> <img src="bevy-flake.svg" width="200"/> </div>
 
