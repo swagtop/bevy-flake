@@ -60,7 +60,7 @@ Add the packages you want from `bevy-flake` to your environment with
 Then, you can use them like so:
 
 ```sh
-# With 'rust-toolchain':
+# With 'rust-toolchain', run and compile both for yours and other platforms:
   # For your Nix system you can run:
   cargo build
   cargo run
@@ -70,11 +70,12 @@ Then, you can use them like so:
   cargo build --target x86_64-pc-windows-msvc
   cargo build --target aarch64-apple-darwin # <-- Read docs/macos.md!
   cargo build --target wasm32-unknown-unknown
+  #  (...and so on. )
 
-# With `dioxus-cli`
+# With `dioxus-cli`, develop Bevy with hot-patching
   BEVY_ASSET_ROOT="." dx serve --hot-patch
 
-# With `bevy-cli`
+# With `bevy-cli`, use the alpha CLI tooling that is useful for web builds.
   bevy run
   bevy run web --open
 ```
@@ -87,4 +88,28 @@ environment needed for it yourself. More on that [here.](docs/config.md)
 - [Pitfalls](docs/pitfalls.md)
 - [Windows](docs/windows.md)
 - [MacOS](docs/macos.md)
+
+--------------------------------------------------------------------------------
+
+```
+                                            $ cargo
+                                                ▼
+                                 [bevy-flake Environment Adapters]
+                                                ▼
+                             ╭─────1────╴ rust-toolchain ╶─────2──────╮
+                             │                                        │
+                             │                                        │
+                             │    ╔═══════════target/═══════════╗     │
+                             ├─────► debug/                     ║     │
+                             ╰─────► release/                   ║     │
+                                  ║  x86_64-unknown-linux-gnu/ ◄──────┤
+                                  ║  x86_64-pc-windows-msvc/ ◄────────┤
+                                  ║  aarch64-apple-darwin/ ◄──────────┤
+                                  ║    (...and so on. )  ◄────────────╯
+                                  ╚═════════════════════════════╝
+
+
+                    (1) Develop on your Nix system   (2) Cross-compile for other platforms
+```
+
 - [Details](docs/details.md)
