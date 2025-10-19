@@ -84,31 +84,31 @@ environment needed for it yourself. More on that [here.](docs/config.md)
 --------------------------------------------------------------------------------
 
 ```
-                                           $ cargo                                              $
-                                               ▼                                                $
-                                [bevy-flake Environment Adapters]                               $
-                                               ▼                                                $
-                            ╭─────1────╴ rust-toolchain ╶─────2──────╮                          $
-                            │                                        │                          $
-                            │                                        │                          $
-                            │    ╔═══════════target/═══════════╗     │                          $
-                            ├─────► debug/                     ║     │                          $
-                            ╰─────► release/                   ║     │                          $
-                                 ║  x86_64-unknown-linux-gnu/ ◄──────┤                          $
-                                 ║  x86_64-pc-windows-msvc/ ◄────────┤                          $
-                                 ║  aarch64-apple-darwin/ ◄──────────┤                          $
-                                 ║    (...and so on. )  ◄────────────╯                          $
-                                 ╚═════════════════════════════╝                                $
-                                                                                                $
-                                                                                                $
-                   (1) Local Nix System:             (2) Other Systems:                         $
-                                                                                                $
-                   - Runtime packages                - Each targets libraries                   $
-                     provided through rpath            and build environments                   $
-                   - cargo compiles for                provided by environment                  $
-                     local system and runs             adapter                                  $
-                                                     - cargo-zigbuild,                          $
-                                                       cargo-xwin cross-compile                 $
+                                            $ cargo                                              $
+                                                ▼                                                $
+                                 [bevy-flake Environment Adapters]                               $
+                                                ▼                                                $
+                             ╭─────1────╴ rust-toolchain ╶─────2──────╮                          $
+                             │                                        │                          $
+                             │                                        │                          $
+                             │    ╔═══════════target/═══════════╗     │                          $
+                             ├─────► debug/                     ║     │                          $
+                             ╰─────► release/                   ║     │                          $
+                                  ║  x86_64-unknown-linux-gnu/ ◄──────┤                          $
+                                  ║  x86_64-pc-windows-msvc/ ◄────────┤                          $
+                                  ║  aarch64-apple-darwin/ ◄──────────┤                          $
+                                  ║    (...and so on. )  ◄────────────╯                          $
+                                  ╚═════════════════════════════╝                                $
+                                                                                                 $
+                                                                                                 $
+                    (1) Local Nix System:             (2) Other Systems:                         $
+                                                                                                 $
+                    - Runtime packages                - Each targets libraries                   $
+                      provided through rpath            and build environments                   $
+                    - cargo compiles for                provided by environment                  $
+                      local system and runs             adapter                                  $
+                                                      - cargo-zigbuild,                          $
+                                                        cargo-xwin cross-compile                 $
 ```
 
 - [Details](docs/details.md)
