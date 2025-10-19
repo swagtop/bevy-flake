@@ -107,6 +107,12 @@ There are a couple of things that I would like to be added to `bevy-flake`.
    getting this set up, using `makeRustPlatform` with our wrapped Rust
    toolchain, but could not get it to work.
 
+   It should be set up such that the flake consumer could configure `bevy-flake`
+   with something like `config.projectSource`, and provide the `./.` path for
+   the repo it is used in. In this case the `bf.packages.${system}.default`
+   package should return a derivation that builds every single target, using the
+   wrapped `rust-toolchain` package as the builder.
+
    Right now all targets can be compiled to with no internet access, and all
    libraries used being referenced from the store.
 

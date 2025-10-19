@@ -9,8 +9,6 @@ NixOS and MacOS, as well as cross-compile portable binaries for non-Nix Linux,
 Windows and MacOS targets.
 
 [bevy]: https://github.com/bevyengine/bevy
-[^1]: This requires extra setup for Windows targets. Read more
-      [here.](docs/windows.md#packaging-the-sysroot)
 
 > [!NOTE]
 > By compiling to the `*-pc-windows-msvc` targets, you are likely considered to
