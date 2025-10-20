@@ -1,190 +1,186 @@
 {
-  description = "A flake for Bevy development on NixOS.";
-  inputs = {
-    nixpkgs.url = "nixpkgs/nixos-unstable";
-    rust-overlay = {
-      url = "github:oxalica/rust-overlay";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-  };
+  description =
+    "A flake for painless development and distribution of Bevy projects.";
 
-  outputs = { self, rust-overlay, nixpkgs, ... }@inputs:
+  inputs.nixpkgs.url = "nixpkgs/nixos-unstable";
+  
+  outputs = { nixpkgs, ... }:
   let
-    system = "x86_64-linux";
-    overlays = [ (import rust-overlay) ];
-    pkgs = import nixpkgs { inherit system overlays; };
-    lib = pkgs.lib;
+    inherit (builtins)
+      concatStringsSep warn;
+    inherit (nixpkgs.lib)
+      optionals genAttrs makeSearchPath makeOverridable;
 
-    rust-toolchain = pkgs.rust-bin.nightly.latest.default.override {
-      extensions = [ "rust-src" "rust-analyzer" ];
-      targets = [
-        # WASM target.
-        "wasm32-unknown-unknown"
-        # Linux targets.
-        "aarch64-unknown-linux-gnu"
-        "x86_64-unknown-linux-gnu"
-        # Windows targets.
-        "aarch64-pc-windows-msvc"
-        "x86_64-pc-windows-msvc"
-      ] ++ lib.optionals (inputs ? mac-sdk) [
-        # MacOS targets (...if SDK is available).
-        "aarch64-apple-darwin"
-        "x86_64-apple-darwin"
+    config = {
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "aarch64-darwin"
       ];
-    };
 
-    shellPackages = with pkgs; [
-      # mold
-    ];
+      linux = {
+        glibcVersion = "2.41";
+      };
 
-    localFlags = lib.concatStringsSep " " [
-      "-C link-args=-Wl,-rpath,${lib.makeLibraryPath (with pkgs; [
-        alsa-lib-with-plugins
-        libGL
-        libxkbcommon
-        udev
-        vulkan-loader
-        xorg.libX11
-        xorg.libXcursor
-        xorg.libXi
-        xorg.libXrandr
-      ]
-      ++ lib.optionals (!(builtins.getEnv "NO_WAYLAND" == "1")) [ wayland ]
-      )}"
-      # "-C target-cpu=native"
-      # "-C link-arg=-fuse-ld=mold"
-    ];
+      windows = {
+        # The latest sysroot will be fetched if you have it packaged and set.
+        sysroot = "";
+      };
 
-    crossFlags = lib.concatStringsSep " " [
-      "-Zlinker-features=-lld"
-      # "--remap-path-prefix=\${HOME}=/build"
-      # "-Zlocation-detail=none"
-    ];
+      macos = {
+        # You will not be able to cross-compile to MacOS targets without an SDK.
+        sdk = "";
+      };
 
-    compileTimePackages = with pkgs; [
-      # The wrapper, linkers, compilers, and pkg-config.
-      cargo-wrapper
-      cargo-zigbuild
-      cargo-xwin
-      rust-toolchain
-      pkg-config
-      # Headers for x86_64-unknown-linux-gnu.
-      alsa-lib.dev
-      libxkbcommon.dev
-      udev.dev
-      wayland.dev
-    ];
+      crossPlatformRustflags = [
+        "--remap-path-prefix $HOME=/build"
+      ];
 
-    # Headers for aarch64-unknown-linux-gnu.
-    aarch64LinuxHeaders = (lib.makeSearchPath "lib/pkgconfig"
-      (with (import nixpkgs { inherit overlays; system = "aarch64-linux"; }); [
-        alsa-lib.dev
-        udev.dev
-        wayland.dev
-      ])
-    );
+      # Base environment for every target to build on.
+      sharedEnvironment = {
+        # Stops blake3 from messing builds up every once in a while.
+        CARGO_FEATURE_PURE = "1";
+      };
 
-    # Environment variables for the MacOS targets.
-    macEnvironment =
+      devEnvironment = { };
+
+      # Environment variables set for individual targets.
+      targetEnvironment =
       let
-        frameworks = "${inputs.mac-sdk}/System/Library/Frameworks";
-      in ''
-        export COREAUDIO_SDK_PATH="${frameworks}/CoreAudio.framework/Headers"
-        export BINDGEN_EXTRA_CLANG_ARGS="${lib.concatStringsSep " " [
-          "--sysroot=${inputs.mac-sdk}"
-          "-F ${frameworks}"
-          "-I${inputs.mac-sdk}/usr/include"
-        ]}"
-        RUSTFLAGS="${lib.concatStringsSep " " [
-          "-L ${inputs.mac-sdk}/usr/lib"
-          "-L framework=${frameworks}"
-          "${crossFlags}"
-          "$RUSTFLAGS"
-        ]}"
-    '';
+        linuxHeaders = system: makeSearchPath "lib/pkgconfig"
+          (with nixpkgs.legacyPackages.${system}; [
+            alsa-lib-with-plugins.dev
+            libxkbcommon.dev
+            openssl.dev
+            udev.dev
+            wayland.dev
+          ]);
+        windows = {
+          XWIN_CROSS_COMPILER = "clang";
+        };
+        macos =
+        let
+          frameworks = "$BF_MACOS_SDK_PATH/System/Library/Frameworks";
+        in {
+          SDKROOT = "$BF_MACOS_SDK_PATH";
+          COREAUDIO_SDK_PATH = "${frameworks}/CoreAudio.framework/Headers";
+          BINDGEN_EXTRA_CLANG_ARGS = concatStringsSep " " [
+            "--sysroot=$BF_MACOS_SDK_PATH"
+            "-F ${frameworks}"
+            "-I$BF_MACOS_SDK_PATH/usr/include"
+          ];
+          RUSTFLAGS = concatStringsSep " " [
+            "-L $BF_MACOS_SDK_PATH/usr/lib"
+            "-L framework=${frameworks}"
+          ];
+        };
+      in {
+        "x86_64-unknown-linux-gnu" = {
+          PKG_CONFIG_PATH = linuxHeaders "x86_64-linux";
+        };
+        "aarch64-unknown-linux-gnu" = {
+          PKG_CONFIG_PATH = linuxHeaders "aarch64-linux";
+        };
+        "wasm32-unknown-unknown" = {
+          RUSTFLAGS = concatStringsSep " " [
+            ''--cfg getrandom_backend=\"wasm_js\"''
+          ];
+        };
+        "x86_64-apple-darwin" = macos;
+        "aarch64-apple-darwin" = macos;
+        "x86_64-pc-windows-msvc" = windows;
+        "aarch64-pc-windows-msvc" = windows;
+      };
 
-    # Wrapping 'cargo', to adapt the environment to context of compilation.
-    cargo-wrapper = pkgs.writeShellScriptBin "cargo" ''
-      # Check if cargo is being run with '--target', or '--no-wrapper'.
-      ARG_COUNT=0
-      for arg in "$@"; do
-        ARG_COUNT=$((ARG_COUNT + 1))
-        case $arg in
-          --target)
-            # Save next arg as target.
-            eval "BEVY_FLAKE_TARGET=\$$((ARG_COUNT + 1))"
-          ;;
-          --no-wrapper)
-            # Remove '--no-wrapper' from args, run cargo without changed env.
-            set -- $(printf '%s\n' "$@" | grep -vx -- '--no-wrapper')
-            exec ${rust-toolchain}/bin/cargo "$@"
-          ;;
-        esac
-      done
+      defaultArgParser = ''
+        # Check if what the adapter is being run with.
+        TARGET_ARG_NO=0
+        for arg in "$@"; do
+          TARGET_ARG_NO=$((TARGET_ARG_NO + 1))
+          case $arg in
+            "--target")
+              # Save next arg as target.
+              eval "BF_TARGET=\$$((TARGET_ARG_NO + 1))"
+              export BF_TARGET="$BF_TARGET"
+            ;;
+            "--no-wrapper")
+              set -- "''${@:1:$((TARGET_ARG_NO - 1))}" \
+                     "''${@:$((TARGET_ARG_NO + 1))}"
+              export BF_NO_WRAPPER="1"
+              break
+            ;;
+          esac
+        done
+      '';
 
-      # Make sure first argument of 'cargo' is correct for target.
-      case $BEVY_FLAKE_TARGET in
-        *-unknown-linux-gnu*);&
-        *-apple-darwin);&
-        wasm32-unknown-unknown)
-          if [ "$1" = 'build' ]; then
-            echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
-            shift
-            set -- "zigbuild" "$@"
-          fi
-        ;;
-        *-pc-windows-msvc)
-          if [ "$1" = 'build' ] || [ "$1" = 'run' ]; then
-            echo "bevy-flake: Aliasing '$1' to 'xwin $1'" 1>&2 
-            set -- "xwin" "$@"
-          fi
-        ;;
-      esac
+      extraScript = "";
 
-      # Environment variables for all targets.
-      ## Stops 'blake3' from messing up.
-      export CARGO_FEATURE_PURE=1
-      ## Needed for MacOS target, and many non-bevy crates.
-      export LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
+      mkRustToolchain = targets: pkgs:
+        pkgs.symlinkJoin {
+          name = "nixpkgs-rust-toolchain";
+          pname = "cargo";
+          paths = with pkgs; [
+            cargo
+            clippy
+            rust-analyzer
+            rustc
+            rustfmt
+          ];
+        };
 
-      # Set final environment variables based on target.
-      case $BEVY_FLAKE_TARGET in
-        # No target means local system, sets localFlags if running or building.
-        "")
-          if [ "$1" = 'zigbuild' ] || [ "$1 $2" = 'xwin build' ]; then
-            echo "bevy-flake: Cannot use 'cargo $@' without a '--target'"
-            exit 1
-          elif [ "$1" = 'run' ] || [ "$1" = 'build' ]; then
-            RUSTFLAGS="${localFlags} $RUSTFLAGS"
-          fi
-        ;;
+      mkRuntimeInputs = pkgs:
+        optionals (pkgs.stdenv.isLinux)
+          (with pkgs; [
+            alsa-lib-with-plugins
+            libGL
+            libxkbcommon
+            openssl
+            udev
+            vulkan-loader
+            wayland
+            xorg.libX11
+            xorg.libXcursor
+            xorg.libXi
+            xorg.libXrandr
+          ]);
 
-        aarch64-unknown-linux-gnu*)
-          PKG_CONFIG_PATH="${aarch64LinuxHeaders}:$PKG_CONFIG_PATH"
-          RUSTFLAGS="${crossFlags} $RUSTFLAGS"
-        ;;
-        x86_64-unknown-linux-gnu*|*-pc-windows-msvc)
-          RUSTFLAGS="${crossFlags} $RUSTFLAGS"
-        ;;
-        wasm32-unknown-unknown)
-          # Allows for 'rand' to be compiled.
-          RUSTFLAGS="--cfg getrandom_backend=\"wasm_js\" $RUSTFLAGS"
-          RUSTFLAGS="${crossFlags} $RUSTFLAGS"
-        ;;
-        *-apple-darwin)
-          # Set up MacOS cross-compilation environment if SDK is in inputs.
-          ${if (inputs ? mac-sdk) then macEnvironment else "# None found."}
-        ;;
-      esac
-
-      # Run cargo with relevant RUSTFLAGS.
-      RUSTFLAGS=$RUSTFLAGS exec ${rust-toolchain}/bin/cargo "$@"
-    '';
-  in {
-    devShells.${system}.default = pkgs.mkShell {
-      name = "bevy-flake";
-      packages = shellPackages;
-      nativeBuildInputs = compileTimePackages;
+      mkStdenv = pkgs: pkgs.clangStdenv;
     };
-  };
+
+    mkBf = bf: removeAttrs (makeOverridable bf config) [ "overrideDerivation" ];
+  in
+    mkBf (config:
+    let
+      eachSystem = genAttrs config.systems;
+      packages = import ./packages.nix (config // { inherit nixpkgs; });
+    in {
+      inherit (config) systems;
+      inherit config eachSystem packages;
+
+      devShells = eachSystem (system: {
+        default = nixpkgs.legacyPackages.${system}.mkShell {
+          name = "bevy-flake";
+          packages = [
+            packages.${system}.rust-toolchain
+            # packages.${system}.dioxus-cli
+            # packages.${system}.bevy-cli
+          ];
+        };
+      });
+
+      templates = {
+        nixpkgs = warn "This template does not support any cross-compilation." {
+          path = ./templates/nixpkgs;
+          description = "Get the Rust toolchain from nixpkgs.";
+        };
+        rust-overlay = {
+          path = ./templates/rust-overlay;
+          description = "Get the Rust toolchain through oxalica's rust-overlay.";
+        };
+        fenix = {
+          path = ./templates/fenix;
+          description = "Get the Rust toolchain through nix-community's fenix.";
+        };
+      };
+  });
 }

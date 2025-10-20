@@ -2,145 +2,142 @@
 
 ## Who is this for?
 
-This flake is for developers who just want to develop Bevy on their NixOS
-system, while also having the ability to distribute their games to other
-operating systems, without needing to rely on GitHub Actions, or the like.
+This flake is for Nix users, who want to work with Bevy. Its goal is to be
+as easy to use for beginners, as it is ergonomic to use for power users. The
+flake provides a suite of packages useful for Bevy development, that all are
+configured from a single place.
 
-It is designed to be as close to a drop-in solution as possible, such that users
-can easily integrate it into their existing workflow.
+It is for the developer who wants to use a Nix environment to compile portable
+binaries for the major desktop platforms on their own computer, instead of
+having to resort to using Docker, GitHub actions, or the like.
 
-*This flake is not made for packaging your Bevy project for Nix. For that you*
-*should use something like [Naersk.][naersk]*
+The flake is easy to configure and extend, should you want support for a target,
+or a package wrapped, that isn't included by default.
 
-[naersk]: https://github.com/nix-community/naersk
 
-## How does `cargo-wrapper` work?
+## What is the schema of `bevy-flake`?
 
-The shell provided with the flake wraps `cargo` in a shell script, that adapts
-your environment based on the target in 4 steps:
+```nix
+{
+  # The config used for creating this instance.
+  config = <config>;
 
-### Step 1: Check for a target
+  # Systems supported and the eachSystem helper function for this instance.
+  systems = [ <string> ];
+  eachSystem = <function>;
 
-The script checks for the `--target` flag, and if found saves the following
-arg string in the `BEVY_FLAKE_TARGET` variable.
+  # The default devShell, includes the packages that don't need to be built.
+  devShells."<system>".default = <derivation>;
 
-```bash
-# Check if cargo is being run with '--target', or '--no-wrapper'.
-ARG_COUNT=0
-for arg in "$@"; do
-  ARG_COUNT=$((ARG_COUNT + 1))
-  case $arg in
-    --target)
-      # Save next arg as target.
-      eval "BEVY_FLAKE_TARGET=\$$((ARG_COUNT + 1))"
-    ;;
-    --no-wrapper)
-      # Remove '--no-wrapper' from args, run cargo without changed env.
-      set -- $(printf '%s\n' "$@" | grep -vx -- '--no-wrapper')
-      exec ${rust-toolchain}/bin/cargo "$@"
-    ;;
-  esac
-done
+  # All packages pre-wrapped by bevy-flake.
+  packages."<system>" = {
+    rust-toolchain = <derivation>; # Includes the wrapper function, 'envWrap'.
+    dioxus-cli = <derivation>;
+    bevy-cli = <derivation>;
+  };
+
+  # The general templates for the different toolchains.
+  templates."<name>" = <template>;
+
+  # The function used for configuring bevy-flake. Read docs/config.md for info.
+  override = <function>;
+}
 ```
 
-This is also where it checks for the `--no-wrapper` flag. If it encounters it
-here, it removes it from the arguments, and calls `exec` on an unwrapped version
-of `cargo` with said arguments. This replaces the current process with the
-unwrapped version of `cargo`, and the script therefore stops dead in its tracks.
 
-### Step 2: Swap out linker based on `BEVY_FLAKE_TARGET`
+## What does `bevy-flake` do?
 
-`bevy-flake` relies on `cargo-zigbuild` and `cargo-xwin` to cross-compile for
-all non-NixOS targets. For convenience (and to save you from accidentally using
-`cargo build`), the shell script edits your arguments to fit the target.
+The flake provides a preconfigured environment for the Rust toolchain, and a
+couple of packages that are helpful for Bevy development. The environment for
+these packages can be overridden with ones own configuration.
 
-```bash
-# Make sure first argument of 'cargo' is correct for target.
-case $BEVY_FLAKE_TARGET in
-  *-unknown-linux-gnu*);&
-  *-apple-darwin);&
-  wasm32-unknown-unknown)
-    if [ "$1" = 'build' ]; then
-      echo "bevy-flake: Aliasing 'build' to 'zigbuild'" 1>&2 
-      shift
-      set -- "zigbuild" "$@"
-    fi
-  ;;
-  *-pc-windows-msvc)
-    if [ "$1" = 'build' ] || [ "$1" = 'run' ]; then
-      echo "bevy-flake: Aliasing 'build' to 'xwin build'" 1>&2 
-      set -- "xwin" "$@"
-    fi
-  ;;
-esac
-```
 
-### Step 3: Set environment variables for all targets
+## How does `bevy-flake` work?
 
-This is a small section, where we simply export environment variables that are
-used - or could be used - by any target. You can add your own here!
+The environment adapter makes use of the following environment variables:
 
 ```bash
-# Environment variables for all targets.
-## Stops 'blake3' from messing up.
-export CARGO_FEATURE_PURE=1
-## Needed for MacOS target, and many non-bevy crates.
-export LIBCLANG_PATH="${pkgs.libclang.lib}/lib"
+# If this variable is set to "1", the environment wrapper runs the execPath
+# without changing the environment.
+BF_NO_WRAPPER 
+
+# The environment wrapper sets up the MacOS environment variables based on the
+# path given by this environment variable. You should not set this yourself, but
+# set it through the `config.macos.sdk` attribute.
+BF_MACOS_SDK_PATH
+
+# The environment wrapper uses this variable to switch to the appropriate
+# environment for compilation. It includes a default arg parser, that sets this
+# variable to the arg after '--target'. You can swap this parser out for your
+# own, should you use a tool that uses different keywords (see bevy-cli).
+BF_TARGET
 ```
 
-### Step 4: Set environment variables for individual targets
 
-Finally individual targets each get their own environment variables. Here we see
-the `aarch64-unknown-linux-gnu*` target editing the `PKG_CONFIG_PATH` variable
-to push its own headers to the front of the search path. This allows us to
-compile to both ARM and x86-64 linux in the same shell.
+## How do I use `bevy-flake` to wrap one of my own packages?
 
-```bash
-# Set final environment variables based on target.
-case $BEVY_FLAKE_TARGET in
-  # No target means local system, sets localFlags if running or building.
-  "")
-    if [ "$1" = 'zigbuild' ] || [ "$1 $2" = 'xwin build' ]; then
-      echo "bevy-flake: Cannot use 'cargo $@' without a '--target'"
-      exit 1
-    elif [ "$1" = 'run' ] || [ "$1" = 'build' ]; then
-      RUSTFLAGS="${localFlags} $RUSTFLAGS"
-    fi
-  ;;
+Lets say you are wrapping `cowsay`:
 
-  aarch64-unknown-linux-gnu*)
-    PKG_CONFIG_PATH="${aarch64LinuxHeaders}:$PKG_CONFIG_PATH"
-    RUSTFLAGS="${crossFlags} $RUSTFLAGS"
-  ;;
-  x86_64-unknown-linux-gnu*|wasm32-unknown-unknown|*-pc-windows-msvc)
-    RUSTFLAGS="${crossFlags} $RUSTFLAGS"
-  ;;
-  *-apple-darwin)
-    # Set up MacOS cross-compilation environment if SDK is in inputs.
-    ${if (inputs ? mac-sdk) then macEnvironment else "# None found."}
-  ;;
-esac
+```nix
+let
+  inherit (bevy-flake.packages.${system}.rust-toolchain) envWrap;
+  wrapped-cowsay = envWrap {
+    name = "cowsay";
+    execPath = "${pkgs.cowsay}/bin/cowsay";
+  };
+in
+  # ...
+    packages = [
+      wrapped-cowsay
+    ];
+  # ...
 ```
 
-This is where `localFlags` and `crossFlags` are added to RUSTFLAGS.
+Read more on the inner workings of the wrapper, and how to use it [here.][wrap]
 
-Here we also how the MacOS targets get their SDK and environment variables
-exposed, when the `mac-sdk` input is available. Nix is lazily evaluated, so we
-don't get any runtime errors for erronious references to a non-existing SDK, if
-it is not available.
+[wrap]: config.md#wrapper
 
-More on adding the MacOS SDK in: [MacOS](macos.md).
 
-### Finally: Run cargo with adapted environment:
+## What is the future of `bevy-flake`?
 
-If no errors were encounted, we finally run the unwrapped `cargo` with our
-new `RUSTFLAGS`, and other environment variables. I've set it up such that
-`cargo-wrapper` builds the `RUSTFLAGS` upon any existing ones, allowing you to
-do `RUSTFLAGS=foo` from outside the wrapper.
+There are a couple of things that I would like to be added to `bevy-flake`.
 
-```bash
-# Run cargo with relevant RUSTFLAGS.
-RUSTFLAGS=$RUSTFLAGS exec ${rust-toolchain}/bin/cargo "$@"
-```
+1. The flake should include a builder for your Bevy project, such that the Nix
+   build system handles everything deterministically. I have made an attempt at
+   getting this set up, using `makeRustPlatform` with our wrapped Rust
+   toolchain, but could not get it to work.
 
-More on tweaking the flake in: [Tweaks](tweaks.md).
+   It should be set up such that the flake consumer could configure `bevy-flake`
+   with something like `config.projectSource`, and provide the `./.` path for
+   the repo it is used in. In this case the `bf.packages.${system}.default`
+   package should return a derivation that builds every single target, using the
+   wrapped `rust-toolchain` package as the builder.
+
+   With this setup, a user could just run `nix build` for a full build.
+
+   Right now all targets can be compiled to with no internet access, and all
+   libraries used being referenced from the store.
+
+2. The flake should support the mobile targets, ie. Android and iOS. I've tried
+   myself to set it up for a bit, but couldn't get iOS working and therefore put
+   it on the backburner. I might look into it more later.
+
+3. The flake should include some utilities for doing stuff that Bevy itself
+   cannot do properly yet, such as setting up the Window icon, or easily making
+   a MacOS `.app` directory.
+
+If you manage to configure any of this stuff yourself, please open a pull
+request!
+
+
+## What am I allowed to do with the `bevy-flake` repo?
+
+You can do whatever you want with it.
+
+If you find that you dislike the structure of it, or the opinonated design, you
+can just fork it or copy it or just take the bits you find useful for yourself.
+You don't have to provide any credit or include the license or anything like
+that.
+
+This flake is just the culmination of a lot of trial and error, with the goal of
+making Bevy easier to use with Nix.

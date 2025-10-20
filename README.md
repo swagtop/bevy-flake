@@ -2,89 +2,111 @@
 
 # bevy-flake
 
-A simple and easy-to-edit Nix development flake,
-for painless [Bevy][bevy] development and cross-compilation on NixOS.
-This flake is meant to help new NixOS users hit the ground running,
-and get started quickly, with as little hassle as possible.
+A flake for painless development and distribution of [Bevy][bevy] programs.
 
-```sh
-nix develop github:swagtop/bevy-flake
-```
-
-*Using [rust-overlay][overlay] for the rust toolchain,
-and [cargo-zigbuild][zigbuild], [cargo-xwin](xwin) to assist in
-cross-compilation.*
+With `bevy-flake` you can easily configure, compile and run your project on
+NixOS and MacOS, as well as cross-compile portable binaries for non-Nix Linux,
+Windows and MacOS targets.
 
 [bevy]: https://github.com/bevyengine/bevy
-[overlay]: https://github.com/oxalica/rust-overlay/
-[zigbuild]: https://github.com/rust-cross/cargo-zigbuild
-[xwin]: https://github.com/rust-cross/cargo-xwin
+
+> [!NOTE]
+> By compiling to the `*-pc-windows-msvc` targets, you are likely considered to
+> be accepting the [Microsoft Software License Terms.][license]
+
+[license]: https://go.microsoft.com/fwlink/?LinkId=2086102
+
+> [!WARNING]
+> This flake will remain stable until `2026-01-01`, where there will be an
+> update that may have breaking changes, based on feedback on this initial
+> release. After that, you can again count on the flake being stable.
 
 ## Quick setup
 
-Navigate to your Bevy project root:
+First, navigate to your Bevy project root:
 
 ```sh
 cd /path/to/bevy/project
 ```
 
-Fetch `flake.nix` and `flake.lock`, and add them to the git index:
+Then, use the template with your preferred rust toolchain provider (switching
+to a different one later is super easy):
 
 ```sh
-wget https://github.com/swagtop/bevy-flake/raw/refs/heads/main/flake.nix
-wget https://github.com/swagtop/bevy-flake/raw/refs/heads/main/flake.lock
-git add flake.nix flake.lock
+# The default with no cross-compilation, but faster evaluation:
+nix flake init --template github:swagtop/bevy-flake#nixpkgs
+
+# The one using oxalica's rust-overlay:
+nix flake init --template github:swagtop/bevy-flake#rust-overlay
+
+# The one using nix-community's fenix:
+nix flake init --template github:swagtop/bevy-flake#fenix
 ```
 
-Enter the development shell, and then run or compile your Bevy program:
+If you get your toolchain from elsewhere, you should very easily be able to slot
+it in. More on this [here.][config-toolchain]
+
+[config-toolchain]: docs/config.md#mkrusttoolchain
+
+
+## How to use
+
+Add the packages you want from `bevy-flake` to your environment with
+`nix develop`, with `nix shell .#package-name`, or other means.
+
+Then, you can use them like so:
 
 ```sh
-nix develop
+# With 'rust-toolchain', run and compile both for yours and other platforms:
+  # For your Nix system you can run:
+  cargo build
+  cargo run
 
-# Your NixOS system
-cargo build
-cargo run
+  # For other targets, just use '--target':
+  cargo build --target x86_64-unknown-linux-gnu
+  cargo build --target x86_64-pc-windows-msvc
+  cargo build --target aarch64-apple-darwin # <-- Read docs/macos.md!
+  cargo build --target wasm32-unknown-unknown
+  #  (...and so on. )
 
-# Other systems
-cargo build --target x86_64-unknown-linux-gnu
-cargo build --target x86_64-pc-windows-msvc
-cargo build --target aarch64-apple-darwin # <-- Read docs/macos.md!
-cargo build --target wasm32-unknown-unknown
+# With `dioxus-cli`, develop Bevy with hot-patching
+  BEVY_ASSET_ROOT="." dx serve --hot-patch
+
+# With `bevy-cli`, use the alpha CLI tooling that is useful for web builds.
+  bevy run
+  bevy run web --open
 ```
 
-- [Tweaks](docs/tweaks.md)
+You can compile to every target with a `config.targetEnvironment` entry.
+If the target you want isn't in the config, you can add it, and set up the
+environment needed for it yourself. More on that [here.](docs/config.md)
+
+- [Configuration](docs/config.md)
 - [Pitfalls](docs/pitfalls.md)
+- [Windows](docs/windows.md)
 - [MacOS](docs/macos.md)
 
 --------------------------------------------------------------------------------
 
-> [!NOTE]
-> This flake is still under development.
->
-> I'm constantly trying new things to get the smoothest NixOS experience with
-> Bevy possible.
-
 ```
-                                             $ cargo
-                                                 ▼
-                             ╭─────1─────╴ cargo-wrapper ╶─────2─────╮
-                             │                                       │
-                             │                                       │
-                             │    ╔═══════════target/═══════════╗    │
-                             ├─────► debug/                     ║    │
-                             ╰─────► release/                   ║    │
-                                  ║  x86_64-unknown-linux-gnu/ ◄─────┤
-                                  ║  x86_64-pc-windows-msvc/ ◄───────┤
-                                  ║  aarch64-apple-darwin/ ◄─────────╯
+                                            $ cargo
+                                                ▼
+                                 [bevy-flake Environment Adapters]
+                                                ▼
+                             ╭─────1────╴ rust-toolchain ╶─────2──────╮
+                             │                                        │
+                             │                                        │
+                             │    ╔═══════════target/═══════════╗     │
+                             ├─────► debug/                     ║     │
+                             ╰─────► release/                   ║     │
+                                  ║  x86_64-unknown-linux-gnu/ ◄──────┤
+                                  ║  x86_64-pc-windows-msvc/ ◄────────┤
+                                  ║  aarch64-apple-darwin/ ◄──────────┤
+                                  ║    (...and so on. )  ◄────────────╯
                                   ╚═════════════════════════════╝
 
-                    (1) Local NixOS System:           (2) Other Systems:
 
-                    - RUSTFLAGS += localFlags         - RUSTFLAGS += crossFlags
-                    - Runtime packages                - Each targets libraries
-                      provided through rpath            provided by cargo-wrapper
-                    - cargo compiles for              - cargo-zigbuild,
-                      local system and runs             cargo-xwin cross-compile
+               (1) Develop on your Nix system        (2) Cross-compile for other platforms
 ```
 
 - [Details](docs/details.md)
