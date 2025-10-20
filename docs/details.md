@@ -122,6 +122,10 @@ There are a couple of things that I would like to be added to `bevy-flake`.
    myself to set it up for a bit, but couldn't get iOS working and therefore put
    it on the backburner. I might look into it more later.
 
+3. The flake should include some utilities for doing stuff that Bevy itself
+   cannot do properly yet, such as setting up the Window icon, or easily making
+   a MacOS `.app` directory.
+
 If you manage to configure any of this stuff yourself, please open a pull
 request!
 

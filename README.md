@@ -34,13 +34,13 @@ to a different one later is super easy):
 
 ```sh
 # The default with no cross-compilation, but faster evaluation:
-nix flake init --template github:swagtop/bevy-flake/dev#nixpkgs
+nix flake init --template github:swagtop/bevy-flake#nixpkgs
 
 # The one using oxalica's rust-overlay:
-nix flake init --template github:swagtop/bevy-flake/dev#rust-overlay
+nix flake init --template github:swagtop/bevy-flake#rust-overlay
 
 # The one using nix-community's fenix:
-nix flake init --template github:swagtop/bevy-flake/dev#fenix
+nix flake init --template github:swagtop/bevy-flake#fenix
 ```
 
 If you get your toolchain from elsewhere, you should very easily be able to slot
