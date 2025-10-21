@@ -197,7 +197,7 @@ in
                 built-rust-toolchain
               ];
 
-              propagatedBuildInputs = (wrapped-rust-toolchain.runtimeInputs);
+              propagatedBuildInputs = (wrapped-rust-toolchain.nativeBuildInputs);
             } // { inherit envWrap; }
       ) wrapArgs);
 
