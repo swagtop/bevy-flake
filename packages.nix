@@ -43,13 +43,15 @@ in
       postScript ? "",
       extraRuntimeInputs ? []
     }:
-      pkgs.writeShellApplication {
-        inherit name;
-        runtimeInputs = [
-          built-rust-toolchain
-          stdenv.cc
-          pkgs.lld
-        ] ++  runtimeInputsBase ++ extraRuntimeInputs;
+    let
+      runtimeInputs = [
+        built-rust-toolchain
+        stdenv.cc
+        pkgs.lld
+      ] ++ runtimeInputsBase ++ extraRuntimeInputs;
+    in
+      (pkgs.writeShellApplication {
+        inherit name runtimeInputs;
         bashOptions = [ "errexit" "pipefail" ];
         text = ''
           ${argParser}
@@ -104,7 +106,7 @@ in
 
           exec ${execPath} "$@"
         '';
-    };
+    }) // { propagatedBuildInputs = runtimeInputs; };
   in {
     rust-toolchain =
     let
