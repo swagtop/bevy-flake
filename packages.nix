@@ -118,7 +118,8 @@ in
           if [[ $BF_NO_WRAPPER != "1"
              && $BF_TARGET == *"-unknown-linux-gnu"* ]]; then
             args=("$@")
-            args[TARGET_ARG_NO-1]="$BF_TARGET.${linux.glibcVersion}"
+            ARG_ARRAY_INDICE_TO_EDIT=$((TARGET_ARG_NO-1))
+            args[ARG_ARRAY_INDICE_TO_EDIT]="$BF_TARGET.${linux.glibcVersion}"
             set -- "''${args[@]}"
           elif [[ $BF_TARGET == *"-pc-windows-msvc" ]]; then ${
             let
