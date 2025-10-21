@@ -181,6 +181,9 @@ in
       };
     in 
       (makeOverridable (wrapArgsInput:
+      let
+        wrapped-rust-toolchain = (envWrap wrapArgsInput);
+      in
         if (wrapArgsInput.execPath != wrapArgs.execPath)
           then throw
             "Don't override the execPath of rust-toolchain."
@@ -190,9 +193,11 @@ in
               name = "bf-wrapped-rust-toolchain";
               ignoreCollisions = true;
               paths = [
-                (envWrap wrapArgsInput)
+                wrapped-rust-toolchain
                 built-rust-toolchain
               ];
+
+              propagatedBuildInputs = (wrapped-rust-toolchain.runtimeInputs);
             } // { inherit envWrap; }
       ) wrapArgs);
 
