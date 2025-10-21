@@ -47,7 +47,6 @@ in
       runtimeInputs = [
         built-rust-toolchain
         stdenv.cc
-        pkgs.lld
       ] ++ runtimeInputsBase ++ extraRuntimeInputs;
     in
       (pkgs.writeShellApplication {
@@ -106,7 +105,7 @@ in
 
           exec ${execPath} "$@"
         '';
-    }) // { propagatedBuildInputs = runtimeInputs; };
+    });
   in {
     rust-toolchain =
     let
@@ -193,7 +192,6 @@ in
               paths = [
                 (envWrap wrapArgsInput)
                 built-rust-toolchain
-                stdenv.cc
               ];
             } // { inherit envWrap; }
       ) wrapArgs);
