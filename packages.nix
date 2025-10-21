@@ -105,6 +105,7 @@ in
 
           exec ${execPath} "$@"
         '';
+        propagatedBuildInputs = runtimeInputs;
     });
   in {
     rust-toolchain =
@@ -197,7 +198,7 @@ in
                 built-rust-toolchain
               ];
 
-              propagatedBuildInputs = (wrapped-rust-toolchain.nativeBuildInputs);
+              inherit (wrapped-rust-toolchain) propagatedBuildInputs;
             } // { inherit envWrap; }
       ) wrapArgs);
 
