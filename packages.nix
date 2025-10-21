@@ -105,8 +105,7 @@ in
 
           exec ${execPath} "$@"
         '';
-        propagatedBuildInputs = runtimeInputs;
-    });
+    }) // { propagatedBuildInputs = runtimeInputs; };
   in {
     rust-toolchain =
     let
