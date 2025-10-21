@@ -45,10 +45,10 @@ in
     }:
       pkgs.writeShellApplication {
         inherit name;
-        runtimeInputs = runtimeInputsBase ++ extraRuntimeInputs ++ [
-          stdenv.cc
+        runtimeInputs = [
           built-rust-toolchain
-        ];
+          stdenv.cc
+        ] ++  runtimeInputsBase ++ extraRuntimeInputs;
         bashOptions = [ "errexit" "pipefail" ];
         text = ''
           ${argParser}
