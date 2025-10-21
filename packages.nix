@@ -48,6 +48,8 @@ in
         runtimeInputs = [
           built-rust-toolchain
           stdenv.cc
+          pkgs.lld
+          pkgs.ld
         ] ++  runtimeInputsBase ++ extraRuntimeInputs;
         bashOptions = [ "errexit" "pipefail" ];
         text = ''
