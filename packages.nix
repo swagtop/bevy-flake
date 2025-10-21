@@ -61,6 +61,8 @@ in
           export BF_MACOS_SDK_PATH="${macos.sdk}"
 
           # Base environment for all targets.
+          export CC="${stdenv.cc}/bin/cc"
+          export CXX="${stdenv.cc}/bin/c++"
           export PKG_CONFIG_ALLOW_CROSS="1"
           export LIBCLANG_PATH="${pkgs.libclang.lib}/lib";
           export LIBRARY_PATH="${pkgs.libiconv}/lib";
@@ -182,14 +184,14 @@ in
             "Don't override the execPath of rust-toolchain."
             + "Set it to use a different toolchain through the config."
           else
-            built-rust-toolchain // (pkgs.symlinkJoin {
+            pkgs.symlinkJoin {
               name = "bf-wrapped-rust-toolchain";
               ignoreCollisions = true;
               paths = [
                 (envWrap wrapArgsInput)
                 built-rust-toolchain
               ];
-            } // { inherit envWrap; })
+            } // { inherit envWrap; }
       ) wrapArgs);
 
     # For now we have to override the package for hot-reloading.
