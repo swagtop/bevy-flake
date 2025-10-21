@@ -78,7 +78,7 @@
       in {
         "x86_64-unknown-linux-gnu" = {
           PKG_CONFIG_PATH = linuxHeaders "x86_64-linux";
-          RUSTFLAGS = "$RUSTFLAGS";
+          RUSTFLAGS = "-C linker=cc $RUSTFLAGS";
         };
         "aarch64-unknown-linux-gnu" = {
           PKG_CONFIG_PATH = linuxHeaders "aarch64-linux";
