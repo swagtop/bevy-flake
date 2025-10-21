@@ -33,7 +33,7 @@
       };
 
       crossPlatformRustflags = [
-        "--remap-path-prefix $HOME=/build"
+        # "--remap-path-prefix $HOME=/build"
       ];
 
       # Base environment for every target to build on.
