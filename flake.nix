@@ -72,18 +72,22 @@
           RUSTFLAGS = concatStringsSep " " [
             "-L $BF_MACOS_SDK_PATH/usr/lib"
             "-L framework=${frameworks}"
+            "$RUSTFLAGS"
           ];
         };
       in {
         "x86_64-unknown-linux-gnu" = {
           PKG_CONFIG_PATH = linuxHeaders "x86_64-linux";
+          RUSTFLAGS = "$RUSTFLAGS";
         };
         "aarch64-unknown-linux-gnu" = {
           PKG_CONFIG_PATH = linuxHeaders "aarch64-linux";
+          RUSTFLAGS = "$RUSTFLAGS";
         };
         "wasm32-unknown-unknown" = {
           RUSTFLAGS = concatStringsSep " " [
             ''--cfg getrandom_backend=\"wasm_js\"''
+            "$RUSTFLAGS"
           ];
         };
         "x86_64-apple-darwin" = macos;
