@@ -182,14 +182,14 @@ in
             "Don't override the execPath of rust-toolchain."
             + "Set it to use a different toolchain through the config."
           else
-            pkgs.symlinkJoin {
+            built-rust-toolchain // (pkgs.symlinkJoin {
               name = "bf-wrapped-rust-toolchain";
               ignoreCollisions = true;
               paths = [
                 (envWrap wrapArgsInput)
                 built-rust-toolchain
               ];
-            } // { inherit envWrap; }
+            } // { inherit envWrap; })
       ) wrapArgs);
 
     # For now we have to override the package for hot-reloading.
