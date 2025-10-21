@@ -49,7 +49,7 @@ in
           stdenv.cc
           built-rust-toolchain
         ];
-        bashOptions = [ "pipefail" ];
+        bashOptions = [ "errexit" "pipefail" ];
         text = ''
           ${argParser}
         
@@ -117,10 +117,9 @@ in
         argParser = defaultArgParser + ''
           if [[ $BF_NO_WRAPPER != "1"
              && $BF_TARGET == *"-unknown-linux-gnu"* ]]; then
-            args=("$@")
-            ARG_ARRAY_INDICE_TO_EDIT=$((TARGET_ARG_NO-1))
-            args[$ARG_ARRAY_INDICE_TO_EDIT]="$BF_TARGET.${linux.glibcVersion}"
-            set -- "''${args[@]}"
+            # args=("$@")
+            # args[TARGET_ARG_NO-1]="$BF_TARGET.${linux.glibcVersion}"
+            # set -- "''${args[@]}"
           elif [[ $BF_TARGET == *"-pc-windows-msvc" ]]; then ${
             let
               cacheDirBase = (if (pkgs.stdenv.isDarwin)
