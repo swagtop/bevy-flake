@@ -49,7 +49,7 @@ in
           stdenv.cc
           built-rust-toolchain
         ];
-        bashOptions = [ "errexit" "pipefail" ];
+        bashOptions = [ "pipefail" ];
         text = ''
           ${argParser}
         
