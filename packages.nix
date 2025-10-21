@@ -61,8 +61,8 @@ in
           export BF_MACOS_SDK_PATH="${macos.sdk}"
 
           # Base environment for all targets.
-          export CC="${stdenv.cc}/bin/cc"
-          export CXX="${stdenv.cc}/bin/c++"
+          # export CC="${stdenv.cc}/bin/cc"
+          # export CXX="${stdenv.cc}/bin/c++"
           export PKG_CONFIG_ALLOW_CROSS="1"
           export LIBCLANG_PATH="${pkgs.libclang.lib}/lib";
           export LIBRARY_PATH="${pkgs.libiconv}/lib";
@@ -190,6 +190,7 @@ in
               paths = [
                 (envWrap wrapArgsInput)
                 built-rust-toolchain
+                stdenv.cc
               ];
             } // { inherit envWrap; }
       ) wrapArgs);
