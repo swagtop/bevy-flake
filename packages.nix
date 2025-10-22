@@ -186,7 +186,7 @@ in
         '';
       };
     in 
-      (makeOverridable (wrapArgsInput: envWrap wrapArgsInput));
+      (makeOverridable (wrapArgsInput: envWrap wrapArgsInput) wrapArgs);
       # let
       #   wrapped-rust-toolchain = (envWrap wrapArgsInput);
       #   symlinked-wrapped-rust-toolchain = 
