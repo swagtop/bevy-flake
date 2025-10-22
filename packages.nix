@@ -198,7 +198,10 @@ in
                   wrapped-rust-toolchain
                   built-rust-toolchain
                 ];
-              } // { inherit envWrap; };
+              } // {
+                inherit envWrap;
+                unwrapped = built-rust-toolchain;
+              };
       in
         (symlinked-wrapped-rust-toolchain)
       ) wrapArgs);
