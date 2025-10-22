@@ -110,6 +110,7 @@ in
     }) // {
       inherit stdenv;
       propagatedNativeBuildInputs = runtimeInputs;
+      nativeBuildInputs = runtimeInputs;
     };
   in {
     rust-toolchain =
@@ -204,7 +205,8 @@ in
 
                 propagatedNativeBuildInputs =
                   built-rust-toolchain.propagatedNativeBuildInputs
-                  ++ wrapped-rust-toolchain.propagatedNativeBuildInputs;
+                  ++ wrapped-rust-toolchain.propagatedNativeBuildInputs
+                  ++ wrapped-rust-toolchain.nativeBuildInputs;
                 # inherit (wrapped-rust-toolchain) propagatedNativeBuildInputs;
               } // { inherit envWrap; };
       in
