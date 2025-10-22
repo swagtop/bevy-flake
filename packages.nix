@@ -201,6 +201,7 @@ in
               } // {
                 inherit envWrap;
                 unwrapped = built-rust-toolchain;
+                wrapper = wrapped-rust-toolchain;
               };
       in
         (symlinked-wrapped-rust-toolchain)
