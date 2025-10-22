@@ -45,9 +45,9 @@ in
     }:
     let
       runtimeInputs = [
-        pkgs.lld
         built-rust-toolchain
         stdenv.cc
+        pkgs.llvmPackages.bintools
         pkgs.pkg-config
       ] ++ runtimeInputsBase ++ extraRuntimeInputs;
     in
