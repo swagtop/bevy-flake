@@ -45,10 +45,10 @@ in
     }:
     let
       runtimeInputs = [
+        pkgs.lld
         built-rust-toolchain
         stdenv.cc
         pkgs.pkg-config
-        pkgs.lld
       ] ++ runtimeInputsBase ++ extraRuntimeInputs;
     in
       (pkgs.writeShellApplication {
@@ -200,8 +200,8 @@ in
                 ];
               } // {
                 inherit envWrap;
-                unwrapped = built-rust-toolchain;
                 wrapper = wrapped-rust-toolchain;
+                unwrapped = built-rust-toolchain;
               };
       in
         (symlinked-wrapped-rust-toolchain)
