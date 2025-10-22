@@ -250,6 +250,7 @@ in
         name = "bevy-cli-${version}";
         nativeBuildInputs = [
           pkgs.openssl.dev
+          pkgs.pkg-config
         ];
         PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
         cargoLock.lockFile = "${src}/Cargo.lock";
