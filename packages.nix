@@ -47,6 +47,7 @@ in
       runtimeInputs = [
         built-rust-toolchain
         stdenv.cc
+        pkgs.pkg-config
       ] ++ runtimeInputsBase ++ extraRuntimeInputs;
     in
       (pkgs.writeShellApplication {
@@ -105,7 +106,7 @@ in
 
           exec ${execPath} "$@"
         '';
-    }) // { propagatedBuildInputs = runtimeInputs; };
+    }) // { propagatedNativeBuildInputs = runtimeInputs; };
   in {
     rust-toolchain =
     let
@@ -183,22 +184,27 @@ in
       (makeOverridable (wrapArgsInput:
       let
         wrapped-rust-toolchain = (envWrap wrapArgsInput);
-      in
-        if (wrapArgsInput.execPath != wrapArgs.execPath)
-          then throw
-            "Don't override the execPath of rust-toolchain."
-            + "Set it to use a different toolchain through the config."
-          else
-            pkgs.symlinkJoin {
-              name = "bf-wrapped-rust-toolchain";
-              ignoreCollisions = true;
-              paths = [
-                wrapped-rust-toolchain
-                built-rust-toolchain
-              ];
+        symlinked-wrapped-rust-toolchain = 
+          if (wrapArgsInput.execPath != wrapArgs.execPath)
+            then throw
+              "Don't override the execPath of rust-toolchain."
+              + "Set it to use a different toolchain through the config."
+            else
+              pkgs.symlinkJoin {
+                name = "bf-wrapped-rust-toolchain";
+                ignoreCollisions = true;
+                paths = [
+                  wrapped-rust-toolchain
+                  built-rust-toolchain
+                ];
 
-              inherit (wrapped-rust-toolchain) propagatedBuildInputs;
-            } // { inherit envWrap; }
+                propagatedNativeBuildInputs =
+                  built-rust-toolchain.propagatedNativeBuildInputs
+                  ++ wrapped-rust-toolchain.propagatedNativeBuildInputs;
+                # inherit (wrapped-rust-toolchain) propagatedNativeBuildInputs;
+              } // { inherit envWrap; };
+      in
+        (symlinked-wrapped-rust-toolchain)
       ) wrapArgs);
 
     # For now we have to override the package for hot-reloading.
@@ -248,7 +254,6 @@ in
         name = "bevy-cli-${version}";
         nativeBuildInputs = [
           pkgs.openssl.dev
-          pkgs.pkg-config
         ];
         PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
         cargoLock.lockFile = "${src}/Cargo.lock";
