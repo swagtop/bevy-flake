@@ -107,11 +107,7 @@ in
 
           exec ${execPath} "$@"
         '';
-    }) // {
-      inherit stdenv;
-      propagatedNativeBuildInputs = runtimeInputs;
-      nativeBuildInputs = runtimeInputs;
-    };
+    });
   in {
     rust-toolchain =
     let
@@ -186,33 +182,26 @@ in
         '';
       };
     in 
-      (makeOverridable (wrapArgsInput: envWrap wrapArgsInput) wrapArgs);
-      # let
-      #   wrapped-rust-toolchain = (envWrap wrapArgsInput);
-      #   symlinked-wrapped-rust-toolchain = 
-      #     if (wrapArgsInput.execPath != wrapArgs.execPath)
-      #       then throw
-      #         "Don't override the execPath of rust-toolchain."
-      #         + "Set it to use a different toolchain through the config."
-      #       else
-      #         pkgs.symlinkJoin {
-      #           name = "bf-wrapped-rust-toolchain";
-      #           ignoreCollisions = true;
-      #           paths = [
-      #             wrapped-rust-toolchain
-      #             built-rust-toolchain
-      #           ];
-
-      #           propagatedNativeBuildInputs =
-      #             built-rust-toolchain.propagatedNativeBuildInputs
-      #             ++ wrapped-rust-toolchain.propagatedNativeBuildInputs
-      #             ++ wrapped-rust-toolchain.nativeBuildInputs;
-      #           # inherit (wrapped-rust-toolchain) propagatedNativeBuildInputs;
-      #         } // { inherit envWrap; };
-      # in
-      #   (symlinked-wrapped-rust-toolchain)
-      #     // { inherit (wrapped-rust-toolchain) stdenv; }
-      # ) wrapArgs);
+      (makeOverridable (wrapArgsInput:
+      let
+        wrapped-rust-toolchain = (envWrap wrapArgsInput);
+        symlinked-wrapped-rust-toolchain = 
+          if (wrapArgsInput.execPath != wrapArgs.execPath)
+            then throw
+              "Don't override the execPath of rust-toolchain."
+              + "Set it to use a different toolchain through the config."
+            else
+              pkgs.buildEnv {
+                name = "bf-wrapped-rust-toolchain";
+                ignoreCollisions = true;
+                paths = [
+                  wrapped-rust-toolchain
+                  built-rust-toolchain
+                ];
+              } // { inherit envWrap; };
+      in
+        (symlinked-wrapped-rust-toolchain)
+      ) wrapArgs);
 
     # For now we have to override the package for hot-reloading.
     dioxus-cli = 
