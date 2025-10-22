@@ -48,6 +48,7 @@ in
         built-rust-toolchain
         stdenv.cc
         pkgs.pkg-config
+        pkgs.lld
       ] ++ runtimeInputsBase ++ extraRuntimeInputs;
     in
       (pkgs.writeShellApplication {
@@ -239,7 +240,7 @@ in
     in
       makeOverridable envWrap {
         name = "dx";
-        extraRuntimeInputs = [ pkgs.lld ];
+        extraRuntimeInputs = [  ];
         execPath = "${dioxus-cli-package}/bin/dx";
       };
 
@@ -267,7 +268,6 @@ in
       makeOverridable envWrap {
         name = "bevy";
         extraRuntimeInputs = [
-          pkgs.lld
           (pkgs.wasm-bindgen-cli_0_2_104
             or (warn "Your nixpkgs is too old for bevy-cli web builds."
               pkgs.emptyDirectory)
