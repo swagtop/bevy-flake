@@ -106,7 +106,10 @@ in
 
           exec ${execPath} "$@"
         '';
-    }) // { propagatedNativeBuildInputs = runtimeInputs; };
+    }) // {
+      inherit stdenv;
+      propagatedNativeBuildInputs = runtimeInputs;
+    };
   in {
     rust-toolchain =
     let
@@ -205,6 +208,7 @@ in
               } // { inherit envWrap; };
       in
         (symlinked-wrapped-rust-toolchain)
+          // { inherit (wrapped-rust-toolchain) stdenv; }
       ) wrapArgs);
 
     # For now we have to override the package for hot-reloading.
