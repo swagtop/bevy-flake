@@ -47,8 +47,8 @@ in
       runtimeInputs = [
         built-rust-toolchain
         stdenv.cc
-        stdenv.cc.libc
-        pkgs.llvmPackages.bintools
+        # stdenv.cc.libc
+        # pkgs.llvmPackages.bintools
         pkgs.pkg-config
       ] ++ runtimeInputsBase ++ extraRuntimeInputs;
     in
@@ -66,8 +66,6 @@ in
           export BF_MACOS_SDK_PATH="${macos.sdk}"
 
           # Base environment for all targets.
-          # export CC="${stdenv.cc}/bin/cc"
-          # export CXX="${stdenv.cc}/bin/c++"
           export PKG_CONFIG_ALLOW_CROSS="1"
           export LIBCLANG_PATH="${pkgs.libclang.lib}/lib";
           export LIBRARY_PATH="${pkgs.libiconv}/lib";
