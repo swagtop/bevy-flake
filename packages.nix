@@ -47,8 +47,7 @@ in
       runtimeInputs = [
         built-rust-toolchain
         stdenv.cc
-        # stdenv.cc.libc
-        # pkgs.llvmPackages.bintools
+        pkgs.llvmPackages.bintools
         pkgs.pkg-config
       ] ++ runtimeInputsBase ++ extraRuntimeInputs;
     in

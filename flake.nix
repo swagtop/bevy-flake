@@ -33,7 +33,8 @@
       };
 
       crossPlatformRustflags = [
-        # "--remap-path-prefix $HOME=/build"
+        # Needed for working around 'lld' on newer toolchains.
+        "-C link-self-contained=-linker"
       ];
 
       # Base environment for every target to build on.
