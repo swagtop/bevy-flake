@@ -33,8 +33,7 @@
       };
 
       crossPlatformRustflags = [
-        # Needed for working around 'lld' on newer toolchains.
-        "-C link-self-contained=-linker"
+        
       ];
 
       # Base environment for every target to build on.
@@ -79,11 +78,11 @@
       in {
         "x86_64-unknown-linux-gnu" = {
           PKG_CONFIG_PATH = linuxHeaders "x86_64-linux";
-          RUSTFLAGS = "$RUSTFLAGS";
+          RUSTFLAGS = "-C link-self-contained=-linker $RUSTFLAGS";
         };
         "aarch64-unknown-linux-gnu" = {
           PKG_CONFIG_PATH = linuxHeaders "aarch64-linux";
-          RUSTFLAGS = "$RUSTFLAGS";
+          RUSTFLAGS = "-C link-self-contained=-linker $RUSTFLAGS";
         };
         "wasm32-unknown-unknown" = {
           RUSTFLAGS = concatStringsSep " " [
