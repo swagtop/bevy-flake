@@ -160,8 +160,7 @@ in
               ''}
               if [[ "$1" == "build" ]]; then
                 echo "bevy-flake: Switching to 'cargo-zigbuild'" 1>&2 
-                shift
-                exec ${pkgs.cargo-zigbuild}/bin/cargo-zigbuild zigbuild "$@"
+                exec ${pkgs.cargo-zigbuild}/bin/cargo-zigbuild zigbuild ("''${@:2}")
               fi
             ;;
             *-pc-windows-msvc)
