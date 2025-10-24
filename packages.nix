@@ -121,7 +121,7 @@ in
         argParser = defaultArgParser + ''
           if [[ $BF_NO_WRAPPER != "1"
              && $BF_TARGET == *"-unknown-linux-gnu"* ]]; then
-               set -- "''${@:1:$TARGET_ARG_NO}" "$BF_TARGET.${linux.glibcVersion}" "''${@:$((TARGET_ARG_NO+1))}"
+               set -- "''${@:1:$((TARGET_ARG_NO))}" "$BF_TARGET.${linux.glibcVersion}" "''${@:$((TARGET_ARG_NO+2))}"
                echo "ARGS = " "$@"
           elif [[ $BF_TARGET == *"-pc-windows-msvc" ]]; then ${
             let
