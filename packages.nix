@@ -122,7 +122,7 @@ in
           if [[ $BF_NO_WRAPPER != "1"
              && $BF_TARGET == *"-unknown-linux-gnu"* ]]; then
                set -- "''${@:1:$ARG_NO}" "$BF_TARGET.${linux.glibcVersion}" "''${@:$((ARG_NO+1))}"
-               echo "ARGS = $@"
+               echo "ARGS = " "$@"
           elif [[ $BF_TARGET == *"-pc-windows-msvc" ]]; then ${
             let
               cacheDirBase = (if (pkgs.stdenv.isDarwin)
