@@ -124,10 +124,9 @@ in
           if [[ $BF_NO_WRAPPER != "1" ]]; then
              if [[ $BF_TARGET == *"-unknown-linux-gnu"* ]]; then
                 # Insert glibc version for Linux targets.
-               set -- ${concatStringsSep " " [
-                 "\${@:1:$((TARGET_ARG_NO-1))}" 
-                 "$BF_TARGET.${linux.glibcVersion}"
-                 "\${@:$((TARGET_ARG_NO+1))}"
+               set -- "''${@:1:TARGET_ARG_NO-1))}" \
+                      "$BF_TARGET.${linux.glibcVersion}" \
+                      "''${@:$((TARGET_ARG_NO+1))}"
                ]}
             elif [[ $BF_TARGET == *"-pc-windows-msvc" ]]; then ${
               let
