@@ -121,9 +121,10 @@ in
         argParser = defaultArgParser + ''
           if [[ $BF_NO_WRAPPER != "1"
              && $BF_TARGET == *"-unknown-linux-gnu"* ]]; then
-               args=("$@")
-               args[$((TARGET_ARG_NO-1))]="$BF_TARGET.${linux.glibcVersion}"
-               set -- "''${args[@]}"
+               export CARGO_TARGET="$BF_TARGET.${linux.glibcVersion}"
+               # args=("$@")
+               # args[$((TARGET_ARG_NO-1))]="$BF_TARGET.${linux.glibcVersion}"
+               # set -- "''${args[@]}"
           elif [[ $BF_TARGET == *"-pc-windows-msvc" ]]; then ${
             let
               cacheDirBase = (if (pkgs.stdenv.isDarwin)
@@ -160,7 +161,7 @@ in
               ''}
               if [[ "$1" == "build" ]]; then
                 echo "bevy-flake: Switching to 'cargo-zigbuild'" 1>&2 
-                NEW_ARGS=(''${@:2})
+                NEW_ARGS=("''${@:2}")
                 exec ${pkgs.cargo-zigbuild}/bin/cargo-zigbuild zigbuild $NEW_ARGS
               fi
             ;;
