@@ -127,7 +127,6 @@ in
                set -- "''${@:1:TARGET_ARG_NO-1))}" \
                       "$BF_TARGET.${linux.glibcVersion}" \
                       "''${@:$((TARGET_ARG_NO+1))}"
-               ]}
             elif [[ $BF_TARGET == *"-pc-windows-msvc" ]]; then ${
               let
                 cacheDirBase = (if (pkgs.stdenv.isDarwin)
