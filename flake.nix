@@ -104,7 +104,6 @@
               TARGET_ARG_NO=$((TARGET_ARG_NO + 1))
               eval "BF_TARGET=\$$TARGET_ARG_NO"
               export BF_TARGET="$BF_TARGET"
-              echo "$BF_TARGET"
             ;;
             "--no-wrapper")
               set -- "''${@:1:$((TARGET_ARG_NO - 1))}" \
