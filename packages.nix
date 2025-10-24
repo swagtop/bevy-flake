@@ -124,7 +124,7 @@ in
           if [[ $BF_NO_WRAPPER != "1" ]]; then
              if [[ $BF_TARGET == *"-unknown-linux-gnu"* ]]; then
                 # Insert glibc version for Linux targets.
-               set -- "''${@:1:TARGET_ARG_NO-1))}" \
+               set -- "''${@:1:((TARGET_ARG_NO-1))}" \
                       "$BF_TARGET.${linux.glibcVersion}" \
                       "''${@:$((TARGET_ARG_NO+1))}"
             elif [[ $BF_TARGET == *"-pc-windows-msvc" ]]; then ${
@@ -206,14 +206,14 @@ in
               };
       in
         (symlinked-wrapped-rust-toolchain)
-      ) wrapArgs);
+      ) wrapArgs) // { targetPlatforms = systems; badTargetPlatforms = []; };
   in {
     inherit rust-toolchain;
 
     # For now we have to override the package for hot-reloading.
     dioxus-cli = 
     let
-      version = "0.7.0-rc.1";
+      version = "0.7.0-rc.2";
       dioxus-cli-package = pkgs.dioxus-cli.override (old: {
         rustPlatform = old.rustPlatform // {
           buildRustPackage = args:
@@ -223,9 +223,9 @@ in
                 src = old.fetchCrate {
                   inherit version;
                   pname = "dioxus-cli";
-                  hash = "sha256-Gri7gJe9b1q0qP+m0fe4eh+xj3wqi2get4Rqz6xL8yA=";
+                  hash = "sha256-DbUmju1vM1LV95wbCNrMvphYI66mGWUi5mUZ+gVTNcE=";
                 };
-                cargoHash = "sha256-+HPWgiFc7pbosHWpRvHcSj7DZHD9sIPOE3S5LTrDb6I=";
+                cargoHash = "sha256-XePXhKrp4oydI13ytjyKAYRxNG6EBpF4llTk9//icik=";
 
                 cargoPatches = [ ];
                 buildFeatures = [ ];
@@ -286,10 +286,7 @@ in
       pkgs = nixpkgs.legacyPackages.${system};
       rustPlatform = pkgs.makeRustPlatform {
         cargo = rust-toolchain;
-        rustc = rust-toolchain // {
-          targetPlatforms = systems;
-          badTargetPlatforms = [];
-        };
+        rustc = rust-toolchain;
       };
       allTargets = genAttrs (attrNames targetEnvironment) (target:
         rustPlatform.buildRustPackage {
