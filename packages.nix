@@ -121,9 +121,9 @@ in
         argParser = defaultArgParser + ''
           if [[ $BF_NO_WRAPPER != "1"
              && $BF_TARGET == *"-unknown-linux-gnu"* ]]; then
-            args=("$@")
-            args[TARGET_ARG_NO-1]="$BF_TARGET.${linux.glibcVersion}"
-            set -- "''${args[@]}"
+               args=("$@")
+               args[$((TARGET_ARG_NO-1))]="$BF_TARGET.${linux.glibcVersion}"
+               set -- "''${args[@]}"
           elif [[ $BF_TARGET == *"-pc-windows-msvc" ]]; then ${
             let
               cacheDirBase = (if (pkgs.stdenv.isDarwin)
