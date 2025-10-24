@@ -121,8 +121,9 @@ in
         argParser = defaultArgParser + ''
           if [[ $BF_NO_WRAPPER != "1"
              && $BF_TARGET == *"-unknown-linux-gnu"* ]]; then
-               set -- "''${@:1:$((TARGET_ARG_NO))}" "$BF_TARGET.${linux.glibcVersion}" "''${@:$((TARGET_ARG_NO+2))}"
+               set -- "''${@:1:$((TARGET_ARG_NO-2))}" "$BF_TARGET.${linux.glibcVersion}" "''${@:$((TARGET_ARG_NO+1))}"
                echo "ARGS = " "$@"
+               echo "NO = " "\$$TARGET_ARG_NO"
           elif [[ $BF_TARGET == *"-pc-windows-msvc" ]]; then ${
             let
               cacheDirBase = (if (pkgs.stdenv.isDarwin)
