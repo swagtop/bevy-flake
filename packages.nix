@@ -121,10 +121,7 @@ in
         argParser = defaultArgParser + ''
           if [[ $BF_NO_WRAPPER != "1"
              && $BF_TARGET == *"-unknown-linux-gnu"* ]]; then
-               export CARGO_TARGET="$BF_TARGET.${linux.glibcVersion}"
-               # args=("$@")
-               # args[$((TARGET_ARG_NO-1))]="$BF_TARGET.${linux.glibcVersion}"
-               # set -- "''${args[@]}"
+               set -- "''${@:1:$ARG_NO}" "$BF_TARGET.${linux.glibcVersion}" "''${@:$((ARG_NO+1))}"
           elif [[ $BF_TARGET == *"-pc-windows-msvc" ]]; then ${
             let
               cacheDirBase = (if (pkgs.stdenv.isDarwin)
