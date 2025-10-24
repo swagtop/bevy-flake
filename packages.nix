@@ -44,12 +44,12 @@ in
       extraRuntimeInputs ? []
     }:
     let
-      runtimeInputs = [
-        built-rust-toolchain
-      ] ++ runtimeInputsBase ++ extraRuntimeInputs ++ [
-        stdenv.cc
-        pkgs.pkg-config
-      ];
+      runtimeInputs =
+        runtimeInputsBase ++ extraRuntimeInputs ++ [
+          stdenv.cc
+          built-rust-toolchain
+          pkgs.pkg-config
+        ];
     in
       (pkgs.writeShellApplication {
         inherit name runtimeInputs;
