@@ -45,7 +45,7 @@ in
     }:
     let
       runtimeInputs = [
-        pkgs.llvmPackages.bintools
+        pkgs.lld
         built-rust-toolchain
         stdenv.cc
         pkgs.pkg-config
