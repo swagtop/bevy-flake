@@ -162,7 +162,7 @@ in
               if [[ "$1" == "build" ]]; then
                 echo "bevy-flake: Switching to 'cargo-zigbuild'" 1>&2 
                 NEW_ARGS=("''${@:2}")
-                exec ${pkgs.cargo-zigbuild}/bin/cargo-zigbuild zigbuild $NEW_ARGS
+                exec ${pkgs.cargo-zigbuild}/bin/cargo-zigbuild zigbuild "$NEW_ARGS"
               fi
             ;;
             *-pc-windows-msvc)
