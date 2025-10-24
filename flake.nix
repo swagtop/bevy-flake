@@ -151,6 +151,8 @@
           ]);
 
       mkStdenv = pkgs: pkgs.clangStdenv;
+
+      buildSource = null;
     };
 
     mkBf = bf: removeAttrs (makeOverridable bf config) [ "overrideDerivation" ];

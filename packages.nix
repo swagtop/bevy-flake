@@ -18,12 +18,15 @@
   mkRustToolchain,
   mkRuntimeInputs,
   mkStdenv,
+
+  buildSource,
 }:
 let
   inherit (builtins)
     attrNames concatStringsSep warn throw;
   inherit (nixpkgs.lib)
-    optionalString genAttrs mapAttrsToList makeOverridable makeSearchPath;
+    genAttrs mapAttrsToList optionalAttrs
+    optionalString makeOverridable makeSearchPath;
 in
   genAttrs systems (system:
   let
@@ -106,7 +109,7 @@ in
           exec ${execPath} "$@"
         '';
     });
-  in {
+
     rust-toolchain =
     let
       wrapArgs = {
@@ -117,28 +120,31 @@ in
         ];
         execPath = "${built-rust-toolchain}/bin/cargo";
 
-        # Insert glibc version for Linux targets.
         argParser = defaultArgParser + ''
-          if [[ $BF_NO_WRAPPER != "1"
-             && $BF_TARGET == *"-unknown-linux-gnu"* ]]; then
-               set -- "''${@:1:$((TARGET_ARG_NO-1))}" "$BF_TARGET.${linux.glibcVersion}" "''${@:$((TARGET_ARG_NO+1))}"
-               echo "ARGS = " "$@"
-               echo "NO = " "\$$TARGET_ARG_NO"
-          elif [[ $BF_TARGET == *"-pc-windows-msvc" ]]; then ${
-            let
-              cacheDirBase = (if (pkgs.stdenv.isDarwin)
-                then "$HOME/Library/Caches/"
-                else "\${XDG_CACHE_HOME:-$HOME/.cache}/"
-              ) + "bevy-flake";
-            in
-              (exportEnv {
-                XWIN_CACHE_DIR = cacheDirBase + (
-                  if (windows ? sysroot)
-                    then windows.sysroot
-                    else "/xwin"
-                );
-              })
-            }
+          if [[ $BF_NO_WRAPPER != "1" ]]; then
+             if [[ $BF_TARGET == *"-unknown-linux-gnu"* ]]; then
+                # Insert glibc version for Linux targets.
+               set -- ${concatStringsSep " " [
+                 "\${@:1:$((TARGET_ARG_NO-1))}" 
+                 "$BF_TARGET.${linux.glibcVersion}"
+                 "\${@:$((TARGET_ARG_NO+1))}"
+               ]}
+            elif [[ $BF_TARGET == *"-pc-windows-msvc" ]]; then ${
+              let
+                cacheDirBase = (if (pkgs.stdenv.isDarwin)
+                  then "$HOME/Library/Caches/"
+                  else "\${XDG_CACHE_HOME:-$HOME/.cache}/"
+                ) + "bevy-flake";
+              in
+                (exportEnv {
+                  XWIN_CACHE_DIR = cacheDirBase + (
+                    if (windows ? sysroot)
+                      then windows.sysroot
+                      else "/xwin"
+                  );
+                })
+              }
+            fi
           fi
         '';
 
@@ -203,6 +209,8 @@ in
       in
         (symlinked-wrapped-rust-toolchain)
       ) wrapArgs);
+  in {
+    inherit rust-toolchain;
 
     # For now we have to override the package for hot-reloading.
     dioxus-cli = 
@@ -273,4 +281,46 @@ in
           fi
         '';
       };
+
+  } // optionalAttrs (buildSource != null) {
+    default =
+    let
+      pkgs = nixpkgs.legacyPackages.${system};
+      rustPlatform = pkgs.makeRustPlatform {
+        cargo = rust-toolchain;
+        rustc = rust-toolchain // {
+          targetPlatforms = systems;
+          badTargetPlatforms = [];
+        };
+      };
+      allTargets = genAttrs (attrNames targetEnvironment) (target:
+        rustPlatform.buildRustPackage {
+          name = "bf-${target}";
+          src = buildSource;
+          nativeBuildInputs = [ rust-toolchain ];
+          cargoLock.lockFile = "${buildSource}/Cargo.lock";
+          buildPhase = ''
+            cargo build ${builtins.concatStringsSep " " [
+               "--target \"${target}\""
+               "--profile release"
+               "-j $NIX_BUILD_CORES"                   
+               "--offline" 
+            ]}
+          '';
+          installPhase = ''
+            mkdir -p $out/"${target}"
+            cp -r ./target/"${target}"/release $out/"${target}"/
+          '';
+          HOME = ".";
+          doCheck = false;
+          dontPatch = true;
+          dontAutoPatchelf = true;
+        }
+      );
+    in {
+      default = (pkgs.symlinkJoin {
+        name = "bf-all-targets";
+        paths = map (build: build.value) (nixpkgs.lib.attrsToList allTargets);
+      }) // allTargets;
+    };
   })
