@@ -96,15 +96,14 @@
 
       defaultArgParser = ''
         # Check if what the adapter is being run with.
-        TARGET_ARG_NO=0
+        TARGET_ARG_NO=1
         for arg in "$@"; do
-          TARGET_ARG_NO=$((TARGET_ARG_NO + 1))
           case $arg in
             "--target")
               # Save next arg as target.
-              TARGET_ARG_NO=$((TARGET_ARG_NO + 1))
-              eval "BF_TARGET=\$$TARGET_ARG_NO"
+              eval "BF_TARGET=\$$((TARGET_ARG_NO + 1))"
               export BF_TARGET="$BF_TARGET"
+              echo "$BF_TARGET"
             ;;
             "--no-wrapper")
               set -- "''${@:1:$((TARGET_ARG_NO - 1))}" \
@@ -113,6 +112,9 @@
               break
             ;;
           esac
+          if [[ $BF_TARGET == "" ]]; then
+            TARGET_ARG_NO=$((TARGET_ARG_NO + 1))
+          fi
         done
       '';
 
