@@ -317,10 +317,9 @@ in
           dontAutoPatchelf = true;
         }
       );
-    in {
-      default = (pkgs.symlinkJoin {
+    in
+      (pkgs.symlinkJoin {
         name = "bf-all-targets";
         paths = map (build: build.value) (nixpkgs.lib.attrsToList allTargets);
       }) // allTargets;
-    };
   })
