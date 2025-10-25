@@ -279,21 +279,19 @@ in
           fi
         '';
       };
-
-    default = throw "Configure bevy-flake to build your project by setting the "
-      + "'buildSource' attribute to ./., no quotes. Read more in docs.";
-
   } // optionalAttrs (buildSource != null) {
     default =
     let
       pkgs = nixpkgs.legacyPackages.${system};
-      rustPlatform = pkgs.makeRustPlatform {
-        cargo = rust-toolchain;
-        rustc = rust-toolchain;
-      };
       allTargets = genAttrs (attrNames targetEnvironment) (target:
-        rustPlatform.buildRustPackage {
+      let
+        rustPlatform = pkgs.makeRustPlatform {
+          cargo = rust-toolchain;
+          rustc = rust-toolchain;
           inherit target;
+        };
+      in
+        rustPlatform.buildRustPackage {
           name = "bf-${target}";
           src = buildSource;
           nativeBuildInputs = [ rust-toolchain ];
