@@ -297,7 +297,8 @@ in
           src = buildSource;
           nativeBuildInputs = [ rust-toolchain ];
           cargoLock.lockFile = "${buildSource}/Cargo.lock";
-          cargoBuildFlags = [
+          bevyFlakeCargoBuildFlags = [
+            "--target ${target}"
             "-j \"$NIX_BUILD_CORES\""
             "--offline"
             "--profile"
@@ -306,7 +307,8 @@ in
           cargoBuildHook = ''
             runHook preBuild
 
-            cargo build ''${cargoBuildFlags[@]}
+            export RUST_TARGET="${target}"
+            cargo build ''${bevyFlakeCargoBuildFlags[@]}
 
             runHook postBuild
           '';
