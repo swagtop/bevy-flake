@@ -297,9 +297,6 @@ in
           src = buildSource;
           nativeBuildInputs = [ rust-toolchain ];
           cargoLock.lockFile = "${buildSource}/Cargo.lock";
-          preBuild = ''
-            export RUST_TARGET="${target}"
-          '';
           cargoBuildFlags = [
             "-j \"$NIX_BUILD_CORES\""
             "--offline"
