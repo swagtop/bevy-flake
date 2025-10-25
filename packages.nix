@@ -309,6 +309,8 @@ in
 
             runHook postBuild
           '';
+
+          # Copied and edited for multi-target purposes from nixpkgs rust hooks.
           installPhase = ''
             releaseDir=target/${target}/$cargoBuildType
             tmpDir="''${releaseDir}-tmp";
@@ -336,12 +338,10 @@ in
             find "''${releaseDir}" -maxdepth 1 -name '*.dSYM' -exec cp -RLt $out/bin/ {} +
 
             rmdir --ignore-fail-on-non-empty $out/lib $out/bin
-          '';
-          postInstall = ''
+
             mkdir -p $out/"${target}"
             mv !($out/"${target}") $out/"${target}"
           '';
-          RUST_TARGET = target;
           HOME = ".";
           doCheck = false;
           dontPatch = true;
