@@ -293,6 +293,7 @@ in
       };
       allTargets = genAttrs (attrNames targetEnvironment) (target:
         rustPlatform.buildRustPackage {
+          inherit target;
           name = "bf-${target}";
           src = buildSource;
           nativeBuildInputs = [ rust-toolchain ];
