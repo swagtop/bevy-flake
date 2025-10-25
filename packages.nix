@@ -297,6 +297,7 @@ in
           src = buildSource;
           nativeBuildInputs = [ rust-toolchain ];
           cargoLock.lockFile = "${buildSource}/Cargo.lock";
+          cargoBuildTarget = target;
           cargoBuildFlags = [
             "--target ${target}"
             "--offline"
