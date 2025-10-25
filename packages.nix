@@ -344,8 +344,20 @@ in
     default = rustPlatform.buildRustPackage {
       name = "bf-nix";
       src = buildSource;
-      nativeBuildInputs = [ rust-toolchain ];
       cargoLock.lockFile = "${buildSource}/Cargo.lock";
+      cargoBuldFlags = [ ];
+      nativeBuildInputs = [ rust-toolchain ];
+      buildPhase = ''
+        runHook preBuild
+
+        cargo build \
+          -j "$NIX_BUILD_CORES" \
+          --profile "$cargoBuildType" \
+          --offline \
+          ''${cargoBuildFlags[@]}
+
+        runHook postBuild
+      '';
       HOME = ".";
     };
   })
