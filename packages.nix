@@ -312,12 +312,12 @@ in
 
           # Copied and edited for multi-target purposes from nixpkgs rust hooks.
           installPhase = ''
-            releaseDir=target/"${target}"/$cargoBuildType
-            tmpDir="''${releaseDir}-tmp";
+            # releaseDir=target/"${target}"/$cargoBuildType
+            # tmpDir="''${releaseDir}-tmp";
 
-            mkdir -p $tmpDir
-            cp -r ''${releaseDir}/* $tmpDir/
-            bins=$(find $tmpDir \
+            # mkdir -p $tmpDir
+            # cp -r ''${releaseDir}/* $tmpDir/
+            bins=$(find $releaseDir \
               -maxdepth 1 \
               -type f \
               -executable ! \( -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)" \))
