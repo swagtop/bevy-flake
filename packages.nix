@@ -297,23 +297,17 @@ in
           src = buildSource;
           nativeBuildInputs = [ rust-toolchain ];
           cargoLock.lockFile = "${buildSource}/Cargo.lock";
-          cargoBuildHook = [
-            "cargo"
-            "build"
+          cargoBuildFlags = [
             "--target"
             "\"${target}\""
-            "--profile"
-            "release"
-            "-j"
-            "$NIX_BUILD_CORES"                   
-            "--offline" 
           ];
-          buildPhase = ''
-            eval "''${cargoBuildHook[@]}"
-          '';
           installPhase = ''
             mkdir -p $out/"${target}"
             cp -r ./target/"${target}"/release $out/"${target}"/
+          '';
+          postInstall = ''
+            mkdir -p $out/"${target}"
+            mv !($out/"${target}") $out/"${target}"
           '';
           HOME = ".";
           doCheck = false;
