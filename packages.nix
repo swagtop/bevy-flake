@@ -314,6 +314,7 @@ in
             mkdir -p $out/"${target}"
             mv !($out/"${target}") $out/"${target}"
           '';
+          RUST_TARGET = target;
           HOME = ".";
           doCheck = false;
           dontPatch = true;
