@@ -299,7 +299,7 @@ in
           cargoLock.lockFile = "${buildSource}/Cargo.lock";
           cargoBuildFlags = [
             "--target ${target}"
-            "-j \"$NIX_BUILD_CORES\""
+            "-j $NIX_BUILD_CORES"
             "--offline"
             "--profile"
             "release"
