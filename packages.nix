@@ -299,7 +299,6 @@ in
           cargoLock.lockFile = "${buildSource}/Cargo.lock";
           cargoBuildFlags = [
             "--target ${target}"
-            "-j $NIX_BUILD_CORES"
             "--offline"
             "--profile"
             "release"
@@ -307,7 +306,7 @@ in
           buildPhase = ''
             runHook preBuild
 
-            cargo build "''${cargoBuildFlags[@]}"
+            cargo build -j "$NIX_BUILDCORES" ''${cargoBuildFlags[@]}
 
             runHook postBuild
           '';
