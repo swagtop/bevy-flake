@@ -295,24 +295,24 @@ in
           src = buildSource;
           nativeBuildInputs = [ rust-toolchain ];
           cargoLock.lockFile = "${buildSource}/Cargo.lock";
-          cargoBuildTarget = target;
-          cargoBuildFlags = [
-            "--target ${target}"
-            "--offline"
-            "--profile"
-            "release"
-          ];
+          cargoBuildType = "release";
+          cargoBuildFlags = [ ];
           buildPhase = ''
             runHook preBuild
 
-            cargo build -j "$NIX_BUILD_CORES" ''${cargoBuildFlags[@]}
+            cargo build \
+              -j "$NIX_BUILD_CORES" \
+              --profile "$cargoBuildType" \
+              --target "${target}" \
+              --offline \
+              ''${cargoBuildFlags[@]}
 
             runHook postBuild
           '';
 
           # Copied and edited for multi-target purposes from nixpkgs rust hooks.
           installPhase = ''
-            releaseDir=target/${target}/$cargoBuildType
+            releaseDir=target/"${target}"/$cargoBuildType
             tmpDir="''${releaseDir}-tmp";
 
             mkdir -p $tmpDir
@@ -340,7 +340,7 @@ in
             rmdir --ignore-fail-on-non-empty $out/lib $out/bin
 
             mkdir -p $out/"${target}"
-            mv !($out/"${target}") $out/"${target}"
+            mv !($out/"${target}") $out/"${target}"/
           '';
           HOME = ".";
           doCheck = false;
