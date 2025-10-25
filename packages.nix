@@ -285,13 +285,9 @@ in
       pkgs = nixpkgs.legacyPackages.${system};
       allTargets = genAttrs (attrNames targetEnvironment) (target:
       let
-        targetStdenv = recursiveUpdate stdenv {
-          targetPlatform.rust.cargoShortTarget = target;
-        };
         rustPlatform = pkgs.makeRustPlatform {
           cargo = rust-toolchain;
           rustc = rust-toolchain;
-          stdenv = targetStdenv;
         };
       in
         rustPlatform.buildRustPackage {
@@ -312,6 +308,34 @@ in
             cargo build -j "$NIX_BUILD_CORES" ''${cargoBuildFlags[@]}
 
             runHook postBuild
+          '';
+          installPhase = ''
+            releaseDir=target/${target}/$cargoBuildType
+            tmpDir="''${releaseDir}-tmp";
+
+            mkdir -p $tmpDir
+            cp -r ''${releaseDir}/* $tmpDir/
+            bins=$(find $tmpDir \
+              -maxdepth 1 \
+              -type f \
+              -executable ! \( -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)" \))
+
+            mapfile -t targets < <(find "$NIX_BUILD_TOP" -type d | grep "''${tmpDir}$")
+            for target in "''${targets[@]}"; do
+              rm -rf "$target/../../''${cargoBuildType}"
+              ln -srf "$target" "$target/../../"
+            done
+            mkdir -p $out/bin $out/lib
+
+            xargs -r cp -t $out/bin <<< $bins
+            find $tmpDir \
+              -maxdepth 1 \
+              -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)" \
+              -print0 | xargs -r -0 cp -t $out/lib
+
+            find "''${releaseDir}" -maxdepth 1 -name '*.dSYM' -exec cp -RLt $out/bin/ {} +
+
+            rmdir --ignore-fail-on-non-empty $out/lib $out/bin
           '';
           postInstall = ''
             mkdir -p $out/"${target}"
