@@ -280,6 +280,9 @@ in
         '';
       };
 
+    default = throw "Configure bevy-flake to build your project by setting the "
+      + "'buildSource' attribute to ./., no quotes. Read more in docs.";
+
   } // optionalAttrs (buildSource != null) {
     default =
     let
