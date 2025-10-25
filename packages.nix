@@ -322,25 +322,30 @@ in
               -type f \
               -executable ! \( -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)" \))
 
-            mapfile -t targets < <(find "$NIX_BUILD_TOP" -type d | grep "''${tmpDir}$")
-            for target in "''${targets[@]}"; do
-              rm -rf "$target/../../''${cargoBuildType}"
-              ln -srf "$target" "$target/../../"
-            done
-            mkdir -p $out/bin $out/lib
-
-            xargs -r cp -t $out/bin <<< $bins
-            find $tmpDir \
-              -maxdepth 1 \
-              -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)" \
-              -print0 | xargs -r -0 cp -t $out/lib
-
-            find "''${releaseDir}" -maxdepth 1 -name '*.dSYM' -exec cp -RLt $out/bin/ {} +
-
-            rmdir --ignore-fail-on-non-empty $out/lib $out/bin
-
             mkdir -p $out/"${target}"
-            mv !($out/"${target}") $out/"${target}"/
+            for file in $bins; do
+              cp $file $out/"${target}"
+            done
+
+            # mapfile -t targets < <(find "$NIX_BUILD_TOP" -type d | grep "''${tmpDir}$")
+            # for target in "''${targets[@]}"; do
+            #   rm -rf "$target/../../''${cargoBuildType}"
+            #   ln -srf "$target" "$target/../../"
+            # done
+            # mkdir -p $out/bin $out/lib
+
+            # xargs -r cp -t $out/bin <<< $bins
+            # find $tmpDir \
+            #   -maxdepth 1 \
+            #   -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)" \
+            #   -print0 | xargs -r -0 cp -t $out/lib
+
+            # find "''${releaseDir}" -maxdepth 1 -name '*.dSYM' -exec cp -RLt $out/bin/ {} +
+
+            # rmdir --ignore-fail-on-non-empty $out/lib $out/bin
+
+            # mkdir -p $out/"${target}"
+            # mv !($out/"${target}") $out/"${target}"/
           '';
           HOME = ".";
           doCheck = false;
