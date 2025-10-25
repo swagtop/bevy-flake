@@ -298,6 +298,8 @@ in
           nativeBuildInputs = [ rust-toolchain ];
           cargoLock.lockFile = "${buildSource}/Cargo.lock";
           cargoBuildHook = [
+            "cargo"
+            "build"
             "--target"
             "\"${target}\""
             "--profile"
@@ -307,7 +309,7 @@ in
             "--offline" 
           ];
           buildPhase = ''
-            cargo build "''${cargoBuildHook[@]}"
+            eval "''${cargoBuildHook[@]}"
           '';
           installPhase = ''
             mkdir -p $out/"${target}"
