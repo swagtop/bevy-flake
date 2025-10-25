@@ -297,10 +297,13 @@ in
           src = buildSource;
           nativeBuildInputs = [ rust-toolchain ];
           cargoLock.lockFile = "${buildSource}/Cargo.lock";
-          cargoBuildFlags = [
-            "--target"
-            "\"${target}\""
-          ];
+          preBuild = ''
+            export RUST_TARGET="${target}"
+          '';
+          # cargoBuildFlags = [
+          #   "--target"
+          #   "\"${target}\""
+          # ];
           # installPhase = ''
           #   mkdir -p $out/"${target}"
           #   cp -r ./target/"${target}"/release $out/"${target}"/
