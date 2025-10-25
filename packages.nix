@@ -300,14 +300,19 @@ in
           preBuild = ''
             export RUST_TARGET="${target}"
           '';
-          # cargoBuildFlags = [
-          #   "--target"
-          #   "\"${target}\""
-          # ];
-          # installPhase = ''
-          #   mkdir -p $out/"${target}"
-          #   cp -r ./target/"${target}"/release $out/"${target}"/
-          # '';
+          cargoBuildFlags = [
+            "-j \"$NIX_BUILD_CORES\""
+            "--offline"
+            "--profile"
+            "release"
+          ];
+          cargoBuildHook = ''
+            runHook preBuild
+
+            cargo build ''${cargoBuildFlags[@]}
+
+            runHook postBuild
+          '';
           postInstall = ''
             mkdir -p $out/"${target}"
             mv !($out/"${target}") $out/"${target}"
