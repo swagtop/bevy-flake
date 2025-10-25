@@ -78,12 +78,15 @@ Then, you can use them like so:
 
 # If you've configured bevy-flake with 'buildSource = ./.', build with Nix:
   # Build all targets:
-  nix build -j 3 # Restricting parallel builds with '-j 3' here.
+  nix build -j 1 # Restricting parallel builds to one at a time with '-j 1'.
 
   # Build individual targets:
   nix build .#default.x86_64-unknown-linux-gnu
   nix build .#default.x86_64-pc-windows-msvc # <-- Read docs/windows.md!
   #  (...and so on. )
+
+  # Build your project from any machine with access to your repo:
+  nix build github:username/repository/branch -j 1
 ```
 
 You can compile to every target with a `config.targetEnvironment` entry.
