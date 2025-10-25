@@ -123,10 +123,11 @@ in
         argParser = defaultArgParser + ''
           if [[ $BF_NO_WRAPPER != "1" ]]; then
              if [[ $BF_TARGET == *"-unknown-linux-gnu"* ]]; then
-                # Insert glibc version for Linux targets.
-               set -- "''${@:1:((TARGET_ARG_NO-1))}" \
-                      "$BF_TARGET.${linux.glibcVersion}" \
-                      "''${@:$((TARGET_ARG_NO+1))}"
+                # Insert glibc version into args for Linux targets.
+               set -- \
+                 "''${@:1:((TARGET_ARG_NO-1))}" \
+                 "$BF_TARGET.${linux.glibcVersion}" \
+                 "''${@:$((TARGET_ARG_NO+1))}"
             elif [[ $BF_TARGET == *"-pc-windows-msvc" ]]; then ${
               let
                 cacheDirBase = (if (pkgs.stdenv.isDarwin)
@@ -279,61 +280,73 @@ in
           fi
         '';
       };
-  } // optionalAttrs (buildSource != null) {
-    default =
-    let
-      pkgs = nixpkgs.legacyPackages.${system};
-      allTargets = genAttrs (attrNames targetEnvironment) (target:
-      let
-        rustPlatform = pkgs.makeRustPlatform {
-          cargo = rust-toolchain;
-          rustc = rust-toolchain;
-        };
-      in
-        rustPlatform.buildRustPackage {
-          name = "bf-${target}";
-          src = buildSource;
-          nativeBuildInputs = [ rust-toolchain ];
-          cargoLock.lockFile = "${buildSource}/Cargo.lock";
-          cargoBuildType = "release";
-          cargoBuildFlags = [ ];
-          buildPhase = ''
-            runHook preBuild
+  } // optionalAttrs (buildSource != null) (
+  let
+    rustPlatform = pkgs.makeRustPlatform {
+      cargo = rust-toolchain;
+      rustc = rust-toolchain;
+    };
+    allTargets = genAttrs (attrNames targetEnvironment) (target:
+      rustPlatform.buildRustPackage {
+        name = "bf-${target}";
 
-            cargo build \
-              -j "$NIX_BUILD_CORES" \
-              --profile "$cargoBuildType" \
-              --target "${target}" \
-              --offline \
-              ''${cargoBuildFlags[@]}
+        src = buildSource;
 
-            runHook postBuild
-          '';
+        nativeBuildInputs = [ rust-toolchain ];
 
-          # Copied and edited for multi-target purposes from nixpkgs Rust hooks.
-          installPhase = ''
-            releaseDir=target/"${target}"/"$cargoBuildType"
-            bins=$(find $releaseDir \
-              -maxdepth 1 \
-              -type f \
-              -executable ! \( -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)" \))
+        cargoLock.lockFile = "${buildSource}/Cargo.lock";
+        cargoBuildType = "release";
+        cargoBuildFlags = [ ];
 
-            mkdir -p $out/"${target}"
-            for file in $bins; do
-              cp $file $out/"${target}"
-            done
-          '';
+        buildPhase = ''
+          runHook preBuild
 
-          HOME = ".";
-          doCheck = false;
-          dontPatch = true;
-          dontAutoPatchelf = true;
-        }
-      );
-    in
-      (pkgs.symlinkJoin {
-        name = "bf-all-targets";
-        extraBuilds = [];
-        paths = map (build: build.value) (nixpkgs.lib.attrsToList allTargets);
-      }) // allTargets;
+          cargo build \
+            -j "$NIX_BUILD_CORES" \
+            --profile "$cargoBuildType" \
+            --target "${target}" \
+            --offline \
+            ''${cargoBuildFlags[@]}
+
+          runHook postBuild
+        '';
+
+        # Copied and edited for multi-target purposes from nixpkgs Rust hooks.
+        installPhase = ''
+          buildDir=target/"${target}"/"$cargoBuildType"
+          bins=$(find $buildDir \
+            -maxdepth 1 \
+            -type f \
+            -executable ! \( -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)" \))
+
+          mkdir -p $out/"${target}"
+          for file in $bins; do
+            cp $file $out/"${target}"
+          done
+        '';
+
+        # Wrapper script will not work without having a set $HOME.
+        HOME = ".";
+
+        doCheck = false;
+        dontPatch = true;
+        dontAutoPatchelf = true;
+      }
+    );
+
+    full-build = pkgs.symlinkJoin {
+      name = "bf-all-targets";
+      paths = map (build: build.value) (nixpkgs.lib.attrsToList allTargets);
+    };
+  in {
+    inherit full-build;
+    target = allTargets;
+    default = rustPlatform.buildRustPackage {
+      name = "bf-nix";
+      src = buildSource;
+      nativeBuildInputs = [ rust-toolchain ];
+      cargoLock.lockFile = "${buildSource}/Cargo.lock";
+      HOME = ".";
+    };
   })
+)
