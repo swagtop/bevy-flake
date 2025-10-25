@@ -301,10 +301,10 @@ in
             "--target"
             "\"${target}\""
           ];
-          installPhase = ''
-            mkdir -p $out/"${target}"
-            cp -r ./target/"${target}"/release $out/"${target}"/
-          '';
+          # installPhase = ''
+          #   mkdir -p $out/"${target}"
+          #   cp -r ./target/"${target}"/release $out/"${target}"/
+          # '';
           postInstall = ''
             mkdir -p $out/"${target}"
             mv !($out/"${target}") $out/"${target}"
