@@ -17,6 +17,7 @@
   outputs = { nixpkgs, bevy-flake, fenix, ... }: 
   let
     bf = bevy-flake.override {
+      buildSource = ./.;
       mkRustToolchain = targets: pkgs:
       let
         fx =
@@ -27,7 +28,7 @@
         channel = "stable"; # For nightly, use "latest".
       in
         fx.combine (
-          [ fx.${channel}.toolchain ]
+          [ fx.${channel}.defaultToolchain or fx.${channel}.toolchain ]
           ++ map (target: fx.targets.${target}.${channel}.rust-std) targets
         );
     };

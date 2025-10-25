@@ -17,6 +17,7 @@
   outputs = { nixpkgs, bevy-flake, rust-overlay, ... }:
   let
     bf = bevy-flake.override {
+      buildSource = ./.;
       mkRustToolchain = targets: pkgs:
       let
         pkgs-with-overlay =
