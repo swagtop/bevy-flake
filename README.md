@@ -72,9 +72,18 @@ Then, you can use them like so:
 # With `dioxus-cli`, develop Bevy with hot-patching
   BEVY_ASSET_ROOT="." dx serve --hot-patch
 
-# With `bevy-cli`, use the alpha CLI tooling that is useful for web builds.
+# With `bevy-cli`, use the alpha CLI tooling that is useful for web builds:
   bevy run
   bevy run web --open
+
+# If you've configured bevy-flake with 'buildSource = ./.', build with Nix:
+  # Build all targets:
+  nix build -j 3 # Restricting parallel builds with '-j 3' here.
+
+  # Build individual targets:
+  nix build .#default.x86_64-unknown-linux-gnu
+  nix build .#default.x86_64-pc-windows-msvc # <-- Read docs/windows.md!
+  #  (...and so on. )
 ```
 
 You can compile to every target with a `config.targetEnvironment` entry.
