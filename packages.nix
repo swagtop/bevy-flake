@@ -306,7 +306,7 @@ in
           buildPhase = ''
             runHook preBuild
 
-            cargo build -j "$NIX_BUILDCORES" ''${cargoBuildFlags[@]}
+            cargo build -j "$NIX_BUILD_CORES" ''${cargoBuildFlags[@]}
 
             runHook postBuild
           '';
