@@ -307,7 +307,7 @@ in
             "--offline" 
           ];
           buildPhase = ''
-            cargo build ''${cargoBuildHook[@]}
+            cargo build "''${cargoBuildHook[@]}"
           '';
           installPhase = ''
             mkdir -p $out/"${target}"
