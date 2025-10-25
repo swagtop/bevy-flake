@@ -25,7 +25,7 @@ let
   inherit (builtins)
     attrNames concatStringsSep warn throw;
   inherit (nixpkgs.lib)
-    genAttrs mapAttrsToList optionalAttrs
+    genAttrs mapAttrsToList optionalAttrs recursiveUpdate
     optionalString makeOverridable makeSearchPath;
 in
   genAttrs systems (system:
@@ -285,10 +285,13 @@ in
       pkgs = nixpkgs.legacyPackages.${system};
       allTargets = genAttrs (attrNames targetEnvironment) (target:
       let
+        targetStdenv = recursiveUpdate stdenv {
+          targetPlatform.rust.cargoShortTarget = target;
+        };
         rustPlatform = pkgs.makeRustPlatform {
           cargo = rust-toolchain;
           rustc = rust-toolchain;
-          inherit target;
+          stdenv = targetStdenv;
         };
       in
         rustPlatform.buildRustPackage {
