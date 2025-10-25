@@ -307,7 +307,7 @@ in
           buildPhase = ''
             runHook preBuild
 
-            cargo build ''${cargoBuildFlags[@]}
+            cargo build "''${cargoBuildFlags[@]}"
 
             runHook postBuild
           '';
