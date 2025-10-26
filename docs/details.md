@@ -31,9 +31,10 @@ or a package wrapped, that isn't included by default.
 
   # All packages pre-wrapped by bevy-flake.
   packages."<system>" = {
-    rust-toolchain = <derivation>; # Includes the wrapper function, 'envWrap'.
+    rust-toolchain = <derivation>; # The input toolchain, with 'cargo' wrapped.
     rust-toolchain.wrapper = <derivation>; # Just the 'cargo' wrapper.
     rust-toolchain.unwrapped = <derivation>; # The input toolchain.
+    rust-toolchain.envWrap = <function>; # Use this to wrap your own packages.
     
     dioxus-cli = <derivation>;
     bevy-cli = <derivation>;
