@@ -45,7 +45,7 @@
       devEnvironment = { };
 
       # Environment variables set for individual targets.
-      targetEnvironment =
+      targetEnvironments =
       let
         linuxHeaders = system: makeSearchPath "lib/pkgconfig"
           (with nixpkgs.legacyPackages.${system}; [

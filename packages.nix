@@ -10,7 +10,7 @@
 
   sharedEnvironment,
   devEnvironment,
-  targetEnvironment,
+  targetEnvironments,
 
   defaultArgParser,
   extraScript,
@@ -34,7 +34,7 @@ in
     exportEnv = env: concatStringsSep "\n"
       (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env);
 
-    targets = (attrNames targetEnvironment);
+    targets = (attrNames targetEnvironments);
     built-rust-toolchain = mkRustToolchain targets pkgs;
     runtimeInputsBase = mkRuntimeInputs pkgs;
     stdenv = mkStdenv pkgs;
@@ -54,7 +54,7 @@ in
           pkgs.pkg-config
         ];
     in
-      (pkgs.writeShellApplication {
+      pkgs.writeShellApplication {
         inherit name runtimeInputs;
         bashOptions = [ "errexit" "pipefail" ];
         text = ''
@@ -99,7 +99,7 @@ in
                   })}
                   ;;
                 '')
-              targetEnvironment)}
+              targetEnvironments)}
           esac
 
           ${extraScript}
@@ -108,7 +108,7 @@ in
 
           exec ${execPath} "$@"
         '';
-    });
+    };
 
     rust-toolchain =
     let
@@ -188,25 +188,25 @@ in
       let
         wrapped-rust-toolchain = (envWrap wrapArgsInput);
         symlinked-wrapped-rust-toolchain = 
-          if (wrapArgsInput.execPath != wrapArgs.execPath)
-            then throw
-              "Don't override the execPath of rust-toolchain."
-              + "Set it to use a different toolchain through the config."
-            else
-              pkgs.buildEnv {
-                name = "bf-wrapped-rust-toolchain";
-                ignoreCollisions = true;
-                paths = [
-                  wrapped-rust-toolchain
-                  built-rust-toolchain
-                ];
-              } // {
-                inherit envWrap;
-                wrapper = wrapped-rust-toolchain;
-                unwrapped = built-rust-toolchain;
-              };
+        if (wrapArgsInput.execPath != wrapArgs.execPath)
+          then throw
+            "Don't override the execPath of rust-toolchain."
+            + "Set it to use a different toolchain through the config."
+          else
+            pkgs.buildEnv {
+              name = "bf-wrapped-rust-toolchain";
+              ignoreCollisions = true;
+              paths = [
+                wrapped-rust-toolchain
+                built-rust-toolchain
+              ];
+            } // {
+              inherit envWrap;
+              wrapper = wrapped-rust-toolchain;
+              unwrapped = built-rust-toolchain;
+            };
       in
-        (symlinked-wrapped-rust-toolchain)
+        symlinked-wrapped-rust-toolchain
       ) wrapArgs) // { targetPlatforms = systems; badTargetPlatforms = []; };
   in {
     inherit rust-toolchain;
@@ -286,7 +286,7 @@ in
       cargo = rust-toolchain;
       rustc = rust-toolchain;
     };
-    allTargets = genAttrs (attrNames targetEnvironment) (target:
+    allTargets = genAttrs (attrNames targetEnvironments) (target:
       rustPlatform.buildRustPackage {
         name = "bf-${target}";
 
@@ -339,7 +339,8 @@ in
       paths = map (build: build.value) (nixpkgs.lib.attrsToList allTargets);
     };
   in {
-    inherit full-build;
-    target = allTargets;
+    targets = {
+      all = full-build;
+    } // allTargets;
   })
 )
