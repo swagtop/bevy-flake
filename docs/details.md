@@ -102,27 +102,11 @@ Read more on the inner workings of the wrapper, and how to use it [here.][wrap]
 
 There are a couple of things that I would like to be added to `bevy-flake`.
 
-1. The flake should include a builder for your Bevy project, such that the Nix
-   build system handles everything deterministically. I have made an attempt at
-   getting this set up, using `makeRustPlatform` with our wrapped Rust
-   toolchain, but could not get it to work.
-
-   It should be set up such that the flake consumer could configure `bevy-flake`
-   with something like `config.projectSource`, and provide the `./.` path for
-   the repo it is used in. In this case the `bf.packages.${system}.default`
-   package should return a derivation that builds every single target, using the
-   wrapped `rust-toolchain` package as the builder.
-
-   With this setup, a user could just run `nix build` for a full build.
-
-   Right now all targets can be compiled to with no internet access, and all
-   libraries used being referenced from the store.
-
-2. The flake should support the mobile targets, ie. Android and iOS. I've tried
+1. The flake should support the mobile targets, ie. Android and iOS. I've tried
    myself to set it up for a bit, but couldn't get iOS working and therefore put
    it on the backburner. I might look into it more later.
 
-3. The flake should include some utilities for doing stuff that Bevy itself
+2. The flake should include some utilities for doing stuff that Bevy itself
    cannot do properly yet, such as setting up the Window icon, or easily making
    a MacOS `.app` directory.
 
