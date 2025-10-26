@@ -118,7 +118,7 @@ environment needed for it yourself. More on that [here.](docs/config.md)
                                   ╚═════════════════════════════╝
 
 
-           (1) Develop on your Nix system            (2) Cross-compile for other platforms
+          (1) Develop on your Nix system             (2) Cross-compile for other platforms
 ```
 
 - [Details](docs/details.md)

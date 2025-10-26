@@ -25,8 +25,8 @@ let
   inherit (builtins)
     attrNames concatStringsSep warn throw;
   inherit (nixpkgs.lib)
-    genAttrs mapAttrsToList optionalAttrs
-    optionalString makeOverridable makeSearchPath;
+    genAttrs mapAttrsToList optionalAttrs subtractLists
+    optionals optionalString makeOverridable makeSearchPath;
 in
   genAttrs systems (system:
   let
@@ -171,8 +171,11 @@ in
             *-pc-windows-msvc)
               # Set up links to /nix/store Windows SDK if configured.
               ${optionalString (windows.sysroot != "") ''
-                mkdir -p "$XWIN_CACHE_DIR/windows-msvc-sysroot"
-                ln -sf ${windows.sysroot}/* "$XWIN_CACHE_DIR/windows-msvc-sysroot/"
+                # Only do this if 'cargo-xwin' knows we are using the sysroot.
+                if [[ $XWIN_CROSS_COMPILER == "clang" ]]; then
+                  mkdir -p "$XWIN_CACHE_DIR/windows-msvc-sysroot"
+                  ln -sf ${windows.sysroot}/* "$XWIN_CACHE_DIR/windows-msvc-sysroot/"
+                fi
               ''}
 
               if [[ "$1" == "build" || "$1" == "run" ]]; then
@@ -286,7 +289,17 @@ in
       cargo = rust-toolchain;
       rustc = rust-toolchain;
     };
-    allTargets = genAttrs (attrNames targetEnvironments) (target:
+    allTargets = genAttrs (
+        subtractLists (
+          optionals (!windows.sysroot != "") [
+            "aarch64-pc-windows-msvc"
+            "x86_64-pc-windows-msvc"
+          ]) ++ (optionals (!macos.sdk != "") [
+            "aarch64-apple-darwin"
+            "x86_64-apple-darwin"
+          ]
+        ) (attrNames targetEnvironments)
+      ) (target:
       rustPlatform.buildRustPackage {
         name = "bf-${target}";
 
