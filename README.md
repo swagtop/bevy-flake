@@ -89,7 +89,7 @@ Then, you can use them like so:
   nix build github:username/repository/branch -j 1
 ```
 
-You can compile to every target with a `config.targetEnvironment` entry.
+You can compile to every target with a `config.targetEnvironments` entry.
 If the target you want isn't in the config, you can add it, and set up the
 environment needed for it yourself. More on that [here.](docs/config.md)
 
