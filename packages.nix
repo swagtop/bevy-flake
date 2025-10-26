@@ -291,13 +291,13 @@ in
     };
     allTargets = genAttrs (
         subtractLists (
-          optionals (!(windows.sysroot != "")) [
+          (optionals (!(windows.sysroot != "")) [
             "aarch64-pc-windows-msvc"
             "x86_64-pc-windows-msvc"
           ]) ++ (optionals (!(macos.sdk != "")) [
             "aarch64-apple-darwin"
             "x86_64-apple-darwin"
-          ]
+          ])
         ) (attrNames targetEnvironments)
       ) (target:
       rustPlatform.buildRustPackage {
