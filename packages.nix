@@ -30,7 +30,13 @@ let
 in
   genAttrs systems (system:
   let
-    pkgs = nixpkgs.legacyPackages.${system};
+    pkgs = import nixpkgs {
+      inherit system;
+      config = {
+        allowUnfree = true;
+        microsoftVisualStudioLicenseAccepted = true;
+      };
+    };
     exportEnv = env: concatStringsSep "\n"
       (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env);
 
@@ -137,9 +143,10 @@ in
               in
                 (exportEnv {
                   XWIN_CACHE_DIR = cacheDirBase + (
-                    if (windows ? sysroot)
-                      then windows.sysroot
-                      else "/xwin"
+                    # if (windows ? sysroot)
+                    #   then windows.sysroot
+                    # else
+                    "/xwin"
                   );
                 })
               }
@@ -170,9 +177,21 @@ in
             ;;
             *-pc-windows-msvc)
               # Set up links to /nix/store Windows SDK if configured.
-              ${optionalString (windows.sysroot != "") ''
-                mkdir -p "$XWIN_CACHE_DIR/windows-msvc-sysroot"
-                ln -sf ${windows.sysroot}/* "$XWIN_CACHE_DIR/windows-msvc-sysroot/"
+              ${
+              let
+                windows-sdk = pkgs.symlinkJoin  {
+                  name = "merged-windows-sdk";
+                  paths = [
+                    pkgs.pkgsCross.aarch64-windows.windows.sdk
+                    pkgs.pkgsCross.x86_64-windows.windows.sdk
+                  ];
+                  postBuild = ''
+                    printf "x86_64 aarch64" > $out/DONE
+                  '';
+                };
+              in ''
+                mkdir -p "$XWIN_CACHE_DIR/xwin"
+                ln -sf ${windows-sdk}/* "$XWIN_CACHE_DIR/xwin/"
               ''}
 
               if [[ "$1" == "build" || "$1" == "run" ]]; then
