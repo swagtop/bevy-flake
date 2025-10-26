@@ -339,8 +339,6 @@ in
       paths = map (build: build.value) (nixpkgs.lib.attrsToList allTargets);
     };
   in {
-    targets = {
-      all = full-build;
-    } // allTargets;
+    targets = full-build // allTargets;
   })
 )

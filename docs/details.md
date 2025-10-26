@@ -32,8 +32,15 @@ or a package wrapped, that isn't included by default.
   # All packages pre-wrapped by bevy-flake.
   packages."<system>" = {
     rust-toolchain = <derivation>; # Includes the wrapper function, 'envWrap'.
+    rust-toolchain.wrapper = <derivation>; # Just the 'cargo' wrapper.
+    rust-toolchain.unwrapped = <derivation>; # The input toolchain.
+    
     dioxus-cli = <derivation>;
     bevy-cli = <derivation>;
+
+    # If you've set up the Nix builder with `buildSource = ./.`
+    targets = <derivation>; # All targets, symlinked to the same directory.
+    targets."<target>" = <derivation>; # The individual targets.
   };
 
   # The general templates for the different toolchains.
