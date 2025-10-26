@@ -125,7 +125,7 @@ that return either a package, or a list of packages, given an input 'pkgs'.
 ### `mkRustToolchain`
 
 This function also takes in a `targets` argument, which is produced from the
-`config.targetEnvironment` attribute names.
+`config.targetEnvironments` attribute names.
 
 You can think of this function as the recipe of building the Rust toolchain you
 want to use. The toolchain you make should have all the binaries needed for
@@ -248,16 +248,16 @@ bf = bevy-flake.override {
 ```
 
 
-### `targetEnvironment`
+### `targetEnvironments`
 
 Set environment variables for a specific target. Each attribute name will be fed
 into the creation of the Rust toolchain, so if you want a target that is not
-included by default, just add it to the `targetEnvironment` set.
+included by default, just add it to the `targetEnvironments` set.
 
 ```nix
 bf = bevy-flake.override (old: {
   # ...
-  targetEnvironment = old.targetEnvironment // {
+  targetEnvironments = old.targetEnvironments // {
     "new-target-with-abi" = {};
   };
   # ...
@@ -272,7 +272,7 @@ let
   inherit (nixpkgs.lib) recursiveUpdate;
   bf = bevy-flake.override (old: {
     # ...
-    targetEnvironment = recursiveUpdate old.targetEnvironment {
+    targetEnvironment = recursiveUpdate old.targetEnvironments {
       "x86_64-unknown-linux-gnu" = {
         BINDGEN_EXTRA_CLANG_ARGS = "-I${some-library}/usr/include";
       };
