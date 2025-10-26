@@ -56,7 +56,7 @@
             wayland.dev
           ]);
         windows = {
-          XWIN_CROSS_COMPILER = "clang";
+          # XWIN_CROSS_COMPILER = "clang";
         };
         macos =
         let
