@@ -305,10 +305,10 @@ in
       allTargets = genAttrs (
         # Remove targets that cannot be built without specific configuration.
         subtractLists (
-          (optionals (!(windows.sysroot != null)) [
+          (optionals (windows.sysroot == null) [
             "aarch64-pc-windows-msvc"
             "x86_64-pc-windows-msvc"
-          ]) ++ (optionals (!(macos.sdk != null)) [
+          ]) ++ (optionals (macos.sdk == null) [
             "aarch64-apple-darwin"
             "x86_64-apple-darwin"
           ])
