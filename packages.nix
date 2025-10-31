@@ -338,7 +338,7 @@ in
 
           # Copied and edited for multi-target purposes from nixpkgs Rust hooks.
           installPhase = ''
-            buildDir=target/"${target}"/"$cargoBuildType"
+            buildDir=target/"${target}"/"$cargoProfile"
             bins=$(find $buildDir \
               -maxdepth 1 \
               -type f \
