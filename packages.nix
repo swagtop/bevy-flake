@@ -377,7 +377,8 @@ in
           mkdir -p $out
           ${concatStringsSep "\n" (
             map (build: "ln -s \"${build.value}\" $out/\"${build.name}\"")
-          ) buildList}
+              buildList
+          )}
         '';
         doCheck = false;
         dontPatch = true;
