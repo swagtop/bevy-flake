@@ -320,16 +320,15 @@ in
           nativeBuildInputs = [ rust-toolchain ];
 
           cargoLock.lockFile = "${buildSource}/Cargo.lock";
-          # cargoBuildType = "release";
+          cargoProfile = "release";
           cargoBuildFlags = [ ];
 
           buildPhase = ''
             runHook preBuild
 
-            echo $cargoBuildType
             cargo build \
               -j "$NIX_BUILD_CORES" \
-              --profile "$cargoBuildType" \
+              --profile "$cargoProfile" \
               --target "${target}" \
               --offline \
               ''${cargoBuildFlags[@]}
