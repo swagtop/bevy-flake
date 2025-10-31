@@ -375,10 +375,9 @@ in
         nativeBuildInputs = map (build: build.value) buildList;
         installPhase = ''
           mkdir -p $out
-          ${concatStringsSep "\n"
+          ${concatStringsSep "\n" (
             map (build: "ln -s \"${build.value}\" $out/\"${build.name}\"")
-              buildList
-          }
+          ) buildList}
         '';
         doCheck = false;
         dontPatch = true;
