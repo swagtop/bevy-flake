@@ -351,18 +351,18 @@ in
               -type f \
               -executable ! \( -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)" \))
 
-            mkdir -p $out/"${target}"
+            mkdir -p $out/bin
             for file in $bins; do
-              cp $file $out/"${target}"
+              cp $file $out/bin/
             done
           '';
 
           # Wrapper script will not work without having a set $HOME.
           HOME = ".";
 
-          doCheck = false;
           dontPatch = true;
           dontAutoPatchelf = true;
+          doCheck = false;
         } // overridedAttrs)
       );
 
@@ -380,10 +380,12 @@ in
               buildList
           )}
         '';
-        doCheck = false;
-        dontPatch = true;
+
         dontUnpack = true;
+        dontPatch = true;
         dontBuild = true;
+        dontAutoPatchelf = true;
+        doCheck = false;
       });
     in 
       full-build // allTargets) {};
