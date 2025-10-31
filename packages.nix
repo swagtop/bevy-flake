@@ -320,7 +320,7 @@ in
           nativeBuildInputs = [ rust-toolchain ];
 
           cargoLock.lockFile = "${buildSource}/Cargo.lock";
-          cargoBuildType = "release";
+          # cargoBuildType = "release";
           cargoBuildFlags = [ ];
 
           buildPhase = ''
