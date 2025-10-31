@@ -37,12 +37,12 @@
       ];
 
       # Base environment for every target to build on.
-      sharedEnvironment = {
+      sharedEnvironment = { };
+
+      devEnvironment = {
         # Stops blake3 from messing builds up every once in a while.
         CARGO_FEATURE_PURE = "1";
       };
-
-      devEnvironment = { };
 
       # Environment variables set for individual targets.
       targetEnvironments =
