@@ -39,7 +39,7 @@ in
       (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env);
 
     targets = (attrNames targetEnvironments);
-    built-rust-toolchain = mkRustToolchain targets pkgs;
+    input-rust-toolchain = mkRustToolchain targets pkgs;
     runtimeInputsBase = mkRuntimeInputs pkgs;
     stdenv = mkStdenv pkgs;
 
@@ -54,7 +54,7 @@ in
       runtimeInputs =
         runtimeInputsBase ++ extraRuntimeInputs ++ [
           stdenv.cc
-          built-rust-toolchain
+          input-rust-toolchain
           pkgs.pkg-config
         ];
     in
@@ -124,7 +124,7 @@ in
           cargo-zigbuild
           cargo-xwin
         ];
-        execPath = "${built-rust-toolchain}/bin/cargo";
+        execPath = "${input-rust-toolchain}/bin/cargo";
 
         argParser = defaultArgParser + ''
           if [[ $BF_NO_WRAPPER != "1" ]]; then
@@ -186,7 +186,7 @@ in
 
               if [[ "$1" == "build" || "$1" == "run" ]]; then
                 echo "bevy-flake: Switching to 'cargo-xwin'" 1>&2 
-                exec ${built-rust-toolchain}/bin/cargo xwin "$@"
+                exec ${input-rust-toolchain}/bin/cargo xwin "$@"
               fi
             ;;
           esac
@@ -207,12 +207,12 @@ in
               ignoreCollisions = true;
               paths = [
                 wrapped-rust-toolchain
-                built-rust-toolchain
+                input-rust-toolchain
               ];
             } // {
               inherit envWrap;
               wrapper = wrapped-rust-toolchain;
-              unwrapped = built-rust-toolchain;
+              unwrapped = input-rust-toolchain;
             };
       in
         symlinked-wrapped-rust-toolchain
@@ -366,10 +366,25 @@ in
         } // overridedAttrs)
       );
 
-      full-build = pkgs.symlinkJoin {
+      full-build = pkgs.stdenvNoCC.mkDerivation (
+      let
+        buildList = (nixpkgs.lib.attrsToList allTargets);
+      in {
         name = "bf-all-targets";
-        paths = map (build: build.value) (nixpkgs.lib.attrsToList allTargets);
-      };
+
+        nativeBuildInputs = map (build: build.value) buildList;
+        installPhase = ''
+          mkdir -p $out
+          ${concatStringsSep "\n"
+            map (build: "ln -s \"${build.value}\" $out/\"${build.name}\"")
+              buildList
+          }
+        '';
+        doCheck = false;
+        dontPatch = true;
+        dontUnpack = true;
+        dontBuild = true;
+      });
     in 
       full-build // allTargets) {};
   }
