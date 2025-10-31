@@ -27,7 +27,7 @@ If you find most of this Nix stuff confusing, you can browse the old version of
 
 ## General configuration
 
-<details> <summary><code>systems</code>/summary>
+<details> <summary><code>systems</code></summary>
 
 If you find that a system you want to use `bevy-flake` isn't included by
 default, or if you want to exclude a system, you can set this up yourself by
@@ -74,7 +74,7 @@ machine, just compile them with '--target' and run those. On NixOS you will
 probably find `steam-run` to be useful here.
 
 
-<details> <summary><code>linux</code>/summary>
+<details> <summary><code>linux</code></summary>
 
 Setting the `glibcVersion` variable only affects the builds made with the
 wrapped `cargo` included with the `rust-toolchain` package. It works by changing
@@ -96,7 +96,7 @@ bf = bevy-flake.override {
 </details>
 
 
-<details> <summary><code>windows</code>/summary>
+<details> <summary><code>windows</code></summary>
 
 You don't need to set the sysroot of Windows to be able to compile to it. If you
 don't have one set, `cargo-xwin` will just fetch the latest one it can get.
@@ -112,7 +112,7 @@ Read more on how to do this [here.](windows.md)
 
 </details>
 
-<details> <summary><code>macos</code>/summary>
+<details> <summary><code>macos</code></summary>
 
 You will not be able to cross-compile to MacOS targets without an SDK. Setting
 the `config.macos.sdk` to a prepackaged one will do the trick.
@@ -128,7 +128,7 @@ of packages need to be done through these 'mk' functions. These are functions
 that return either a package, or a list of packages, given an input 'pkgs'.
 
 
-<details> <summary><code>mkRustToolchain</code>/summary>
+<details> <summary><code>mkRustToolchain</code></summary>
 
 This function also takes in a `targets` argument, which is produced from the
 `config.targetEnvironments` attribute names.
@@ -160,7 +160,7 @@ bf = bevy-flake.override {
 </details>
 
 
-<details> <summary><code>mkStdenv</code>/summary>
+<details> <summary><code>mkStdenv</code></summary>
 
 The `bevy-flake` uses the stdenv created by this functions output for its C
 compiler toolchain. By default this is set by `bevy-flake` to be clang.
@@ -182,7 +182,7 @@ bf = bevy-flake.override {
 </details>
 
 
-<details> <summary><code>mkRuntimeInputs</code>/summary>
+<details> <summary><code>mkRuntimeInputs</code></summary>
 
 This should return a list of packages that are needed for the system you are on
 to actually run the program. This will mostly be graphics libraries and the
@@ -214,7 +214,7 @@ bf = bevy-flake.override {
 
 ## Rustflags
 
-<details> <summary><code>crossPlatformRustflags</code>/summary>
+<details> <summary><code>crossPlatformRustflags</code></summary>
 
 This is a shortcut for adding rustflags to every target that is not the dev
 environment. By default it is used for the `--remap-path-prefix $HOME=/build`
@@ -229,7 +229,7 @@ with the wrapped toolchain..[^1]
 </details>
 
 
-<details> <summary><code>sharedEnvironment</code>/summary>
+<details> <summary><code>sharedEnvironment</code></summary>
 
 Set environment variables before the target specific ones. Uses the same syntax
 as in `mkShell.env`.
@@ -247,7 +247,7 @@ bf = bevy-flake.override {
 </details>
 
 
-<details> <summary><code>devEnvironment</code>/summary>
+<details> <summary><code>devEnvironment</code></summary>
 
 Set environment variables when no `BF_TARGET` is set. This is your development
 environment that gets activated when running `cargo run` or `cargo build`
@@ -266,7 +266,7 @@ bf = bevy-flake.override {
 </details>
 
 
-<details> <summary><code>targetEnvironments</code>/summary>
+<details> <summary><code>targetEnvironments</code></summary>
 
 Set environment variables for a specific target. Each attribute name will be fed
 into the creation of the Rust toolchain, so if you want a target that is not
