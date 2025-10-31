@@ -30,7 +30,11 @@ let
 in
   genAttrs systems (system:
   let
-    pkgs = nixpkgs.legacyPackages.${system};
+    pkgs = import nixpkgs {
+      inherit system;
+      # Nothing unfree used by default, but enabled just in case users want to.
+      config.allowUnfree = true;
+    };
     exportEnv = env: concatStringsSep "\n"
       (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env);
 
@@ -283,13 +287,21 @@ in
           fi
         '';
       };
-  } // optionalAttrs (buildSource != null) (
-  let
-    rustPlatform = pkgs.makeRustPlatform {
-      cargo = rust-toolchain;
-      rustc = rust-toolchain;
-    };
-    allTargets = genAttrs (
+
+    targets = warn (
+      "To use 'nix build .#targets', you should configure bevy-flake with"
+      + "'buildSource = ./.'"
+    ) pkgs.emptyDirectory;
+
+  } // optionalAttrs (buildSource != null) {
+    targets = makeOverridable (overridedAttrs:
+    let
+      rustPlatform = pkgs.makeRustPlatform {
+        cargo = rust-toolchain;
+        rustc = rust-toolchain;
+      };
+      allTargets = genAttrs (
+        # Remove targets that cannot be built without specific configuration.
         subtractLists (
           (optionals (!(windows.sysroot != "")) [
             "aarch64-pc-windows-msvc"
@@ -300,58 +312,58 @@ in
           ])
         ) (attrNames targetEnvironments)
       ) (target:
-      rustPlatform.buildRustPackage {
-        name = "bf-${target}";
+        rustPlatform.buildRustPackage ({
+          name = "bf-${target}";
 
-        src = buildSource;
+          src = buildSource;
 
-        nativeBuildInputs = [ rust-toolchain ];
+          nativeBuildInputs = [ rust-toolchain ];
 
-        cargoLock.lockFile = "${buildSource}/Cargo.lock";
-        cargoBuildType = "release";
-        cargoBuildFlags = [ ];
+          cargoLock.lockFile = "${buildSource}/Cargo.lock";
+          cargoBuildType = "release";
+          cargoBuildFlags = [ ];
 
-        buildPhase = ''
-          runHook preBuild
+          buildPhase = ''
+            runHook preBuild
 
-          cargo build \
-            -j "$NIX_BUILD_CORES" \
-            --profile "$cargoBuildType" \
-            --target "${target}" \
-            --offline \
-            ''${cargoBuildFlags[@]}
+            cargo build \
+              -j "$NIX_BUILD_CORES" \
+              --profile "$cargoBuildType" \
+              --target "${target}" \
+              --offline \
+              ''${cargoBuildFlags[@]}
 
-          runHook postBuild
-        '';
+            runHook postBuild
+          '';
 
-        # Copied and edited for multi-target purposes from nixpkgs Rust hooks.
-        installPhase = ''
-          buildDir=target/"${target}"/"$cargoBuildType"
-          bins=$(find $buildDir \
-            -maxdepth 1 \
-            -type f \
-            -executable ! \( -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)" \))
+          # Copied and edited for multi-target purposes from nixpkgs Rust hooks.
+          installPhase = ''
+            buildDir=target/"${target}"/"$cargoBuildType"
+            bins=$(find $buildDir \
+              -maxdepth 1 \
+              -type f \
+              -executable ! \( -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)" \))
 
-          mkdir -p $out/"${target}"
-          for file in $bins; do
-            cp $file $out/"${target}"
-          done
-        '';
+            mkdir -p $out/"${target}"
+            for file in $bins; do
+              cp $file $out/"${target}"
+            done
+          '';
 
-        # Wrapper script will not work without having a set $HOME.
-        HOME = ".";
+          # Wrapper script will not work without having a set $HOME.
+          HOME = ".";
 
-        doCheck = false;
-        dontPatch = true;
-        dontAutoPatchelf = true;
-      }
-    );
+          doCheck = false;
+          dontPatch = true;
+          dontAutoPatchelf = true;
+        } // overridedAttrs)
+      );
 
-    full-build = pkgs.symlinkJoin {
-      name = "bf-all-targets";
-      paths = map (build: build.value) (nixpkgs.lib.attrsToList allTargets);
-    };
-  in {
-    targets = full-build // allTargets;
-  })
+      full-build = pkgs.symlinkJoin {
+        name = "bf-all-targets";
+        paths = map (build: build.value) (nixpkgs.lib.attrsToList allTargets);
+      };
+    in 
+      full-build // allTargets) {};
+  }
 )
