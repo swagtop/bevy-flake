@@ -341,7 +341,7 @@ in
           # Copied and edited for multi-target purposes from nixpkgs Rust hooks.
           installPhase = ''
             if [[ $cargoProfile == "dev" ]]; then
-              # Set profile environment variable to match correct directory.
+              # Set dev profile environment variable to match correct directory.
               export cargoProfile="debug"
             fi
 
