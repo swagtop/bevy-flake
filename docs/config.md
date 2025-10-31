@@ -47,9 +47,9 @@ Now `bf.eachSystem` produces the systems you have input. If you want to add onto
 the existing ones, this could be done like so:
 
 ```nix
-bf = bevy-flake.override (old: {
+bf = bevy-flake.override (default: {
   # ...
-  systems = old.systems ++ [
+  systems = default.systems ++ [
     "x86_64-darwin"
   ];
   # ...
@@ -257,7 +257,7 @@ included by default, just add it to the `targetEnvironments` set.
 ```nix
 bf = bevy-flake.override (old: {
   # ...
-  targetEnvironments = old.targetEnvironments // {
+  targetEnvironments = default.targetEnvironments // {
     "new-target-with-abi" = {};
   };
   # ...
@@ -272,7 +272,7 @@ let
   inherit (nixpkgs.lib) recursiveUpdate;
   bf = bevy-flake.override (old: {
     # ...
-    targetEnvironment = recursiveUpdate old.targetEnvironments {
+    targetEnvironment = recursiveUpdate default.targetEnvironments {
       "x86_64-unknown-linux-gnu" = {
         BINDGEN_EXTRA_CLANG_ARGS = "-I${some-library}/usr/include";
       };
@@ -370,10 +370,10 @@ using, or make your own script that sets it:
 ```nix
 let
   rust-toolchain' = bf.packages.rust-toolchain.override (old: {
-    extraRuntimeInputs = old.extraRuntimeInputs ++ [
+    extraRuntimeInputs = default.extraRuntimeInputs ++ [
       nixpkgs.legacyPackages.${system}.cargo-ndk
     ];
-    postScript = (old.postScript or "") + ''
+    postScript = (default.postScript or "") + ''
       if [[ $BF_FLAKE == "aarch64-linux-android" ]]; then
         echo "bevy-flake: Switching to 'cargo-ndk'"
         exec ${nixpkgs.legacyPackages.${system}.cargo-ndk}/bin/cargo-ndk ndk "$@"
