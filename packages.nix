@@ -69,7 +69,9 @@ in
           fi
 
           # Set up MacOS SDK if configured.
-          export BF_MACOS_SDK_PATH="${macos.sdk}"
+          export BF_MACOS_SDK_PATH="${
+            if (macos.sdk != null) then macos.sdk else ""
+          }"
 
           # Base environment for all targets.
           export PKG_CONFIG_ALLOW_CROSS="1"
@@ -141,7 +143,7 @@ in
               in
                 (exportEnv {
                   XWIN_CACHE_DIR = cacheDirBase + (
-                    if (windows ? sysroot)
+                    if (windows.sysroot != null)
                       then windows.sysroot
                       else "/xwin"
                   );
@@ -155,7 +157,7 @@ in
           # Set linker for specific targets.
           case $BF_TARGET in
             *-apple-darwin)
-              ${optionalString (macos.sdk == "") ''
+              ${optionalString (macos.sdk == null) ''
                 printf "%s%s\n" \
                   "bevy-flake: Building to MacOS target without SDK, " \
                   "compilation will most likely fail." 1>&2
@@ -174,7 +176,7 @@ in
             ;;
             *-pc-windows-msvc)
               # Set up links to /nix/store Windows SDK if configured.
-              ${optionalString (windows.sysroot != "") ''
+              ${optionalString (windows.sysroot != null) ''
                 # Only do this if 'cargo-xwin' knows we are using the sysroot.
                 if [[ $XWIN_CROSS_COMPILER == "clang" ]]; then
                   mkdir -p "$XWIN_CACHE_DIR/windows-msvc-sysroot"
@@ -289,7 +291,7 @@ in
       };
 
     targets = warn (
-      "To use 'nix build .#targets', you should configure bevy-flake with"
+      "To use 'nix build .#targets', you should configure bevy-flake with "
       + "'buildSource = ./.'"
     ) pkgs.emptyDirectory;
 
@@ -303,10 +305,10 @@ in
       allTargets = genAttrs (
         # Remove targets that cannot be built without specific configuration.
         subtractLists (
-          (optionals (!(windows.sysroot != "")) [
+          (optionals (!(windows.sysroot != null)) [
             "aarch64-pc-windows-msvc"
             "x86_64-pc-windows-msvc"
-          ]) ++ (optionals (!(macos.sdk != "")) [
+          ]) ++ (optionals (!(macos.sdk != null)) [
             "aarch64-apple-darwin"
             "x86_64-apple-darwin"
           ])

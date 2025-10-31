@@ -23,13 +23,13 @@
       };
 
       windows = {
-        # The latest sysroot will be fetched if you have it packaged and set.
-        sysroot = "";
+        # The latest sysroot will be fetched if you don't have it set.
+        sysroot = null;
       };
 
       macos = {
         # You will not be able to cross-compile to MacOS targets without an SDK.
-        sdk = "";
+        sdk = null;
       };
 
       crossPlatformRustflags = [
