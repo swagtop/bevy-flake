@@ -326,6 +326,7 @@ in
           buildPhase = ''
             runHook preBuild
 
+            echo $cargoBuildType
             cargo build \
               -j "$NIX_BUILD_CORES" \
               --profile "$cargoBuildType" \
