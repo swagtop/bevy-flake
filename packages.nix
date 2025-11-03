@@ -259,16 +259,15 @@ in
         };
         cargoHash = "sha256-xbYpi5QjeOTSVeBjwxeam14DtWawfSOlmrc1lmz/3H8=";
 
-        cargoPatches = [ ];
-        buildFeatures = [ ];
-
-        postPatch = "";
+        buildFeatures = [];
         checkFlags = [ "--skip" "test_harnesses::run_harness" ];
+
+        dontPatch = true;
       };
     in
       makeOverridable envWrap {
         name = "dx";
-        extraRuntimeInputs = [ ];
+        extraRuntimeInputs = [];
         execPath = "${dioxus-cli-package}/bin/dx";
       };
 
