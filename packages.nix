@@ -362,7 +362,7 @@ in
           buildPhase = ''
             runHook preBuild
 
-            ''${cargoBuildCommand[@]} ''${cargoBuildFlags[@]}
+            "''${cargoBuildCommand[@]}" "''${cargoBuildFlags[@]}"
 
             runHook postBuild
           '';
