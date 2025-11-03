@@ -250,24 +250,31 @@ in
     dioxus-cli = 
     let
       version = "0.7.0";
-      dioxus-cli-package = pkgs.dioxus-cli.overrideAttrs {
-        inherit version;
-        src = pkgs.fetchCrate {
-          inherit version;
-          pname = "dioxus-cli";
-          hash = "sha256-+zWWG15qTXInaPCSKGd7yjLu8JQOev4AuZ//rbbMyyg=";
+      dioxus-cli-package = pkgs.dioxus-cli.override (old: {
+        rustPlatform = old.rustPlatform // {
+          buildRustPackage = args:
+            old.rustPlatform.buildRustPackage (
+              args // {
+                inherit version;
+                src = old.fetchCrate {
+                  inherit version;
+                  pname = "dioxus-cli";
+                  hash = "sha256-+zWWG15qTXInaPCSKGd7yjLu8JQOev4AuZ//rbbMyyg=";
+                };
+                cargoHash = "sha256-xbYpi5QjeOTSVeBjwxeam14DtWawfSOlmrc1lmz/3H8=";
+
+                cargoPatches = [ ];
+                buildFeatures = [ ];
+
+                postPatch = "";
+                checkFlags = [ "--skip" "test_harnesses::run_harness" ];
+              });
         };
-        cargoHash = "sha256-xbYpi5QjeOTSVeBjwxeam14DtWawfSOlmrc1lmz/3H8=";
-
-        buildFeatures = [];
-        checkFlags = [ "--skip" "test_harnesses::run_harness" ];
-
-        dontPatch = true;
-      };
+      });
     in
       makeOverridable envWrap {
         name = "dx";
-        extraRuntimeInputs = [];
+        extraRuntimeInputs = [ ];
         execPath = "${dioxus-cli-package}/bin/dx";
       };
 
