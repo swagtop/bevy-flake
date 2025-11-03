@@ -353,8 +353,8 @@ in
 
           cargoBuildCommand = [
             "cargo build"
-            "-j $NIX_BUILD_CORES"
-            "--profile $cargoProfile"
+            "-j \"$NIX_BUILD_CORES\""
+            "--profile \"$cargoProfile\""
             "--target ${target}"
             "--offline"
           ];
@@ -362,7 +362,7 @@ in
           buildPhase = ''
             runHook preBuild
 
-            "''${cargoBuildCommand[@]}" "''${cargoBuildFlags[@]}"
+            ''${cargoBuildCommand[@]} ''${cargoBuildFlags[@]}
 
             runHook postBuild
           '';
