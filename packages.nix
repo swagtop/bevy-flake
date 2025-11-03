@@ -354,7 +354,6 @@ in
               -maxdepth 1 \
               -type f \
               -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)")
-            )
 
             mkdir -p $out/{bin,lib}
 
