@@ -55,10 +55,10 @@
             udev.dev
             wayland.dev
           ]);
-        windows = {
+        windowsEnv = {
           XWIN_CROSS_COMPILER = "clang";
         };
-        macos =
+        macosEnv =
         let
           frameworks = "$BF_MACOS_SDK_PATH/System/Library/Frameworks";
         in {
@@ -88,10 +88,10 @@
             "$RUSTFLAGS"
           ];
         };
-        "x86_64-apple-darwin" = macos;
-        "aarch64-apple-darwin" = macos;
-        "x86_64-pc-windows-msvc" = windows;
-        "aarch64-pc-windows-msvc" = windows;
+        "x86_64-apple-darwin" = macosEnv;
+        "aarch64-apple-darwin" = macosEnv;
+        "x86_64-pc-windows-msvc" = windowsEnv;
+        "aarch64-pc-windows-msvc" = windowsEnv;
       };
 
       extraScript = "";
