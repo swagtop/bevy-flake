@@ -350,7 +350,7 @@ in
               -maxdepth 1 \
               -type f \
               -executable ! \( -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)" \))
-            libs=$(bind $buildDir \
+            libs=$(find $buildDir \
               -maxdepth 1 \
               -type f \
               -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)")
