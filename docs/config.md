@@ -212,7 +212,7 @@ bf = bevy-flake.override {
 </details>
 
 
-## Rustflags
+## Environments
 
 <details> <summary><code>crossPlatformRustflags</code></summary>
 
