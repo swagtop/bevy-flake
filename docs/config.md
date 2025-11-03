@@ -273,7 +273,7 @@ into the creation of the Rust toolchain, so if you want a target that is not
 included by default, just add it to the `targetEnvironments` set.
 
 ```nix
-bf = bevy-flake.override (old: {
+bf = bevy-flake.override (default: {
   # ...
   targetEnvironments = default.targetEnvironments // {
     "new-target-with-abi" = {};
@@ -288,7 +288,7 @@ probably be annoying. It could be helpful here to use `lib.recursiveUpdate`:
 ```nix
 let
   inherit (nixpkgs.lib) recursiveUpdate;
-  bf = bevy-flake.override (old: {
+  bf = bevy-flake.override (default: {
     # ...
     targetEnvironment = recursiveUpdate default.targetEnvironments {
       "x86_64-unknown-linux-gnu" = {
@@ -389,7 +389,7 @@ using, or make your own script that sets it:
 
 ```nix
 let
-  rust-toolchain' = bf.packages.rust-toolchain.override (old: {
+  rust-toolchain' = bf.packages.rust-toolchain.override (default: {
     extraRuntimeInputs = default.extraRuntimeInputs ++ [
       nixpkgs.legacyPackages.${system}.cargo-ndk
     ];
