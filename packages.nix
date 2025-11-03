@@ -351,18 +351,19 @@ in
           cargoProfile = "release";
           cargoBuildFlags = [];
 
-          cargoBuildCommand = [
-            "cargo build"
-            "-j \"$NIX_BUILD_CORES\""
-            "--profile \"$cargoProfile\""
-            "--target ${target}"
-            "--offline"
-          ];
-
           buildPhase = ''
             runHook preBuild
 
-            ''${cargoBuildCommand[@]} ''${cargoBuildFlags[@]}
+            if [[ $alternateBuildCommand != "" ]]; then
+              cargo build \
+                -j "$NIX_BUILD_CORES" \
+                --profile "$cargoProfile" \
+                --target "${target}" \
+                --offline \
+                ''${cargoBuildFlags[@]}
+            else
+              ''${alternateBuildCommand} ''${cargoBuildFlags[@]}
+            fi
 
             runHook postBuild
           '';
