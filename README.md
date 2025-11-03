@@ -70,7 +70,7 @@ Then, you can use them like so:
   #  (...and so on. )
 
 # With `dioxus-cli`, develop Bevy with hot-patching
-  BEVY_ASSET_ROOT="." dx serve --hot-patch
+  BEVY_ASSET_ROOT="." dx serve --hot-patch --features bevy/hotpatching
 
 # With `bevy-cli`, use the alpha CLI tooling that is useful for web builds:
   bevy run

@@ -249,28 +249,22 @@ in
     # For now we have to override the package for hot-reloading.
     dioxus-cli = 
     let
-      version = "0.7.0-rc.2";
-      dioxus-cli-package = pkgs.dioxus-cli.override (old: {
-        rustPlatform = old.rustPlatform // {
-          buildRustPackage = args:
-            old.rustPlatform.buildRustPackage (
-              args // {
-                inherit version;
-                src = old.fetchCrate {
-                  inherit version;
-                  pname = "dioxus-cli";
-                  hash = "sha256-DbUmju1vM1LV95wbCNrMvphYI66mGWUi5mUZ+gVTNcE=";
-                };
-                cargoHash = "sha256-XePXhKrp4oydI13ytjyKAYRxNG6EBpF4llTk9//icik=";
-
-                cargoPatches = [ ];
-                buildFeatures = [ ];
-
-                postPatch = "";
-                checkFlags = [ "--skip" "test_harnesses::run_harness" ];
-              });
+      version = "0.7.0";
+      dioxus-cli-package = pkgs.dioxus-cli.overrideAttrs {
+        inherit version;
+        src = pkgs.fetchCrate {
+          inherit version;
+          pname = "dioxus-cli";
+          hash = "sha256-+zWWG15qTXInaPCSKGd7yjLu8JQOev4AuZ//rbbMyyg=";
         };
-      });
+        cargoHash = "sha256-xbYpi5QjeOTSVeBjwxeam14DtWawfSOlmrc1lmz/3H8=";
+
+        cargoPatches = [ ];
+        buildFeatures = [ ];
+
+        postPatch = "";
+        checkFlags = [ "--skip" "test_harnesses::run_harness" ];
+      };
     in
       makeOverridable envWrap {
         name = "dx";
