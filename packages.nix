@@ -354,20 +354,12 @@ in
           buildPhase = ''
             runHook preBuild
 
-            if [[ $alternateBuildCommand == "" ]]; then
-              echo We went here 1
-              cargo build \
-                -j "$NIX_BUILD_CORES" \
-                --profile "$cargoProfile" \
-                --target "${target}" \
-                --offline \
-                ''${cargoBuildFlags[@]}
-            else
-              echo We went here 2
-              ''${alternateBuildCommand} ''${cargoBuildFlags[@]}
-            fi
-
-              echo We went here 3
+            cargo build \
+              -j "$NIX_BUILD_CORES" \
+              --profile "$cargoProfile" \
+              --target "${target}" \
+              --offline \
+              ''${cargoBuildFlags[@]}
 
             runHook postBuild
           '';
