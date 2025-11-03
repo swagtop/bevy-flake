@@ -46,10 +46,10 @@ this structure is found inside of subpath of the SDK, you can scope in on it
 like so:
 
 ```nix
-macos.sdk = "${builtins.fetchTarball {
+macos.sdk = builtins.fetchTarball {
   url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
   sha256 = "sha256:some-long-hash-string-goes-here";
-}}/sub-path";
+} + "/sub-path";
 ```
 
 

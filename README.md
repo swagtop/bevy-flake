@@ -75,18 +75,22 @@ Then, you can use them like so:
 # With `bevy-cli`, use the alpha CLI tooling that is useful for web builds:
   bevy run
   bevy run web --open
+```
 
-# If you've configured bevy-flake with 'buildSource = ./.', build with Nix:
-  # Build all targets:
-  nix build .#targets -j 1 # Restricting builds to one at a time with '-j 1'.
+If you've configured `bevy-flake` to build your program with
+`buildSource = ./.`, you can build your project using Nix:
 
-  # Build individual targets:
-  nix build .#targets.x86_64-unknown-linux-gnu
-  nix build .#targets.x86_64-pc-windows-msvc # <-- Read docs/windows.md!
-  #  (...and so on. )
+```sh
+# Build all targets:
+nix build .#targets -j 1 # Restricting builds to one at a time with '-j 1'.
 
-  # Build your project from any machine with access to your repo:
-  nix build github:username/repository/branch#targets -j 1
+# Build individual targets:
+nix build .#targets.x86_64-unknown-linux-gnu
+nix build .#targets.x86_64-pc-windows-msvc # <-- Read docs/windows.md!
+#  (...and so on. )
+
+# Build your project from any machine with access to your repo:
+nix build github:username/repository/branch#targets -j 1
 ```
 
 You can compile to every target with a `targetEnvironments` entry.

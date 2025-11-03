@@ -144,7 +144,7 @@ bf = bevy-flake.override {
   let
     fx =
       (import nixpkgs {
-        inherit (pkgs) system;
+        inherit (pkgs.stdenv.hostPlatform) system;
         overlays = [ (fenix.overlays.default ) ];
       }).fenix;
     channel = "stable"; # For nightly, use "latest".
@@ -345,7 +345,7 @@ let
 
     # The argParser section should be used for parsing the args of the program
     # for BF_TARGET and BF_NO_WRAPPER (if you want the NO_WRAPPER behaviour).
-    # It is optional, and you can redefine the default argParser in the config.
+    # You can access the default parser by setting this to be a function.
     argParser = ''
       if [[ $* == "windows" ]]; then
         export BF_TARGET="x86_64-pc-windows-msvc"
