@@ -263,8 +263,8 @@ in
                 };
                 cargoHash = "sha256-xbYpi5QjeOTSVeBjwxeam14DtWawfSOlmrc1lmz/3H8=";
 
-                cargoPatches = [ ];
-                buildFeatures = [ ];
+                cargoPatches = [];
+                buildFeatures = [];
 
                 postPatch = "";
                 checkFlags = [ "--skip" "test_harnesses::run_harness" ];
@@ -274,7 +274,7 @@ in
     in
       makeOverridable envWrap {
         name = "dx";
-        extraRuntimeInputs = [ ];
+        extraRuntimeInputs = [];
         execPath = "${dioxus-cli-package}/bin/dx";
       };
 
@@ -349,7 +349,7 @@ in
 
           cargoLock.lockFile = "${buildSource}/Cargo.lock";
           cargoProfile = "release";
-          cargoBuildFlags = [ ];
+          cargoBuildFlags = [];
 
           buildPhase = ''
             runHook preBuild
