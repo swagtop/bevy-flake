@@ -125,8 +125,9 @@ in
                   ${target}*)
                   ${exportEnv (env // {
                     RUSTFLAGS =
-                      (env.RUSTFLAGS or "") + " "
-                        + concatStringsSep " " crossPlatformRustflags;
+                      (env.RUSTFLAGS or "")
+                        + optionalString (crossPlatformRustflags != [])
+                          (" " + (concatStringsSep " " crossPlatformRustflags));
                   })}
                   ;;
                 '')
