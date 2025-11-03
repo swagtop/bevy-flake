@@ -22,7 +22,7 @@
       let
         pkgs-with-overlay =
           (import nixpkgs {
-            inherit (pkgs) system;
+            inherit (pkgs.stdenv.hostPlatform) system;
             overlays = [ (import rust-overlay ) ];
           });
         channel = "stable"; # For nightly, use "nightly".

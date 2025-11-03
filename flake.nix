@@ -94,30 +94,6 @@
         "aarch64-pc-windows-msvc" = windows;
       };
 
-      defaultArgParser = ''
-        # Check if what the adapter is being run with.
-        TARGET_ARG_NO=1
-        for arg in "$@"; do
-          case $arg in
-            "--target")
-              # Save next arg as target.
-              TARGET_ARG_NO=$((TARGET_ARG_NO + 1))
-              eval "BF_TARGET=\$$TARGET_ARG_NO"
-              export BF_TARGET="$BF_TARGET"
-            ;;
-            "--no-wrapper")
-              set -- "''${@:1:$((TARGET_ARG_NO - 1))}" \
-                     "''${@:$((TARGET_ARG_NO + 1))}"
-              export BF_NO_WRAPPER="1"
-              break
-            ;;
-          esac
-          if [[ $BF_TARGET == "" ]]; then
-            TARGET_ARG_NO=$((TARGET_ARG_NO + 1))
-          fi
-        done
-      '';
-
       extraScript = "";
 
       mkRustToolchain = targets: pkgs:

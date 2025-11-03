@@ -12,7 +12,6 @@
   devEnvironment,
   targetEnvironments,
 
-  defaultArgParser,
   extraScript,
 
   mkRustToolchain,
@@ -23,7 +22,7 @@
 }:
 let
   inherit (builtins)
-    attrNames concatStringsSep warn throw;
+    attrNames concatStringsSep warn throw isFunction;
   inherit (nixpkgs.lib)
     genAttrs mapAttrsToList optionalAttrs subtractLists
     optionals optionalString makeOverridable makeSearchPath;
@@ -46,7 +45,7 @@ in
     envWrap = {
       name,
       execPath,
-      argParser ? defaultArgParser,
+      argParser ? (default: default),
       postScript ? "",
       extraRuntimeInputs ? []
     }:
@@ -57,12 +56,38 @@ in
           input-rust-toolchain
           pkgs.pkg-config
         ];
+      argParser' =
+        if (isFunction argParser)
+          then (argParser ''
+            # Check if what the adapter is being run with.
+            TARGET_ARG_NO=1
+            for arg in "$@"; do
+              case $arg in
+                "--target")
+                  # Save next arg as target.
+                  TARGET_ARG_NO=$((TARGET_ARG_NO + 1))
+                  eval "BF_TARGET=\$$TARGET_ARG_NO"
+                  export BF_TARGET="$BF_TARGET"
+                ;;
+                "--no-wrapper")
+                  set -- "''${@:1:$((TARGET_ARG_NO - 1))}" \
+                         "''${@:$((TARGET_ARG_NO + 1))}"
+                  export BF_NO_WRAPPER="1"
+                  break
+                ;;
+              esac
+              if [[ $BF_TARGET == "" ]]; then
+                TARGET_ARG_NO=$((TARGET_ARG_NO + 1))
+              fi
+            done
+          '')
+          else argParser;
     in
       pkgs.writeShellApplication {
         inherit name runtimeInputs;
         bashOptions = [ "errexit" "pipefail" ];
         text = ''
-          ${argParser}
+          ${argParser'}
         
           if [[ $BF_NO_WRAPPER == "1" ]]; then
             exec ${execPath} "$@"
@@ -126,7 +151,7 @@ in
         ];
         execPath = "${input-rust-toolchain}/bin/cargo";
 
-        argParser = defaultArgParser + ''
+        argParser = default: default + ''
           if [[ $BF_NO_WRAPPER != "1" ]]; then
              if [[ $BF_TARGET == *"-unknown-linux-gnu"* ]]; then
                 # Insert glibc version into args for Linux targets.
@@ -248,7 +273,7 @@ in
     in
       makeOverridable envWrap {
         name = "dx";
-        extraRuntimeInputs = [  ];
+        extraRuntimeInputs = [ ];
         execPath = "${dioxus-cli-package}/bin/dx";
       };
 
@@ -283,7 +308,7 @@ in
           )
         ];
         execPath = "${bevy-cli-package}/bin/bevy";
-        argParser = defaultArgParser + ''
+        argParser = default: default + ''
           if [[ $* == *" web"* ]]; then
             export BF_TARGET="wasm32-unknown-unknown"
           fi

@@ -20,15 +20,11 @@
       buildSource = ./.;
       mkRustToolchain = targets: pkgs:
       let
-        fx =
-          (import nixpkgs {
-            inherit (pkgs) system;
-            overlays = [ (fenix.overlays.default ) ];
-          }).fenix;
+        fx = fenix.packages.${pkgs.stdenv.hostPlatform.system};
         channel = "stable"; # For nightly, use "latest".
       in
         fx.combine (
-          [ fx.${channel}.defaultToolchain or fx.${channel}.toolchain ]
+          [ fx.${channel}.completeToolchain ]
           ++ map (target: fx.targets.${target}.${channel}.rust-std) targets
         );
     };
