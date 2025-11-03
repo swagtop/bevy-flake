@@ -354,7 +354,7 @@ in
           buildPhase = ''
             runHook preBuild
 
-            if [[ $alternateBuildCommand != "" ]]; then
+            if [[ $alternateBuildCommand == "" ]]; then
               echo We went here 1
               cargo build \
                 -j "$NIX_BUILD_CORES" \
