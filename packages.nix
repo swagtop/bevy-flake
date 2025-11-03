@@ -350,11 +350,23 @@ in
               -maxdepth 1 \
               -type f \
               -executable ! \( -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)" \))
+            libs=$(bind $buildDir \
+              -maxdepth 1 \
+              -type f \
+              -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)")
+            )
 
-            mkdir -p $out/bin
+            mkdir -p $out/{bin,lib}
+
             for file in $bins; do
               cp $file $out/bin/
             done
+
+            for file in $libs; do
+              cp $file $out/lib/
+            done
+
+            rmdir --ignore-fail-on-non-empty $out/{bin,lib}
           '';
 
           # Wrapper script will not work without having a set $HOME.
