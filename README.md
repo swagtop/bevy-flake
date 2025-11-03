@@ -77,8 +77,8 @@ Then, you can use them like so:
   bevy run web --open
 ```
 
-If you've configured `bevy-flake` to build your program with
-`buildSource = ./.`, you can build your project using Nix:
+If you've set `buildSource = ./.` in the config, you can build your project
+using Nix:
 
 ```sh
 # Build all targets:
