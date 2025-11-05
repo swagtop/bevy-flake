@@ -32,17 +32,15 @@
         sdk = null;
       };
 
-      crossPlatformRustflags = [
-        
-      ];
+      crossPlatformRustflags = [];
 
       # Base environment for every target to build on.
       sharedEnvironment = {
-        # Stops blake3 from messing builds up every once in a while.
+        # Fixes cargo-zigbuild builds that break on blake3 without this feature.
         CARGO_FEATURE_PURE = "1";
       };
 
-      devEnvironment = { };
+      devEnvironment = {};
 
       # Environment variables set for individual targets.
       targetEnvironments =

@@ -71,7 +71,7 @@ BF_NO_WRAPPER
 
 # The environment wrapper sets up the MacOS environment variables based on the
 # path given by this environment variable. You should not set this yourself, but
-# set it through the `config.macos.sdk` attribute.
+# set it through the `macos.sdk` attribute.
 BF_MACOS_SDK_PATH
 
 # The environment wrapper uses this variable to switch to the appropriate

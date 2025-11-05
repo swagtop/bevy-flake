@@ -105,7 +105,7 @@ If you care about reproducibility, or want to use it in a Nix builder without
 internet access, you should package it youself as soon as possible. It is really
 easy to do.
 
-After packaging, set the `config.windows.sysroot` to it, and you should now be
+After packaging, set the `windows.sysroot` to it, and you should now be
 reliably be using the same sysroot always.
 
 Read more on how to do this [here.](windows.md)
@@ -115,7 +115,7 @@ Read more on how to do this [here.](windows.md)
 <details> <summary><code>macos</code></summary>
 
 You will not be able to cross-compile to MacOS targets without an SDK. Setting
-the `config.macos.sdk` to a prepackaged one will do the trick.
+the `macos.sdk` to a prepackaged one will do the trick.
 
 Read how you can do this [here.](macos.md)
 
@@ -131,7 +131,7 @@ that return either a package, or a list of packages, given an input 'pkgs'.
 <details> <summary><code>mkRustToolchain</code></summary>
 
 This function also takes in a `targets` argument, which is produced from the
-`config.targetEnvironments` attribute names.
+`targetEnvironments` attribute names.
 
 You can think of this function as the recipe of building the Rust toolchain you
 want to use. The toolchain you make should have all the binaries needed for
@@ -308,7 +308,7 @@ in
 ### Configuring the wrapper
 
 If you dislike any of the stuff happening in the wrapper, you have the
-oppertunity to override anything that was done with the `config.extraScript`
+oppertunity to override anything that was done with the `extraScript`
 attribute.
 
 ```nix

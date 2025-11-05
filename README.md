@@ -33,7 +33,7 @@ Then, use the template with your preferred rust toolchain provider (switching
 to a different one later is super easy):
 
 ```sh
-# The default with no cross-compilation, but faster evaluation:
+# The one from nixpkgs with no cross-compilation, but no extra inputs:
 nix flake init --template github:swagtop/bevy-flake#nixpkgs
 
 # The one using oxalica's rust-overlay:

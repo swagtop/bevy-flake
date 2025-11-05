@@ -43,8 +43,8 @@ you to mark when you've packaged it with the current date:
 tar cJf "windows-msvc-sysroot-$(date '+%Y-%m-%d').tar.xz" ./windows-msvc-sysroot
 ```
 
-Then upload this tarball somewhere, and it in your `config.windows`
-configuration like so:
+Then upload this tarball somewhere, and it in your `windows` configuration like
+so:
 
 ```nix
 bf = bevy-flake.override {
