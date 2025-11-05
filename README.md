@@ -122,7 +122,7 @@ environment needed for it yourself. More on that [here.](docs/config.md)
                                   ╚═════════════════════════════╝
 
 
-      (1) Develop on your Nix system                   Cross-compile for other platforms (2)
+      (1) Develop on your Nix system                           Cross-compile for targets (2)
 ```
 
 - [Details](docs/details.md)
