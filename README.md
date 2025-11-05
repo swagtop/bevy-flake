@@ -11,8 +11,8 @@ Windows and MacOS targets.
 [bevy]: https://github.com/bevyengine/bevy
 
 > [!NOTE]
-> By compiling to the `*-pc-windows-msvc` targets, you are likely considered to
-> be accepting the [Microsoft Software License Terms.][license]
+> By compiling to the Windows MSVC targets, you are accepting the
+> [Microsoft Software License Terms.][license]
 
 [license]: https://go.microsoft.com/fwlink/?LinkId=2086102
 
