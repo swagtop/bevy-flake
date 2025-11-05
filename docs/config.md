@@ -112,6 +112,7 @@ Read more on how to do this [here.](windows.md)
 
 </details>
 
+
 <details> <summary><code>macos</code></summary>
 
 You will not be able to cross-compile to MacOS targets without an SDK. Setting
@@ -120,6 +121,7 @@ the `macos.sdk` to a prepackaged one will do the trick.
 Read how you can do this [here.](macos.md)
 
 </details>
+
 
 ## The `mk` functions
 
