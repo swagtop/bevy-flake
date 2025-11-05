@@ -1,6 +1,6 @@
 # Details
 
-## Who is this for?
+## Who is `bevy-flake` for?
 
 This flake is for Nix users, who want to work with Bevy. It is for the developer
 who wants to use a Nix environment to compile portable binaries for the major
