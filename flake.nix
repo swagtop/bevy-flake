@@ -58,7 +58,11 @@
           BINDGEN_EXTRA_CLANG_ARGS = concatStringsSep " " [
             "--sysroot=$BF_WINDOWS_SDK_PATH"
           ];
-          RUSTFLAGS = "-C linker=lld-link --sysroot=$BF_WINDOWS_SDK_PATH";
+          RUSTFLAGS = concatStringsSep " " [
+            "-C linker=lld-link"
+            "-C link-arg=/LIBPATH:C:$BF_WINDOWS_SDK_PATH/Lib/ucrt/x64"
+            "-C link-arg=/LIBPATH:C:$BF_WINDOWS_SDK_PATH/Lib/um/x64"
+          ];
         };
         macosEnv =
         let
