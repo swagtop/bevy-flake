@@ -98,6 +98,8 @@ in
             if (macos.sdk != null) then macos.sdk else ""
           }"
 
+          export BF_WINDOWS_SDK_PATH="${pkgs.windows.sdk}"
+
           # Base environment for all targets.
           export PKG_CONFIG_ALLOW_CROSS="1"
           export LIBCLANG_PATH="${pkgs.libclang.lib}/lib";
@@ -210,10 +212,10 @@ in
                 fi
               ''}
 
-              if [[ "$1" == "build" || "$1" == "run" ]]; then
-                echo "bevy-flake: Switching to 'cargo-xwin'" 1>&2 
-                exec ${input-rust-toolchain}/bin/cargo xwin "$@"
-              fi
+              # if [[ "$1" == "build" || "$1" == "run" ]]; then
+              #   echo "bevy-flake: Switching to 'cargo-xwin'" 1>&2 
+              #   exec ${input-rust-toolchain}/bin/cargo xwin "$@"
+              # fi
             ;;
           esac
         '';
