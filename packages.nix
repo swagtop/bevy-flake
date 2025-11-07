@@ -438,6 +438,7 @@ in
         dontUnpack = true;
         dontPatch = true;
         dontBuild = true;
+        dontPatchELF = true;
         dontAutoPatchelf = true;
         doCheck = false;
       });
