@@ -53,7 +53,7 @@
             udev.dev
             wayland.dev
           ]);
-        windowsEnv = {
+        windowsEnv = arch: {
           XWIN_CROSS_COMPILER = "clang";
           BINDGEN_EXTRA_CLANG_ARGS = concatStringsSep " " [
             "--sysroot=$BF_WINDOWS_SDK_PATH"
@@ -63,8 +63,9 @@
             "-C linker=lld-link"
             # "-C link-arg=/LIBPATH:C:$BF_WINDOWS_SDK_PATH/Lib/ucrt/x64"
             # "-C link-arg=/LIBPATH:C:$BF_WINDOWS_SDK_PATH/Lib/um/x64"
-            "-L $BF_WINDOWS_SDK_PATH/sdk/lib/um/x64"
-            "-L $BF_WINDOWS_SDK_PATH/crt/lib/x64"
+            "-L $BF_WINDOWS_SDK_PATH/sdk/lib/um/${arch}"
+            "-L $BF_WINDOWS_SDK_PATH/sdk/lib/ucrt/${arch}/ucrt.lib"
+            "-L $BF_WINDOWS_SDK_PATH/crt/lib/${arch}"
           ];
         };
         macosEnv =
@@ -99,8 +100,8 @@
         };
         "x86_64-apple-darwin" = macosEnv;
         "aarch64-apple-darwin" = macosEnv;
-        "x86_64-pc-windows-msvc" = windowsEnv;
-        "aarch64-pc-windows-msvc" = windowsEnv;
+        "x86_64-pc-windows-msvc" = windowsEnv "x64";
+        "aarch64-pc-windows-msvc" = windowsEnv "arm64";
       };
 
       extraScript = "";
