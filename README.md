@@ -23,8 +23,8 @@ Windows and MacOS targets.
 
 ## Quick setup
 
-First, navigate to your Bevy project root, perhaps with `cd /path/to/project`,
-then pull the template with your preferred rust toolchain provider:
+First, navigate to your Bevy project root, then pull the template with your
+preferred rust toolchain provider:
 
 ```sh
 # The one from nixpkgs with no cross-compilation, but no extra inputs:
