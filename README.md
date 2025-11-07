@@ -23,10 +23,8 @@ Windows and MacOS targets.
 
 ## Quick setup
 
-First, navigate to your Bevy project root, perhaps with `cd /path/to/project`.
-
-Then, use the template with your preferred rust toolchain provider (switching
-to a different one later is super easy):
+First, navigate to your Bevy project root, perhaps with `cd /path/to/project`,
+then pull the template with your preferred rust toolchain provider:
 
 ```sh
 # The one from nixpkgs with no cross-compilation, but no extra inputs:
@@ -41,8 +39,8 @@ nix flake init --template github:swagtop/bevy-flake#rust-overlay
 nix flake init --template github:swagtop/bevy-flake#fenix
 ```
 
-If you get your toolchain from elsewhere, you should very easily be able to slot
-it in. More on this [here.][config-toolchain]
+Switching later is super easy, and you should very easily be able to use any
+other toolchain provider not listed here. More on this [here.][config-toolchain]
 
 [config-toolchain]: docs/config.md#mkrusttoolchain
 
