@@ -162,10 +162,7 @@ in
     let
       wrapArgs = {
         name = "cargo";
-        extraRuntimeInputs = with pkgs; [
-          cargo-zigbuild
-          cargo-xwin
-        ];
+        extraRuntimeInputs = with pkgs; [ cargo-zigbuild ];
         execPath = "${input-rust-toolchain}/bin/cargo";
 
         argParser = default: default + ''
@@ -176,21 +173,6 @@ in
                  "''${@:1:((TARGET_ARG_NO-1))}" \
                  "$BF_TARGET.${linux.glibcVersion}" \
                  "''${@:$((TARGET_ARG_NO+1))}"
-            elif [[ $BF_TARGET == *"-pc-windows-msvc" ]]; then ${
-              let
-                cacheDirBase = (if (pkgs.stdenv.isDarwin)
-                  then "$HOME/Library/Caches/"
-                  else "\${XDG_CACHE_HOME:-$HOME/.cache}/"
-                ) + "bevy-flake";
-              in
-                (exportEnv {
-                  XWIN_CACHE_DIR = cacheDirBase + (
-                    if (windows.sysroot != null)
-                      then windows.sysroot
-                      else "/xwin"
-                  );
-                })
-              }
             fi
           fi
         '';
@@ -215,22 +197,6 @@ in
                 echo "bevy-flake: Switching to 'cargo-zigbuild'" 1>&2 
                 exec ${pkgs.cargo-zigbuild}/bin/cargo-zigbuild zigbuild "''${@:2}"
               fi
-            ;;
-            *-pc-windows-msvc)
-              # Set up links to /nix/store Windows SDK if configured.
-              ${optionalString (windows.sysroot != null) ''
-                # Only do this if 'cargo-xwin' knows we are using the sysroot.
-                if [[ $XWIN_CROSS_COMPILER == "clang" ]]; then
-                  mkdir -p "$XWIN_CACHE_DIR/windows-msvc-sysroot"
-                  ln -sf ${windows.sysroot}/* "$XWIN_CACHE_DIR/windows-msvc-sysroot/"
-                fi
-              ''}
-              export LD="${ pkgs.lld }/bin/lld-link"
-
-              # if [[ "$1" == "build" || "$1" == "run" ]]; then
-              #   echo "bevy-flake: Switching to 'cargo-xwin'" 1>&2 
-              #   exec ${input-rust-toolchain}/bin/cargo xwin "$@"
-              # fi
             ;;
           esac
         '';
