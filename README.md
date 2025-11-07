@@ -42,7 +42,7 @@ nix flake init --template github:swagtop/bevy-flake#fenix
 Switching later is super easy, and you should very easily be able to use any
 other toolchain provider not listed here. More on this [here.][config-toolchain]
 
-[config-toolchain]: docs/config.md#mkrusttoolchain
+[config-toolchain]: docs/config.md#the-mk-functions
 
 
 ## How to use
