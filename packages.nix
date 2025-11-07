@@ -43,6 +43,15 @@ in
     runtimeInputsBase = mkRuntimeInputs pkgs;
     stdenv = mkStdenv pkgs;
 
+    windowsSdk = 
+      pkgs.symlinkJoin {
+        name = "merged-windows-sdk";
+        paths = [
+          pkgs.pkgsCross.x86_64-windows.windows.sdk
+          pkgs.pkgsCross.aarch64-windows.windows.sdk
+        ];
+      };
+
     envWrap = {
       name,
       execPath,
@@ -56,6 +65,9 @@ in
           stdenv.cc
           input-rust-toolchain
           pkgs.pkg-config
+          (pkgs.writeShellScript "lld-link" ''
+            exec ${pkgs.lld}/bin/lld-link --sysroot=${windowsSdk} "$@"
+          '')
         ];
       argParser' =
         if (isFunction argParser)
@@ -99,15 +111,7 @@ in
             if (macos.sdk != null) then macos.sdk else ""
           }"
 
-          export BF_WINDOWS_SDK_PATH="${
-            pkgs.symlinkJoin {
-              name = "merged-windows-sdk";
-              paths = [
-                pkgs.pkgsCross.x86_64-windows.windows.sdk
-                pkgs.pkgsCross.aarch64-windows.windows.sdk
-              ];
-            }
-          }"
+          export BF_WINDOWS_SDK_PATH="${windowsSdk}"
 
           # Base environment for all targets.
           export PKG_CONFIG_ALLOW_CROSS="1"
