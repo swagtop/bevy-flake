@@ -62,7 +62,7 @@ cargo run
 cargo build --target x86_64-pc-windows-msvc
 ```
 ```sh
-# With `dioxus-cli`, develop Bevy with hot-patching
+# With `dioxus-cli`, develop Bevy with hot-patching:
 BEVY_ASSET_ROOT="." dx serve --hot-patch --features bevy/hotpatching
 ```
 ```sh
