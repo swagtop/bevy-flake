@@ -85,7 +85,7 @@
           PKG_CONFIG_PATH = linuxHeadersFor "aarch64-linux";
         };
         "wasm32-unknown-unknown" = {
-          RUSTFLAGS = "--cfg getrandom_backend=wasm_js";
+          RUSTFLAGS = "--cfg getrandom_backend=\"wasm_js\"";
         };
         "x86_64-apple-darwin" = macosEnv;
         "aarch64-apple-darwin" = macosEnv;
