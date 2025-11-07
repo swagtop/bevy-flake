@@ -221,10 +221,10 @@ in
                 fi
               ''}
               export CARGO_TARGET_x86_64-pc-windows-msvc_LINKER=${
-                pkgs.pkgsCross.x86_64-windows.stdenv.cc
+                pkgs.lld
               }
               export CARGO_TARGET_aarch64-pc-windows-msvc_LINKER=${
-                pkgs.pkgsCross.aarch64-windows.stdenv.cc
+                pkgs.lld
               }
 
               # if [[ "$1" == "build" || "$1" == "run" ]]; then
