@@ -64,7 +64,7 @@
             # "-C link-arg=/LIBPATH:C:$BF_WINDOWS_SDK_PATH/Lib/ucrt/x64"
             # "-C link-arg=/LIBPATH:C:$BF_WINDOWS_SDK_PATH/Lib/um/x64"
             "-L $BF_WINDOWS_SDK_PATH/sdk/lib/um/${arch}"
-            "-L $BF_WINDOWS_SDK_PATH/sdk/lib/ucrt/${arch}/ucrt.lib"
+            "-L $BF_WINDOWS_SDK_PATH/sdk/lib/ucrt/${arch}"
             "-L $BF_WINDOWS_SDK_PATH/crt/lib/${arch}"
           ];
         };
