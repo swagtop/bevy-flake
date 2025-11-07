@@ -60,7 +60,7 @@
             "-I$BF_WINDOWS_SDK_PATH/crt/include"
           ];
           RUSTFLAGS = concatStringsSep " " [
-            "-C linker=cc"
+            "-C linker=lld-link"
             # "-C link-arg=/LIBPATH:C:$BF_WINDOWS_SDK_PATH/Lib/ucrt/x64"
             # "-C link-arg=/LIBPATH:C:$BF_WINDOWS_SDK_PATH/Lib/um/x64"
             "-L $BF_WINDOWS_SDK_PATH/sdk/lib/um/x64"

@@ -65,9 +65,10 @@ in
           stdenv.cc
           input-rust-toolchain
           pkgs.pkg-config
-          (pkgs.writeShellScriptBin "lld-link" ''
-            exec ${pkgs.lld}/bin/lld-link /winsysroot:${windowsSdk} "$@"
-          '')
+          pkgs.lld-link
+          # (pkgs.writeShellScriptBin "lld-link" ''
+          #   exec ${pkgs.lld}/bin/lld-link /winsysroot:${windowsSdk} "$@"
+          # '')
         ];
       argParser' =
         if (isFunction argParser)
