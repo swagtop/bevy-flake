@@ -98,17 +98,7 @@ bf = bevy-flake.override {
 
 <details> <summary><code>windows</code></summary>
 
-You don't need to set the sysroot of Windows to be able to compile to it. If you
-don't have one set, `cargo-xwin` will just fetch the latest one it can get.
-
-If you care about reproducibility, or want to use it in a Nix builder without
-internet access, you should package it youself as soon as possible. It is really
-easy to do.
-
-After packaging, set the `windows.sysroot` to it, and you should now be
-reliably be using the same sysroot always.
-
-Read more on how to do this [here.](windows.md)
+Currently there is nothing to configure for the Windows targets.
 
 </details>
 

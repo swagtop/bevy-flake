@@ -86,7 +86,7 @@ nix build .#targets -j 1 # Restricting builds to one at a time with '-j 1'.
 
 # Build individual targets:
 nix build .#targets.x86_64-unknown-linux-gnu
-nix build .#targets.x86_64-pc-windows-msvc # <-- Read docs/windows.md!
+nix build .#targets.x86_64-pc-windows-msvc
 #  (...and so on. )
 
 # Build your project from any machine with access to your repo:

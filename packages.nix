@@ -31,9 +31,10 @@ in
   let
     pkgs = import nixpkgs {
       inherit system;
-      # Nothing unfree used by default, but enabled just in case users want to.
-      config.allowUnfree = true;
-      config.microsoftVisualStudioLicenseAccepted = true;
+      config = {
+        allowUnfree = true;
+        microsoftVisualStudioLicenseAccepted = true;
+      };
     };
     exportEnv = env: concatStringsSep "\n"
       (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env);
@@ -66,9 +67,6 @@ in
           input-rust-toolchain
           pkgs.pkg-config
           pkgs.lld
-          # (pkgs.writeShellScriptBin "lld-link" ''
-          #   exec ${pkgs.lld}/bin/lld-link /winsysroot:${windowsSdk} "$@"
-          # '')
         ];
       argParser' =
         if (isFunction argParser)
@@ -168,7 +166,7 @@ in
         argParser = default: default + ''
           if [[ $BF_NO_WRAPPER != "1" ]]; then
              if [[ $BF_TARGET == *"-unknown-linux-gnu"* ]]; then
-                # Insert glibc version into args for Linux targets.
+               # Insert glibc version into args for Linux targets.
                set -- \
                  "''${@:1:((TARGET_ARG_NO-1))}" \
                  "$BF_TARGET.${linux.glibcVersion}" \
@@ -232,7 +230,7 @@ in
     # For now we have to override the package for hot-reloading.
     dioxus-cli = 
     let
-      version = "0.7.0";
+      version = "0.7.1";
       dioxus-cli-package = pkgs.dioxus-cli.override (old: {
         rustPlatform = old.rustPlatform // {
           buildRustPackage = args:
@@ -242,9 +240,9 @@ in
                 src = old.fetchCrate {
                   inherit version;
                   pname = "dioxus-cli";
-                  hash = "sha256-+zWWG15qTXInaPCSKGd7yjLu8JQOev4AuZ//rbbMyyg=";
+                  hash = "sha256-tPymoJJvz64G8QObLkiVhnW0pBV/ABskMdq7g7o9f1A=";
                 };
-                cargoHash = "sha256-xbYpi5QjeOTSVeBjwxeam14DtWawfSOlmrc1lmz/3H8=";
+                cargoHash = "sha256-mgscu6mJWinB8WXLnLNq/JQnRpHRJKMQXnMwECz1vwc=";
 
                 cargoPatches = [];
                 buildFeatures = [];
@@ -285,12 +283,7 @@ in
     in
       makeOverridable envWrap {
         name = "bevy";
-        extraRuntimeInputs = [
-          (pkgs.wasm-bindgen-cli_0_2_104
-            or (warn "Your nixpkgs is too old for bevy-cli web builds."
-              pkgs.emptyDirectory)
-          )
-        ];
+        extraRuntimeInputs = [ pkgs.wasm-bindgen-cli_0_2_104 ];
         execPath = "${bevy-cli-package}/bin/bevy";
         argParser = default: default + ''
           if [[ $* == *" web"* ]]; then
@@ -298,12 +291,6 @@ in
           fi
         '';
       };
-
-    targets = warn (
-      "To use 'nix build .#targets', you should configure bevy-flake with "
-      + "'buildSource = ./.'"
-    ) pkgs.emptyDirectory;
-
   } // optionalAttrs (buildSource != null) {
     targets = makeOverridable (overridedAttrs:
     let
@@ -314,10 +301,7 @@ in
       allTargets = genAttrs (
         # Remove targets that cannot be built without specific configuration.
         subtractLists (
-          (optionals (windows.sysroot == null) [
-            "aarch64-pc-windows-msvc"
-            "x86_64-pc-windows-msvc"
-          ]) ++ (optionals (macos.sdk == null) [
+          (optionals (macos.sdk == null) [
             "aarch64-apple-darwin"
             "x86_64-apple-darwin"
           ])

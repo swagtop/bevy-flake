@@ -33,12 +33,12 @@ bf = bevy-flake.override {
 The base directory of the SDK should look something like this:
 
 ```
-path-to-sdk/
-  ├─ Entitlements.plist
-  ├─ SDKSettings.json
-  ├─ SDKSettings.plist
-  ├─ System/
-  ╰─ usr/
+path/to/sdk/
+         ├─ Entitlements.plist
+         ├─ SDKSettings.json
+         ├─ SDKSettings.plist
+         ├─ System/
+         ╰─ usr/
 ```
 
 If the root directory of the tarball you've unpacked doesn't look like this, and

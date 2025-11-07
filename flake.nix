@@ -22,10 +22,8 @@
         glibcVersion = "2.41";
       };
 
-      windows = {
-        # The latest sysroot will be fetched if you don't have it set.
-        sysroot = null;
-      };
+      # There is currently nothing to configure for the Windows targets.
+      windows = {};
 
       macos = {
         # You will not be able to cross-compile to MacOS targets without an SDK.
