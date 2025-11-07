@@ -23,11 +23,7 @@ Windows and MacOS targets.
 
 ## Quick setup
 
-First, navigate to your Bevy project root:
-
-```sh
-cd /path/to/bevy/project
-```
+First, navigate to your Bevy project root, perhaps with `cd /path/to/project`.
 
 Then, use the template with your preferred rust toolchain provider (switching
 to a different one later is super easy):
