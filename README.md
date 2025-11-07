@@ -35,10 +35,12 @@ to a different one later is super easy):
 ```sh
 # The one from nixpkgs with no cross-compilation, but no extra inputs:
 nix flake init --template github:swagtop/bevy-flake#nixpkgs
-
+```
+```sh
 # The one using oxalica's rust-overlay:
 nix flake init --template github:swagtop/bevy-flake#rust-overlay
-
+```
+```sh
 # The one using nix-community's fenix:
 nix flake init --template github:swagtop/bevy-flake#fenix
 ```
