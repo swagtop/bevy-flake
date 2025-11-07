@@ -180,7 +180,7 @@ in
         postScript = ''
           # Set linker for specific targets.
           case $BF_TARGET in
-            *-apple-darwin)
+            *-apple-darwin*)
               ${optionalString (macos.sdk == null) ''
                 printf "%s%s\n" \
                   "bevy-flake: Building to MacOS target without SDK, " \
