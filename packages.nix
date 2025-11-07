@@ -33,6 +33,7 @@ in
       inherit system;
       # Nothing unfree used by default, but enabled just in case users want to.
       config.allowUnfree = true;
+      config.microsoftVisualStudioLicenseAccepted = true;
     };
     exportEnv = env: concatStringsSep "\n"
       (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env);
