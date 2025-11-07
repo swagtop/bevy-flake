@@ -87,9 +87,10 @@ nix build github:username/repository/branch#targets -j 1
 
 You can compile to every target with a `targetEnvironments` [entry.][entries]
 If the target you want isn't in the config, you can add it, and set up the
-environment needed for it yourself. More on that [here.](docs/config.md)
+environment needed for it yourself. More on that [here.][environments]
 
-[entries]: https://github.com/swagtop/bevy-flake/blob/main/flake.nix#L79
+[entries]: flake.nix#L79
+[environments]: docs/config.md#environments
 
 - [Configuration](docs/config.md)
 - [Pitfalls](docs/pitfalls.md)
