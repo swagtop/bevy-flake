@@ -54,10 +54,6 @@
             wayland.dev
           ]);
         windowsEnv = arch: {
-          BINDGEN_EXTRA_CLANG_ARGS = concatStringsSep " " [
-            # "--sysroot=$BF_WINDOWS_SDK_PATH"
-            # "-I$BF_WINDOWS_SDK_PATH/crt/include"
-          ];
           RUSTFLAGS = concatStringsSep " " [
             "-C linker=lld-link"
             "-L $BF_WINDOWS_SDK_PATH/sdk/lib/um/${arch}"
