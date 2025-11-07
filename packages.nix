@@ -220,12 +220,7 @@ in
                   ln -sf ${windows.sysroot}/* "$XWIN_CACHE_DIR/windows-msvc-sysroot/"
                 fi
               ''}
-              export CARGO_TARGET_x86_64-pc-windows-msvc_LINKER="${
-                pkgs.lld
-              }/bin/lld-link"
-              export CARGO_TARGET_aarch64-pc-windows-msvc_LINKER="${
-                pkgs.lld
-              }/bin/lld-link"
+              export LD="${ pkgs.lld }/bin/lld-link"
 
               # if [[ "$1" == "build" || "$1" == "run" ]]; then
               #   echo "bevy-flake: Switching to 'cargo-xwin'" 1>&2 
