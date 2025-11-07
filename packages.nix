@@ -99,7 +99,15 @@ in
             if (macos.sdk != null) then macos.sdk else ""
           }"
 
-          export BF_WINDOWS_SDK_PATH="${pkgs.windows.sdk}"
+          export BF_WINDOWS_SDK_PATH="${
+            pkgs.symlinkJoin {
+              name = "merged-windows-sdk";
+              paths = [
+                pkgs.pkgsCross.x86_64-windows.windows.sdk
+                pkgs.pkgsCross.aarch64-windows.windows.sdk
+              ];
+            }
+          }"
 
           # Base environment for all targets.
           export PKG_CONFIG_ALLOW_CROSS="1"
@@ -212,6 +220,12 @@ in
                   ln -sf ${windows.sysroot}/* "$XWIN_CACHE_DIR/windows-msvc-sysroot/"
                 fi
               ''}
+              export CARGO_TARGET_x86_64-pc-windows-msvc_LINKER=${
+                pkgs.pkgsCross.x86_64-windows.stdenv.cc
+              }
+              export CARGO_TARGET_aarch64-pc-windows-msvc_LINKER=${
+                pkgs.pkgsCross.aarch64-windows.stdenv.cc
+              }
 
               # if [[ "$1" == "build" || "$1" == "run" ]]; then
               #   echo "bevy-flake: Switching to 'cargo-xwin'" 1>&2 
