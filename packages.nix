@@ -65,7 +65,7 @@ in
           stdenv.cc
           input-rust-toolchain
           pkgs.pkg-config
-          (pkgs.writeShellScript "lld-link" ''
+          (pkgs.writeShellScriptBin "lld-link" ''
             exec ${pkgs.lld}/bin/lld-link --sysroot=${windowsSdk} "$@"
           '')
         ];
