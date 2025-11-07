@@ -54,19 +54,21 @@ Then, you can use them like so:
 
 ```sh
 # With 'rust-toolchain', run and compile both for yours and other platforms:
-  # For your Nix system you can run:
-  cargo build
-  cargo run
+# For your Nix system you can run:
+cargo build
+cargo run
 
-  # For other targets, just use '--target':
-  cargo build --target x86_64-pc-windows-msvc
-
+# For other targets, just use '--target':
+cargo build --target x86_64-pc-windows-msvc
+```
+```sh
 # With `dioxus-cli`, develop Bevy with hot-patching
-  BEVY_ASSET_ROOT="." dx serve --hot-patch --features bevy/hotpatching
-
+BEVY_ASSET_ROOT="." dx serve --hot-patch --features bevy/hotpatching
+```
+```sh
 # With `bevy-cli`, use the alpha CLI tooling that is useful for web builds:
-  bevy run
-  bevy run web --open
+bevy run
+bevy run web --open
 ```
 
 If you've set `buildSource = ./.` in the config, you can build your project
