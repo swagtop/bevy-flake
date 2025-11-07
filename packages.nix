@@ -66,7 +66,7 @@ in
           input-rust-toolchain
           pkgs.pkg-config
           (pkgs.writeShellScriptBin "lld-link" ''
-            exec ${pkgs.lld}/bin/lld-link --sysroot=${windowsSdk} "$@"
+            exec ${pkgs.lld}/bin/lld-link /winsysroot:${windowsSdk} "$@"
           '')
         ];
       argParser' =
