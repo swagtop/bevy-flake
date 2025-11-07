@@ -45,7 +45,7 @@
       # Environment variables set for individual targets.
       targetEnvironments =
       let
-        linuxHeaders = system: makeSearchPath "lib/pkgconfig"
+        linuxHeadersFor = system: makeSearchPath "lib/pkgconfig"
           (with nixpkgs.legacyPackages.${system}; [
             alsa-lib-with-plugins.dev
             libxkbcommon.dev
@@ -53,7 +53,7 @@
             udev.dev
             wayland.dev
           ]);
-        windowsEnv = arch: {
+        windowsEnvFor = arch: {
           RUSTFLAGS = concatStringsSep " " [
             "-C linker=lld-link"
             "-L $BF_WINDOWS_SDK_PATH/sdk/lib/um/${arch}"
@@ -75,26 +75,22 @@
           RUSTFLAGS = concatStringsSep " " [
             "-L $BF_MACOS_SDK_PATH/usr/lib"
             "-L framework=${frameworks}"
-            "$RUSTFLAGS"
           ];
         };
       in {
         "x86_64-unknown-linux-gnu" = {
-          PKG_CONFIG_PATH = linuxHeaders "x86_64-linux";
+          PKG_CONFIG_PATH = linuxHeadersFor "x86_64-linux";
         };
         "aarch64-unknown-linux-gnu" = {
-          PKG_CONFIG_PATH = linuxHeaders "aarch64-linux";
+          PKG_CONFIG_PATH = linuxHeadersFor "aarch64-linux";
         };
         "wasm32-unknown-unknown" = {
-          RUSTFLAGS = concatStringsSep " " [
-            ''--cfg getrandom_backend=\"wasm_js\"''
-            "$RUSTFLAGS"
-          ];
+          RUSTFLAGS = ''--cfg getrandom_backend=\"wasm_js\"'';
         };
         "x86_64-apple-darwin" = macosEnv;
         "aarch64-apple-darwin" = macosEnv;
-        "x86_64-pc-windows-msvc" = windowsEnv "x64";
-        "aarch64-pc-windows-msvc" = windowsEnv "arm64";
+        "x86_64-pc-windows-msvc" = windowsEnvFor "x64";
+        "aarch64-pc-windows-msvc" = windowsEnvFor "arm64";
       };
 
       extraScript = "";
