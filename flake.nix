@@ -57,11 +57,14 @@
           XWIN_CROSS_COMPILER = "clang";
           BINDGEN_EXTRA_CLANG_ARGS = concatStringsSep " " [
             "--sysroot=$BF_WINDOWS_SDK_PATH"
+            "-I$BF_WINDOWS_SDK_PATH/crt/include"
           ];
           RUSTFLAGS = concatStringsSep " " [
             "-C linker=lld-link"
             "-C link-arg=/LIBPATH:C:$BF_WINDOWS_SDK_PATH/Lib/ucrt/x64"
             "-C link-arg=/LIBPATH:C:$BF_WINDOWS_SDK_PATH/Lib/um/x64"
+            "-L $BF_WINDOWS_SDK_PATH/sdk/lib/um/x64"
+            "-L $BF_WINDOWS_SDK_PATH/crt/lib/x64"
           ];
         };
         macosEnv =
