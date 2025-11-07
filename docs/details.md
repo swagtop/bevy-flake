@@ -120,8 +120,6 @@ There are a couple of things that I would like to be added to `bevy-flake`.
    cannot do properly yet, such as setting up the Window icon, or easily making
    a MacOS `.app` directory.
 
-3. Move the Windows SDK and CRT usage to the built in `pkgs.windows.sdk`.
-
 If you manage to configure any of this stuff yourself, please open a pull
 request!
 

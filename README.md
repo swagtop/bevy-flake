@@ -99,7 +99,6 @@ environment needed for it yourself. More on that [here.](docs/config.md)
 
 - [Configuration](docs/config.md)
 - [Pitfalls](docs/pitfalls.md)
-- [Windows](docs/windows.md)
 - [MacOS](docs/macos.md)
 
 --------------------------------------------------------------------------------
