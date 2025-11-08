@@ -56,7 +56,7 @@ in
           }
         else
           pkgs.windows.sdk.overrideAttrs (oldAttrs: {
-            src = (oldAttrs.src // windows.pinnedSdk);
+            src = (oldAttrs.src // { src = windows.pinnedSdk; });
           });
 
     envWrap = {
