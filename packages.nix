@@ -46,7 +46,7 @@ in
 
     windowsSdk = 
       pkgs.buildEnv {
-        name = "mergedWindowsSdk";
+        name = "merged-windows-sdk";
         paths = [
           pkgs.pkgsCross.x86_64-windows.windows.sdk
           pkgs.pkgsCross.aarch64-windows.windows.sdk
