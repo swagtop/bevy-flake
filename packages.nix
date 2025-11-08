@@ -62,9 +62,18 @@ in
               "--cache-dir=."
               "splat"
               "--preserve-ms-arch-notation"
-              "--arch=x86_64"
-              "--arch=aarch64"
             ];
+            installPhase = ''
+              runHook preInstall
+
+              xwin "''${xwinArgs[@]}" --arch="aarch64"
+              xwin "''${xwinArgs[@]}" --arch="x86_64"
+
+              mkdir -p "$out"
+              cp -r splat/* "$out"
+
+              runHook postInstall
+            '';
           });
 
     envWrap = {
