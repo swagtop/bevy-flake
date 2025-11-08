@@ -66,10 +66,12 @@ in
             installPhase = ''
               runHook preInstall
 
-              xwin --arch=x86_64 "''${xwinArgs[@]}" 
-              xwin --arch=aarch64 "''${xwinArgs[@]}" 
-
               mkdir -p "$out"
+
+              xwin --arch=x86_64 "''${xwinArgs[@]}" 
+              cp -r splat/* "$out"
+
+              xwin --arch=aarch64 "''${xwinArgs[@]}" 
               cp -r splat/* "$out"
 
               runHook postInstall
