@@ -76,6 +76,11 @@ BF_NO_WRAPPER
 # set it through the `macos.sdk` attribute.
 BF_MACOS_SDK_PATH
 
+# This is the path to the Windows SDK used for the Windows targets. By default
+# it is set to the one from nixpkgs, but you can package a specific one yourself
+# and pin it through the `windows.pinnedSdk` attribute.
+BF_WINDOWS_SDK_PATH
+
 # The environment wrapper uses this variable to switch to the appropriate
 # environment for compilation. It includes a default arg parser, that sets this
 # variable to the arg after '--target'. You can swap this parser out for your
