@@ -66,8 +66,8 @@ in
             installPhase = ''
               runHook preInstall
 
-              xwin "--arch=x86_64 ''${xwinArgs[@]}" 
-              xwin "--arch=aarch64 ''${xwinArgs[@]}" 
+              xwin --arch=x86_64 "''${xwinArgs[@]}" 
+              xwin --arch=aarch64 "''${xwinArgs[@]}" 
 
               mkdir -p "$out"
               cp -r splat/* "$out"
