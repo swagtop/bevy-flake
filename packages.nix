@@ -297,7 +297,7 @@ in
   } // optionalAttrs (buildSource != null) {
     targets = makeOverridable (overridedAttrs:
     let
-      manifest = (builtins.fromTOML buildSource/Cargo.toml).package;
+      manifest = (builtins.importTOML "${buildSource}/Cargo.toml").package;
       rustPlatform = pkgs.makeRustPlatform {
         cargo = rust-toolchain;
         rustc = rust-toolchain;
