@@ -45,13 +45,19 @@ in
     stdenv = mkStdenv pkgs;
 
     windowsSdk = 
-      pkgs.symlinkJoin {
-        name = "merged-windows-sdk";
-        paths = [
-          pkgs.pkgsCross.x86_64-windows.windows.sdk
-          pkgs.pkgsCross.aarch64-windows.windows.sdk
-        ];
-      };
+      if (windows.pinnedSdk != null)
+        then
+          pkgs.symlinkJoin {
+            name = "merged-windows-sdk";
+            paths = [
+              pkgs.pkgsCross.x86_64-windows.windows.sdk
+              pkgs.pkgsCross.aarch64-windows.windows.sdk
+            ];
+          }
+        else
+          pkgs.windows.sdk.overrideAttrs {
+            src = windows.winnedSdk;
+          };
 
     envWrap = {
       name,

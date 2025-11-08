@@ -22,8 +22,9 @@
         glibcVersion = "2.41";
       };
 
-      # There is currently nothing to configure for the Windows targets.
-      windows = {};
+      windows = {
+        pinnedSdk = null;
+      };
 
       macos = {
         # You will not be able to cross-compile to MacOS targets without an SDK.
