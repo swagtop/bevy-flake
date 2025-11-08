@@ -45,38 +45,13 @@ in
     stdenv = mkStdenv pkgs;
 
     windowsSdk = 
-      if (windows.pinnedSdk == null)
-        then
-          pkgs.symlinkJoin {
-            name = "merged-windows-sdk";
-            paths = [
-              pkgs.pkgsCross.x86_64-windows.windows.sdk
-              pkgs.pkgsCross.aarch64-windows.windows.sdk
-            ];
-          }
-        else
-          pkgs.windows.sdk.overrideAttrs (oldAttrs: {
-            src = (oldAttrs.src // { outPath = windows.pinnedSdk; });
-            xwinArgs = [
-              "--accept-license"
-              "--cache-dir=."
-              "splat"
-              "--preserve-ms-arch-notation"
-            ];
-            installPhase = ''
-              runHook preInstall
-
-              mkdir -p "$out"
-
-              xwin --arch=x86_64 "''${xwinArgs[@]}" 
-              cp -r splat/* "$out"
-
-              xwin --arch=aarch64 "''${xwinArgs[@]}" 
-              cp -r splat/* "$out"
-
-              runHook postInstall
-            '';
-          });
+      pkgs.symlinkJoin {
+        name = "merged-windows-sdk";
+        paths = [
+          pkgs.pkgsCross.x86_64-windows.windows.sdk
+          pkgs.pkgsCross.aarch64-windows.windows.sdk
+        ];
+      };
 
     envWrap = {
       name,
