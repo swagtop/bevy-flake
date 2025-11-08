@@ -45,8 +45,8 @@ in
     stdenv = mkStdenv pkgs;
 
     windowsSdk = 
-      pkgs.symlinkJoin {
-        name = "merged-windows-sdk";
+      pkgs.buildEnv {
+        name = "mergedWindowsSdk";
         paths = [
           pkgs.pkgsCross.x86_64-windows.windows.sdk
           pkgs.pkgsCross.aarch64-windows.windows.sdk
