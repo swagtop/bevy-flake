@@ -62,6 +62,8 @@ in
               "--cache-dir=."
               "splat"
               "--preserve-ms-arch-notation"
+              "--arch=x86_64"
+              "--arch=aarch64"
             ];
           });
 
