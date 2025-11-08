@@ -56,7 +56,7 @@ in
           }
         else
           pkgs.windows.sdk.overrideAttrs (oldAttrs: {
-            src = (windows.pinnedSdk // { arch = "x86_64"; });
+            src = (oldAttrs.src // windows.pinnedSdk);
           });
 
     envWrap = {
