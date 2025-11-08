@@ -57,6 +57,11 @@ in
         else
           pkgs.windows.sdk.overrideAttrs (oldAttrs: {
             src = (oldAttrs.src // { outPath = windows.pinnedSdk; });
+            xwinArgs = [
+              "--accept-license"
+              "--cache-dir=${placeholder "out"}"
+              "download"
+            ];
           });
 
     envWrap = {
