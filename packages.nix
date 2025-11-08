@@ -45,7 +45,7 @@ in
     stdenv = mkStdenv pkgs;
 
     windowsSdk = 
-      if (windows.pinnedSdk != null)
+      if (windows.pinnedSdk == null)
         then
           pkgs.symlinkJoin {
             name = "merged-windows-sdk";
