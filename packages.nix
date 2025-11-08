@@ -58,10 +58,9 @@ in
           pkgs.windows.sdk.overrideAttrs (oldAttrs: {
             src = (oldAttrs.src // { outPath = windows.pinnedSdk; });
             xwinArgs = [
-              "--manifest=${oldAttrs.manifest}"
               "--accept-license"
               "--cache-dir=${placeholder "out"}"
-              "download"
+              "splat"
             ];
           });
 
