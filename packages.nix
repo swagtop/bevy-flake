@@ -24,7 +24,7 @@ let
   inherit (builtins)
     attrNames concatStringsSep warn throw isFunction;
   inherit (nixpkgs.lib)
-    genAttrs mapAttrsToList optionalAttrs subtractLists
+    genAttrs mapAttrsToList optionalAttrs subtractLists importTOML
     optionals optionalString makeOverridable makeSearchPath;
 in
   genAttrs systems (system:
@@ -297,7 +297,7 @@ in
   } // optionalAttrs (buildSource != null) {
     targets = makeOverridable (overridedAttrs:
     let
-      manifest = (builtins.importTOML "${buildSource}/Cargo.toml").package;
+      manifest = (importTOML "${buildSource}/Cargo.toml").package;
       rustPlatform = pkgs.makeRustPlatform {
         cargo = rust-toolchain;
         rustc = rust-toolchain;
