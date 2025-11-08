@@ -116,7 +116,7 @@ environment needed for it yourself. More on that [here.][environments]
                                   ╚═════════════════════════════╝
 
 
-      (1) Develop on your Nix system                           Cross-compile for targets (2)
+      (1) Develop on your Nix systems                          Cross-compile for targets (2)
 ```
 
 - [Details](docs/details.md)
