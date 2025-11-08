@@ -209,6 +209,9 @@ in
             "Don't override the execPath of rust-toolchain."
             + "Set it to use a different toolchain through the config."
           else
+            # Merging the wrapper with the input toolchain, such that users get
+            # all the useful binaries in their path, like rust-analyzer, etc.,
+            # and only the 'cargo' binary is replaced by the wrapper.
             pkgs.buildEnv {
               name = "bf-wrapped-rust-toolchain";
               ignoreCollisions = true;
@@ -294,6 +297,7 @@ in
   } // optionalAttrs (buildSource != null) {
     targets = makeOverridable (overridedAttrs:
     let
+      manifest = (builtins.fromTOML "${buildSource}/Cargo.toml").package;
       rustPlatform = pkgs.makeRustPlatform {
         cargo = rust-toolchain;
         rustc = rust-toolchain;
@@ -308,7 +312,8 @@ in
         ) (attrNames targetEnvironments)
       ) (target:
         rustPlatform.buildRustPackage ({
-          name = "bf-${target}";
+          name = "${manifest.name}-${manifest.version}-${target}";
+          version = manifest.version;
 
           src = buildSource;
 
