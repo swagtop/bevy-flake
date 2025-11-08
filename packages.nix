@@ -59,8 +59,9 @@ in
             src = (oldAttrs.src // { outPath = windows.pinnedSdk; });
             xwinArgs = [
               "--accept-license"
-              "--cache-dir=${placeholder "out"}"
+              "--cache-dir=."
               "splat"
+              "--preserve-ms-arch-notation"
             ];
           });
 
