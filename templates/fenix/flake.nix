@@ -1,6 +1,5 @@
 {
-  description =
-    "A flake using nix-community's fenix wrapped with bevy-flake.";
+  description = "A flake using nix-community's fenix wrapped with bevy-flake.";
 
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
@@ -14,35 +13,46 @@
     };
   };
 
-  outputs = { nixpkgs, bevy-flake, fenix, ... }: 
-  let
-    bf = bevy-flake.override {
-      buildSource = ./.;
-      mkRustToolchain = targets: pkgs:
-      let
-        fx = fenix.packages.${pkgs.stdenv.hostPlatform.system};
-        channel = "stable"; # For nightly, use "latest".
-      in
-        fx.combine (
-          [ (fx.${channel}.completeToolchain or fx.channel.toolchain) ]
-          ++ map (target: fx.targets.${target}.${channel}.rust-std) targets
-        );
-    };
-  in {
-    inherit (bf) packages;
-
-    devShells = bf.eachSystem (system:
+  outputs =
+    {
+      nixpkgs,
+      bevy-flake,
+      fenix,
+      ...
+    }:
     let
-      pkgs = import nixpkgs { inherit system; };
-    in {
-      default = pkgs.mkShell {
-        name = "bevy-flake-fenix";
-        packages = [
-          bf.packages.${system}.rust-toolchain
-          # bf.packages.${system}.dioxus-cli
-          # bf.packages.${system}.bevy-cli
-        ];
+      bf = bevy-flake.override {
+        buildSource = ./.;
+        mkRustToolchain =
+          targets: pkgs:
+          let
+            fx = fenix.packages.${pkgs.stdenv.hostPlatform.system};
+            channel = "stable"; # For nightly, use "latest".
+          in
+          fx.combine (
+            [ (fx.${channel}.completeToolchain or fx.channel.toolchain) ]
+            ++ map (target: fx.targets.${target}.${channel}.rust-std) targets
+          );
       };
-    });
-  };
+    in
+    {
+      inherit (bf) packages;
+
+      devShells = bf.eachSystem (
+        system:
+        let
+          pkgs = import nixpkgs { inherit system; };
+        in
+        {
+          default = pkgs.mkShell {
+            name = "bevy-flake-fenix";
+            packages = [
+              bf.packages.${system}.rust-toolchain
+              # bf.packages.${system}.dioxus-cli
+              # bf.packages.${system}.bevy-cli
+            ];
+          };
+        }
+      );
+    };
 }
