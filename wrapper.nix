@@ -1,6 +1,8 @@
 {
   pkgs,
 
+  systems,
+
   linux,
   windows,
   macos,
@@ -17,7 +19,6 @@
   mkStdenv,
 
   buildSource,
-  ...
 }:
 let
   inherit (builtins)
