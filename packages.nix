@@ -60,6 +60,7 @@ genAttrs systems (
     sharedEnvironment' = optionalPkgs sharedEnvironment;
     devEnvironment' = optionalPkgs devEnvironment;
     targetEnvironments' = optionalPkgs targetEnvironments;
+    extraScript' = optionalPkgs extraScript;
 
     # Users need to reference 'pkgs' in the following 3 configs:
     targets = (attrNames targetEnvironments');
@@ -180,7 +181,7 @@ genAttrs systems (
             )}
           esac
 
-          ${extraScript}
+          ${extraScript'}
 
           ${postScript}
 
