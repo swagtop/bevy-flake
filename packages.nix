@@ -206,6 +206,9 @@ genAttrs systems (
           '';
       };
   }
+  # If buildSource is defined in config, add the 'targets' package, which builds
+  # every target defined in targetEnvironments. Individual targets can be built
+  # with 'targets.target-specific-triple', eg. 'targets.wasm32-unknown-unknown'.
   // optionalAttrs (buildSource != null) {
     targets = makeOverridable (
       overridedAttrs:
