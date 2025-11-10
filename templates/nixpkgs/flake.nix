@@ -13,13 +13,13 @@
     { nixpkgs, bevy-flake, ... }:
     let
       bf = bevy-flake.override (default: {
-        # buildSource = ./.;
+        buildSource = ./.;
 
-        # Only able to build the target corresponding to system.
-        # Get one of the other toolchains for cross-compilation.
         targetEnvironments =
           pkgs:
           let
+            # Only able to build the target corresponding to system.
+            # Get one of the other toolchains for cross-compilation.
             systemTarget = pkgs.stdenv.hostPlatform.config;
           in
           {
