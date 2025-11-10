@@ -4,7 +4,7 @@
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
     bevy-flake = {
-      url = "github:swagtop/bevy-flake";
+      url = "github:swagtop/bevy-flake/dev";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -12,9 +12,20 @@
   outputs =
     { nixpkgs, bevy-flake, ... }:
     let
-      bf = bevy-flake.override {
-        buildSource = ./.;
-      };
+      bf = bevy-flake.override (default: {
+        # buildSource = ./.;
+
+        # Only able to build the target corresponding to system.
+        # Get one of the other toolchains for cross-compilation.
+        targetEnvironments =
+          pkgs:
+          let
+            systemTarget = pkgs.stdenv.hostPlatform.config;
+          in
+          {
+            ${systemTarget} = default.targetEnvironments.${systemTarget};
+          };
+      });
     in
     {
       inherit (bf) packages;

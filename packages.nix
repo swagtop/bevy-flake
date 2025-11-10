@@ -11,7 +11,6 @@
   sharedEnvironment,
   devEnvironment,
   targetEnvironments,
-
   extraScript,
 
   mkRustToolchain,
@@ -24,7 +23,6 @@ let
   inherit (builtins)
     attrNames
     concatStringsSep
-    warn
     throw
     isFunction
     ;
@@ -76,10 +74,10 @@ genAttrs systems (
       ];
     };
 
-    envWrap =
+    wrapExecutable =
       {
         name,
-        execPath,
+        executable,
         argParser ? (default: default),
         postScript ? "",
         extraRuntimeInputs ? [ ],
@@ -132,7 +130,7 @@ genAttrs systems (
           ${argParser'}
 
           if [[ $BF_NO_WRAPPER == "1" ]]; then
-            exec ${execPath} "$@"
+            exec ${executable} "$@"
           fi
 
           # Set up MacOS SDK if configured.
@@ -185,7 +183,7 @@ genAttrs systems (
 
           ${postScript}
 
-          exec ${execPath} "$@"
+          exec ${executable} "$@"
         '';
       };
 
@@ -194,7 +192,7 @@ genAttrs systems (
         wrapArgs = {
           name = "cargo";
           extraRuntimeInputs = with pkgs; [ cargo-zigbuild ];
-          execPath = "${input-rust-toolchain}/bin/cargo";
+          executable = "${input-rust-toolchain}/bin/cargo";
 
           argParser =
             default:
@@ -239,10 +237,10 @@ genAttrs systems (
       (makeOverridable (
         wrapArgsInput:
         let
-          wrapped-rust-toolchain = (envWrap wrapArgsInput);
+          wrapped-rust-toolchain = (wrapExecutable wrapArgsInput);
           symlinked-wrapped-rust-toolchain =
-            if (wrapArgsInput.execPath != wrapArgs.execPath) then
-              throw "Don't override the execPath of rust-toolchain."
+            if (wrapArgsInput.executable != wrapArgs.executable) then
+              throw "Don't override the executable of rust-toolchain."
               + "Set it to use a different toolchain through the config."
             else
               # Merging the wrapper with the input toolchain, such that users get
@@ -257,8 +255,8 @@ genAttrs systems (
                 ];
               }
               // {
-                inherit envWrap;
-                wrapper = wrapped-rust-toolchain;
+                inherit wrapExecutable;
+                wrapped = wrapped-rust-toolchain;
                 unwrapped = input-rust-toolchain;
               };
         in
@@ -304,10 +302,10 @@ genAttrs systems (
           };
         });
       in
-      makeOverridable envWrap {
+      makeOverridable wrapExecutable {
         name = "dx";
         extraRuntimeInputs = [ ];
-        execPath = "${dioxus-cli-package}/bin/dx";
+        executable = "${dioxus-cli-package}/bin/dx";
       };
 
     # For now we package 'bevy-cli' ourselves, as it is not in nixpkgs yet.
@@ -334,10 +332,10 @@ genAttrs systems (
           }
         );
       in
-      makeOverridable envWrap {
+      makeOverridable wrapExecutable {
         name = "bevy";
         extraRuntimeInputs = [ pkgs.wasm-bindgen-cli_0_2_104 ];
-        execPath = "${bevy-cli-package}/bin/bevy";
+        executable = "${bevy-cli-package}/bin/bevy";
         argParser =
           default:
           default

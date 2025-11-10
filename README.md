@@ -23,13 +23,9 @@ Windows and MacOS targets.
 
 ## Quick setup
 
-First, navigate to your Bevy project root, then pull the template with your
-preferred rust toolchain provider:
+Navigate to your Bevy project root, then pull the template with your preferred
+Rust toolchain provider:
 
-```sh
-# The one from nixpkgs with no cross-compilation, but no extra inputs:
-nix flake init --template github:swagtop/bevy-flake#nixpkgs
-```
 ```sh
 # The one using oxalica's rust-overlay:
 nix flake init --template github:swagtop/bevy-flake#rust-overlay
@@ -38,8 +34,12 @@ nix flake init --template github:swagtop/bevy-flake#rust-overlay
 # The one using nix-community's fenix:
 nix flake init --template github:swagtop/bevy-flake#fenix
 ```
+```sh
+# The one from nixpkgs with no cross-compilation, but no extra inputs:
+nix flake init --template github:swagtop/bevy-flake#nixpkgs
+```
 
-Switching later is super easy, and you should very easily be able to use any
+Switching later is very easy, and you should very easily be able to use any
 other toolchain provider not listed here. More on this [here.][config-toolchain]
 
 [config-toolchain]: docs/config.md#the-mk-functions

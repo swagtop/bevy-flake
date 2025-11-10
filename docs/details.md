@@ -32,9 +32,9 @@ or a package wrapped, that isn't included by default.
   # All packages pre-wrapped by bevy-flake.
   packages."<system>" = {
     rust-toolchain = <derivation>; # The input toolchain, with 'cargo' wrapped.
-    rust-toolchain.wrapper = <derivation>; # Just the 'cargo' wrapper.
+    rust-toolchain.wrapped = <derivation>; # Just the 'cargo' wrapper.
     rust-toolchain.unwrapped = <derivation>; # The input toolchain.
-    rust-toolchain.envWrap = <function>; # Use this to wrap your own packages.
+    rust-toolchain.wrapExecutable = <function>; # Use to wrap your own packages.
     
     dioxus-cli = <derivation>;
     bevy-cli = <derivation>;
@@ -67,7 +67,7 @@ TODO: Have a writeup on how the flake does things here.
 The environment adapter makes use of the following environment variables:
 
 ```bash
-# If this variable is set to "1", the environment wrapper runs the execPath
+# If this variable is set to "1", the environment wrapper runs the executable
 # without changing the environment.
 BF_NO_WRAPPER 
 
@@ -95,10 +95,10 @@ Lets say you are wrapping `cowsay`:
 
 ```nix
 let
-  inherit (bevy-flake.packages.${system}.rust-toolchain) envWrap;
-  wrapped-cowsay = envWrap {
+  inherit (bevy-flake.packages.${system}.rust-toolchain) wrapExecutable;
+  wrapped-cowsay = wrapExecutable {
     name = "cowsay";
-    execPath = "${pkgs.cowsay}/bin/cowsay";
+    executable = "${pkgs.cowsay}/bin/cowsay";
   };
 in
   # ...
