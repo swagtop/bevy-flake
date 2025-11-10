@@ -334,7 +334,7 @@ genAttrs systems (
       in
       makeOverridable wrapExecutable {
         name = "bevy";
-        extraRuntimeInputs = [ pkgs.wasm-bindgen-cli_0_2_104 ];
+        extraRuntimeInputs = [ pkgs.wasm-bindgen-cli_0_2_104 pkgs.binaryen ];
         executable = "${bevy-cli-package}/bin/bevy";
         argParser =
           default:
