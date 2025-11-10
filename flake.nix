@@ -148,7 +148,7 @@
       config:
       let
         eachSystem = genAttrs config.systems;
-        packages = import ./packages.nix (config // { inherit nixpkgs; });
+        packages = import ./packages.nix { inherit config nixpkgs; };
       in
       {
         inherit (config) systems;

@@ -1,24 +1,4 @@
-{
-  nixpkgs,
-  systems,
-
-  linux,
-  windows,
-  macos,
-
-  crossPlatformRustflags,
-
-  sharedEnvironment,
-  devEnvironment,
-  targetEnvironments,
-  extraScript,
-
-  mkRustToolchain,
-  mkRuntimeInputs,
-  mkStdenv,
-
-  buildSource,
-}:
+{ config, nixpkgs }:
 let
   inherit (builtins)
     attrNames
@@ -28,14 +8,19 @@ let
     ;
   inherit (nixpkgs.lib)
     genAttrs
-    mapAttrsToList
     optionalAttrs
     subtractLists
     importTOML
     optionals
     optionalString
     makeOverridable
-    makeSearchPath
+    ;
+  inherit (config)
+    systems
+    macos
+    linux
+    buildSource
+    targetEnvironments
     ;
 in
 genAttrs systems (
@@ -48,151 +33,23 @@ genAttrs systems (
         microsoftVisualStudioLicenseAccepted = true;
       };
     };
-    exportEnv =
-      env: concatStringsSep "\n" (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env);
 
-    optionalPkgs = input: if isFunction input then input pkgs else input;
+    targetEnvironments' =
+      if isFunction targetEnvironments then targetEnvironments pkgs else targetEnvironments;
 
-    # Letting users optionally reference 'pkgs', for the following 4 configs:
-    crossPlatformRustflags' = optionalPkgs crossPlatformRustflags;
-    sharedEnvironment' = optionalPkgs sharedEnvironment;
-    devEnvironment' = optionalPkgs devEnvironment;
-    targetEnvironments' = optionalPkgs targetEnvironments;
-    extraScript' = optionalPkgs extraScript;
-
-    # Users need to reference 'pkgs' in the following 3 configs:
-    targets = (attrNames targetEnvironments');
-    input-rust-toolchain = mkRustToolchain targets pkgs;
-    runtimeInputsBase = mkRuntimeInputs pkgs;
-    stdenv = mkStdenv pkgs;
-
-    windowsSdk = pkgs.symlinkJoin {
-      name = "merged-windows-sdk";
-      paths = [
-        pkgs.pkgsCross.x86_64-windows.windows.sdk
-        pkgs.pkgsCross.aarch64-windows.windows.sdk
-      ];
-    };
-
-    wrapExecutable =
-      {
-        name,
-        executable,
-        argParser ? (default: default),
-        postScript ? "",
-        extraRuntimeInputs ? [ ],
-      }:
-      let
-        runtimeInputs =
-          runtimeInputsBase
-          ++ extraRuntimeInputs
-          ++ [
-            stdenv.cc
-            input-rust-toolchain
-            pkgs.pkg-config
-            pkgs.lld
-          ];
-        argParser' =
-          if (isFunction argParser) then
-            (argParser ''
-              # Check if what the adapter is being run with.
-              TARGET_ARG_NO=1
-              for arg in "$@"; do
-                case $arg in
-                  "--target")
-                    # Save next arg as target.
-                    TARGET_ARG_NO=$((TARGET_ARG_NO + 1))
-                    eval "BF_TARGET=\$$TARGET_ARG_NO"
-                    export BF_TARGET="$BF_TARGET"
-                  ;;
-                  "--no-wrapper")
-                    set -- "''${@:1:$((TARGET_ARG_NO - 1))}" \
-                           "''${@:$((TARGET_ARG_NO + 1))}"
-                    export BF_NO_WRAPPER="1"
-                    break
-                  ;;
-                esac
-                if [[ $BF_TARGET == "" ]]; then
-                  TARGET_ARG_NO=$((TARGET_ARG_NO + 1))
-                fi
-              done
-            '')
-          else
-            argParser;
-      in
-      pkgs.writeShellApplication {
-        inherit name runtimeInputs;
-        bashOptions = [
-          "errexit"
-          "pipefail"
-        ];
-        text = ''
-          ${argParser'}
-
-          if [[ $BF_NO_WRAPPER == "1" ]]; then
-            exec ${executable} "$@"
-          fi
-
-          # Set up MacOS SDK if configured.
-          export BF_MACOS_SDK_PATH="${if (macos.sdk != null) then macos.sdk else ""}"
-
-          export BF_WINDOWS_SDK_PATH="${windowsSdk}"
-
-          # Base environment for all targets.
-          export PKG_CONFIG_ALLOW_CROSS="1"
-          export LIBCLANG_PATH="${pkgs.libclang.lib}/lib";
-          export LIBRARY_PATH="${pkgs.libiconv}/lib";
-          ${exportEnv sharedEnvironment'}
-
-          case $BF_TARGET in
-            "")
-              ${exportEnv (
-                devEnvironment'
-                // {
-                  PKG_CONFIG_PATH =
-                    (devEnvironment'.PKG_CONFIG_PATH or "")
-                    + makeSearchPath "lib/pkgconfig" (map (p: p.dev or null) (runtimeInputsBase ++ extraRuntimeInputs));
-                  RUSTFLAGS =
-                    (devEnvironment'.RUSTFLAGS or "")
-                    + optionalString (pkgs.stdenv.isLinux) "-C link-args=-Wl,-rpath,${
-                      makeSearchPath "lib" (runtimeInputsBase ++ extraRuntimeInputs)
-                    }";
-                }
-              )}
-            ;;
-
-            ${concatStringsSep "\n" (
-              mapAttrsToList (target: env: ''
-                ${target}*)
-                ${exportEnv (
-                  env
-                  // {
-                    RUSTFLAGS =
-                      (env.RUSTFLAGS or "")
-                      + optionalString (crossPlatformRustflags' != [ ]) (
-                        " " + (concatStringsSep " " crossPlatformRustflags')
-                      );
-                  }
-                )}
-                ;;
-              '') targetEnvironments'
-            )}
-          esac
-
-          ${extraScript'}
-
-          ${postScript}
-
-          exec ${executable} "$@"
-        '';
-      };
+    wrapExecutable = import ./wrapper.nix (
+      config
+      // {
+        inherit pkgs;
+      }
+    );
 
     rust-toolchain =
       let
         wrapArgs = {
           name = "cargo";
           extraRuntimeInputs = with pkgs; [ cargo-zigbuild ];
-          executable = "${input-rust-toolchain}/bin/cargo";
+          executable = "${wrapExecutable.input-rust-toolchain}/bin/cargo";
 
           argParser =
             default:
@@ -251,13 +108,13 @@ genAttrs systems (
                 ignoreCollisions = true;
                 paths = [
                   wrapped-rust-toolchain
-                  input-rust-toolchain
+                  wrapExecutable.input-rust-toolchain
                 ];
               }
               // {
                 inherit wrapExecutable;
                 wrapped = wrapped-rust-toolchain;
-                unwrapped = input-rust-toolchain;
+                unwrapped = wrapExecutable.input-rust-toolchain;
               };
         in
         symlinked-wrapped-rust-toolchain
@@ -334,7 +191,10 @@ genAttrs systems (
       in
       makeOverridable wrapExecutable {
         name = "bevy";
-        extraRuntimeInputs = [ pkgs.wasm-bindgen-cli_0_2_104 pkgs.binaryen ];
+        extraRuntimeInputs = [
+          pkgs.wasm-bindgen-cli_0_2_104
+          pkgs.binaryen
+        ];
         executable = "${bevy-cli-package}/bin/bevy";
         argParser =
           default:
