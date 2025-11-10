@@ -326,7 +326,7 @@ let
     name = "cowsay";
 
     # The full path of the executable you're wrapping.
-    execPath = "${pkgs.cowsay}/bin/cowsay";
+    executable = "${pkgs.cowsay}/bin/cowsay";
 
     # The argParser section should be used for parsing the args of the program
     # for BF_TARGET and BF_NO_WRAPPER (if you want the NO_WRAPPER behaviour).
@@ -363,35 +363,3 @@ in
 
 Remember to use `bf` and not `bevy-flake` to get the `wrapExecutable` function
 if you've changed the config.
-
-
-## Other 
-
-### I want to reference a package, but can't outside of `eachSystem`
-
-You should be doing this with an override of the wrapper of the package you're
-using, or make your own script that sets it:
-
-```nix
-let
-  rust-toolchain' = bf.packages.rust-toolchain.override (default: {
-    extraRuntimeInputs = default.extraRuntimeInputs ++ [
-      nixpkgs.legacyPackages.${system}.cargo-ndk
-    ];
-    postScript = (default.postScript or "") + ''
-      if [[ $BF_FLAKE == "aarch64-linux-android" ]]; then
-        echo "bevy-flake: Switching to 'cargo-ndk'"
-        exec ${nixpkgs.legacyPackages.${system}.cargo-ndk}/bin/cargo-ndk ndk "$@"
-      fi
-    '';
-  });
-in
-  # ...
-  packages = [
-    rust-toolchain'
-  ];
-  # ...
-```
-
-Alternatively you could just override `bevy-flake` inside of an `eachSystem`,
-but the flake isn't designed for that, and therefore YMMV.
