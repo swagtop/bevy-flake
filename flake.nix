@@ -28,6 +28,7 @@
           glibcVersion = "2.41";
         };
 
+        # There is currently nothing to configure for the Windows targets.
         windows = { };
 
         macos = {

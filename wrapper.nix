@@ -30,19 +30,22 @@ let
     optionalString
     makeSearchPath
     ;
+
   exportEnv =
     env: concatStringsSep "\n" (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env);
 
   optionalPkgs = input: if isFunction input then input pkgs else input;
 
   # Letting users optionally reference 'pkgs', for the following 4 configs:
-  crossPlatformRustflags' = optionalPkgs crossPlatformRustflags;
-  sharedEnvironment' = optionalPkgs sharedEnvironment;
-  devEnvironment' = optionalPkgs devEnvironment;
-  targetEnvironments' = optionalPkgs targetEnvironments;
-  extraScript' = optionalPkgs extraScript;
+  final = {
+    crossPlatformRustflags = optionalPkgs crossPlatformRustflags;
+    sharedEnvironment = optionalPkgs sharedEnvironment;
+    devEnvironment = optionalPkgs devEnvironment;
+    targetEnvironments = optionalPkgs targetEnvironments;
+    extraScript = optionalPkgs extraScript;
+  };
 
-  targets = (attrNames targetEnvironments');
+  targets = (attrNames final.targetEnvironments);
   # Users need to reference 'pkgs' in the following 3 configs:
   input-rust-toolchain = mkRustToolchain targets pkgs;
   runtimeInputsBase = mkRuntimeInputs pkgs;
@@ -58,6 +61,14 @@ let
 in
 {
   inherit input-rust-toolchain;
+  inherit (final)
+    crossPlatformRustflags
+    sharedEnvironment
+    devEnvironment
+    targetEnvironments
+    extraScript
+    ;
+
   __functor =
     _:
     {
@@ -127,18 +138,18 @@ in
         export PKG_CONFIG_ALLOW_CROSS="1"
         export LIBCLANG_PATH="${pkgs.libclang.lib}/lib";
         export LIBRARY_PATH="${pkgs.libiconv}/lib";
-        ${exportEnv sharedEnvironment'}
+        ${exportEnv final.sharedEnvironment}
 
         case $BF_TARGET in
           "")
             ${exportEnv (
-              devEnvironment'
+              final.devEnvironment
               // {
                 PKG_CONFIG_PATH =
-                  (devEnvironment'.PKG_CONFIG_PATH or "")
+                  (final.devEnvironment.PKG_CONFIG_PATH or "")
                   + makeSearchPath "lib/pkgconfig" (map (p: p.dev or null) (runtimeInputsBase ++ extraRuntimeInputs));
                 RUSTFLAGS =
-                  (devEnvironment'.RUSTFLAGS or "")
+                  (final.devEnvironment.RUSTFLAGS or "")
                   + optionalString (pkgs.stdenv.isLinux) "-C link-args=-Wl,-rpath,${
                     makeSearchPath "lib" (runtimeInputsBase ++ extraRuntimeInputs)
                   }";
@@ -154,17 +165,17 @@ in
                 // {
                   RUSTFLAGS =
                     (env.RUSTFLAGS or "")
-                    + optionalString (crossPlatformRustflags' != [ ]) (
-                      " " + (concatStringsSep " " crossPlatformRustflags')
+                    + optionalString (final.crossPlatformRustflags != [ ]) (
+                      " " + (concatStringsSep " " final.crossPlatformRustflags)
                     );
                 }
               )}
               ;;
-            '') targetEnvironments'
+            '') final.targetEnvironments
           )}
         esac
 
-        ${extraScript'}
+        ${final.extraScript}
 
         ${postScript}
 

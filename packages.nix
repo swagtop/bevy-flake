@@ -4,7 +4,6 @@ let
     attrNames
     concatStringsSep
     throw
-    isFunction
     ;
   inherit (nixpkgs.lib)
     genAttrs
@@ -20,7 +19,6 @@ let
     macos
     linux
     buildSource
-    targetEnvironments
     ;
 in
 genAttrs systems (
@@ -33,9 +31,6 @@ genAttrs systems (
         microsoftVisualStudioLicenseAccepted = true;
       };
     };
-
-    targetEnvironments' =
-      if isFunction targetEnvironments then targetEnvironments pkgs else targetEnvironments;
 
     wrapExecutable = import ./wrapper.nix (
       config
@@ -97,7 +92,7 @@ genAttrs systems (
           wrapped-rust-toolchain = (wrapExecutable wrapArgsInput);
           symlinked-wrapped-rust-toolchain =
             if (wrapArgsInput.executable != wrapArgs.executable) then
-              throw "Don't override the executable of rust-toolchain."
+              throw "Don't override the executable of rust-toolchain. "
               + "Set it to use a different toolchain through the config."
             else
               # Merging the wrapper with the input toolchain, such that users get
@@ -218,87 +213,82 @@ genAttrs systems (
           cargo = rust-toolchain;
           rustc = rust-toolchain;
         };
-        allTargets =
-          genAttrs
-            (
-              # Remove targets that cannot be built without specific configuration.
-              subtractLists (optionals (macos.sdk == null) [
-                "aarch64-apple-darwin"
-                "x86_64-apple-darwin"
-              ]) (attrNames targetEnvironments')
-            )
-            (
-              target:
-              rustPlatform.buildRustPackage (
-                {
-                  name = "${manifest.name}-${manifest.version}-${target}";
-                  version = manifest.version;
+        validTargets = subtractLists (optionals (macos.sdk == null) [
+          "aarch64-apple-darwin"
+          "x86_64-apple-darwin"
+        ]) (attrNames wrapExecutable.targetEnvironments);
+        eachTarget = genAttrs validTargets (
+          target:
+          rustPlatform.buildRustPackage (
+            {
+              name = "${manifest.name}-${manifest.version}-${target}";
+              version = manifest.version;
 
-                  src = buildSource;
+              src = buildSource;
 
-                  nativeBuildInputs = [ rust-toolchain ];
+              nativeBuildInputs = [ rust-toolchain ];
 
-                  cargoLock.lockFile = "${buildSource}/Cargo.lock";
-                  cargoProfile = "release";
-                  cargoBuildFlags = [ ];
+              cargoLock.lockFile = "${buildSource}/Cargo.lock";
+              cargoProfile = "release";
+              cargoBuildFlags = [ ];
 
-                  buildPhase = ''
-                    runHook preBuild
+              buildPhase = ''
+                runHook preBuild
 
-                    cargo build \
-                      -j "$NIX_BUILD_CORES" \
-                      --profile "$cargoProfile" \
-                      --target "${target}" \
-                      --offline \
-                      ''${cargoBuildFlags[@]}
+                cargo build \
+                  -j "$NIX_BUILD_CORES" \
+                  --profile "$cargoProfile" \
+                  --target "${target}" \
+                  --offline \
+                  ''${cargoBuildFlags[@]}
 
-                    runHook postBuild
-                  '';
+                runHook postBuild
+              '';
 
-                  # Copied and edited for multi-target purposes from nixpkgs Rust hooks.
-                  installPhase = ''
-                    if [[ $cargoProfile == "dev" ]]; then
-                      # Set dev profile environment variable to match correct directory.
-                      export cargoProfile="debug"
-                    fi
+              # Copied and edited for multi-target purposes from nixpkgs Rust hooks.
+              installPhase = ''
+                if [[ $cargoProfile == "dev" ]]; then
+                  # Set dev profile environment variable to match correct directory.
+                  export cargoProfile="debug"
+                fi
 
-                    buildDir=target/"${target}"/"$cargoProfile"
-                    bins=$(find $buildDir \
-                      -maxdepth 1 \
-                      -type f \
-                      -executable ! \( -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)" \))
-                    libs=$(find $buildDir \
-                      -maxdepth 1 \
-                      -type f \
-                      -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)")
+                buildDir=target/"${target}"/"$cargoProfile"
+                bins=$(find $buildDir \
+                  -maxdepth 1 \
+                  -type f \
+                  -executable ! \( -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)" \))
+                libs=$(find $buildDir \
+                  -maxdepth 1 \
+                  -type f \
+                  -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)")
 
-                    mkdir -p $out/{bin,lib}
+                mkdir -p $out/{bin,lib}
 
-                    for file in $bins; do
-                      cp $file $out/bin/
-                    done
+                for file in $bins; do
+                  cp $file $out/bin/
+                done
 
-                    for file in $libs; do
-                      cp $file $out/lib/
-                    done
+                for file in $libs; do
+                  cp $file $out/lib/
+                done
 
-                    rmdir --ignore-fail-on-non-empty $out/{bin,lib}
-                  '';
+                rmdir --ignore-fail-on-non-empty $out/{bin,lib}
+              '';
 
-                  # Wrapper script will not work without having a set $HOME.
-                  HOME = ".";
+              # Wrapper script will not work without having a set $HOME.
+              HOME = ".";
 
-                  dontPatch = true;
-                  dontAutoPatchelf = true;
-                  doCheck = false;
-                }
-                // overridedAttrs
-              )
-            );
+              dontPatch = true;
+              dontAutoPatchelf = true;
+              doCheck = false;
+            }
+            // overridedAttrs
+          )
+        );
 
         full-build = pkgs.stdenvNoCC.mkDerivation (
           let
-            buildList = (nixpkgs.lib.attrsToList allTargets);
+            buildList = (nixpkgs.lib.attrsToList eachTarget);
           in
           {
             name = "bf-all-targets";
@@ -318,7 +308,7 @@ genAttrs systems (
           }
         );
       in
-      full-build // allTargets
+      full-build // eachTarget
     ) { };
   }
 )
