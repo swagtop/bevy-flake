@@ -53,7 +53,16 @@ genAttrs systems (
     exportEnv =
       env: concatStringsSep "\n" (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env);
 
-    targets = (attrNames targetEnvironments);
+    optionalPkgs = input: if isFunction input then input pkgs else input;
+
+    # Letting users optionally reference 'pkgs', for the following 4 configs:
+    crossPlatformRustflags' = optionalPkgs crossPlatformRustflags;
+    sharedEnvironment' = optionalPkgs sharedEnvironment;
+    devEnvironment' = optionalPkgs devEnvironment;
+    targetEnvironments' = optionalPkgs targetEnvironments;
+
+    # Users need to reference 'pkgs' in the following 3 configs:
+    targets = (attrNames targetEnvironments');
     input-rust-toolchain = mkRustToolchain targets pkgs;
     runtimeInputsBase = mkRuntimeInputs pkgs;
     stdenv = mkStdenv pkgs;
@@ -134,18 +143,18 @@ genAttrs systems (
           export PKG_CONFIG_ALLOW_CROSS="1"
           export LIBCLANG_PATH="${pkgs.libclang.lib}/lib";
           export LIBRARY_PATH="${pkgs.libiconv}/lib";
-          ${exportEnv sharedEnvironment}
+          ${exportEnv sharedEnvironment'}
 
           case $BF_TARGET in
             "")
               ${exportEnv (
-                devEnvironment
+                devEnvironment'
                 // {
                   PKG_CONFIG_PATH =
-                    (devEnvironment.PKG_CONFIG_PATH or "")
+                    (devEnvironment'.PKG_CONFIG_PATH or "")
                     + makeSearchPath "lib/pkgconfig" (map (p: p.dev or null) (runtimeInputsBase ++ extraRuntimeInputs));
                   RUSTFLAGS =
-                    (devEnvironment.RUSTFLAGS or "")
+                    (devEnvironment'.RUSTFLAGS or "")
                     + optionalString (pkgs.stdenv.isLinux) "-C link-args=-Wl,-rpath,${
                       makeSearchPath "lib" (runtimeInputsBase ++ extraRuntimeInputs)
                     }";
@@ -161,13 +170,13 @@ genAttrs systems (
                   // {
                     RUSTFLAGS =
                       (env.RUSTFLAGS or "")
-                      + optionalString (crossPlatformRustflags != [ ]) (
-                        " " + (concatStringsSep " " crossPlatformRustflags)
+                      + optionalString (crossPlatformRustflags' != [ ]) (
+                        " " + (concatStringsSep " " crossPlatformRustflags')
                       );
                   }
                 )}
                 ;;
-              '') targetEnvironments
+              '') targetEnvironments'
             )}
           esac
 
@@ -354,7 +363,7 @@ genAttrs systems (
               subtractLists (optionals (macos.sdk == null) [
                 "aarch64-apple-darwin"
                 "x86_64-apple-darwin"
-              ]) (attrNames targetEnvironments)
+              ]) (attrNames targetEnvironments')
             )
             (
               target:
