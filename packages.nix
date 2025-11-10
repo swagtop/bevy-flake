@@ -221,8 +221,7 @@ genAttrs systems (
           target:
           rustPlatform.buildRustPackage (
             {
-              name = "${manifest.name}-${manifest.version}-${target}";
-              version = manifest.version;
+              name = "${manifest.name}-${manifest.version or "0.0.0"}-${target}";
 
               src = buildSource;
 
