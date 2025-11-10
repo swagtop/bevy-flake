@@ -209,6 +209,12 @@ genAttrs systems (
       overridedAttrs:
       let
         manifest = (importTOML "${buildSource}/Cargo.toml").package;
+        packageNamePrefix =
+          if (manifest ? version) then
+            "${manifest.name}-${manifest.version}-"
+          else
+            "${manifest.name}-";
+
         rustPlatform = pkgs.makeRustPlatform {
           cargo = rust-toolchain;
           rustc = rust-toolchain;
@@ -217,15 +223,12 @@ genAttrs systems (
           "aarch64-apple-darwin"
           "x86_64-apple-darwin"
         ]) (attrNames wrapExecutable.targetEnvironments);
+
         eachTarget = genAttrs validTargets (
           target:
           rustPlatform.buildRustPackage (
             {
-              name =
-                if (manifest ? version) then
-                  "${manifest.name}-${manifest.version}-${target}"
-                else
-                  "${manifest.name}-${target}";
+              name = packageNamePrefix + target;
 
               src = buildSource;
 
@@ -294,7 +297,7 @@ genAttrs systems (
             buildList = (nixpkgs.lib.attrsToList eachTarget);
           in
           {
-            name = "bf-all-targets";
+            name = packageNamePrefix + "all-targets";
 
             nativeBuildInputs = map (build: build.value) buildList;
             installPhase = ''
