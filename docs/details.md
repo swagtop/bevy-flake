@@ -62,7 +62,16 @@ these packages can be overridden with ones own configuration.
 
 ## How does `bevy-flake` work?
 
-TODO: Have a writeup on how the flake does things here.
+For the best way to get an understanding of how `bevy-flake` works, you should
+first read through the [wrapper.nix](../wrapper.nix) file. This is where your
+configuration is turned into the shell script that wraps the programs shipped
+with the flake.
+
+After you've read through the source code, you can see the final outcome of this
+configuration by running:
+```sh
+$EDITOR $(which cargo)
+```
 
 The environment adapter makes use of the following environment variables:
 
