@@ -55,6 +55,7 @@ cargo run
 
 # For other targets, just use '--target':
 cargo build --target x86_64-pc-windows-msvc
+cargo build --target aarch64-apple-darwin # <-- Please read docs/macos.md.
 ```
 ```sh
 # With `dioxus-cli`, develop Bevy with hot-patching:
