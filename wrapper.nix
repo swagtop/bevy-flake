@@ -117,8 +117,7 @@ in
           pkgs.pkg-config
           pkgs.lld
         ];
-      argParser' =
-        if (isFunction argParser) then argParser defaultArgParser else argParser;
+      argParser' = if (isFunction argParser) then argParser defaultArgParser else argParser;
     in
     pkgs.writeShellApplication {
       inherit name runtimeInputs;
