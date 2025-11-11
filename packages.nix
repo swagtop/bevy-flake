@@ -40,80 +40,51 @@ genAttrs systems (
     );
 
     rust-toolchain =
-      let
-        wrapArgs = {
-          name = "cargo";
-          extraRuntimeInputs = with pkgs; [ cargo-zigbuild ];
-          executable = "${wrapExecutable.input-rust-toolchain}/bin/cargo";
+      (wrapExecutable {
+        name = "cargo";
+        extraRuntimeInputs = with pkgs; [ cargo-zigbuild ];
+        executable = "${wrapExecutable.input-rust-toolchain}/bin/cargo";
+        symlinkPackage = wrapExecutable.input-rust-toolchain;
 
-          argParser =
-            default:
-            default
-            + ''
-              if [[ $BF_NO_WRAPPER != "1" ]]; then
-                 if [[ $BF_TARGET == *"-unknown-linux-gnu"* ]]; then
-                   # Insert glibc version into args for Linux targets.
-                   set -- \
-                     "''${@:1:((TARGET_ARG_NO-1))}" \
-                     "$BF_TARGET.${linux.glibcVersion}" \
-                     "''${@:$((TARGET_ARG_NO+1))}"
-                fi
+        argParser =
+          default:
+          default
+          + ''
+            if [[ $BF_NO_WRAPPER != "1" ]]; then
+               if [[ $BF_TARGET == *"-unknown-linux-gnu"* ]]; then
+                 # Insert glibc version into args for Linux targets.
+                 set -- \
+                   "''${@:1:((TARGET_ARG_NO-1))}" \
+                   "$BF_TARGET.${linux.glibcVersion}" \
+                   "''${@:$((TARGET_ARG_NO+1))}"
               fi
-            '';
-
-          postPostScript = ''
-            # Set linker for specific targets.
-            case $BF_TARGET in
-              *-apple-darwin*)
-                ${optionalString (macos.sdk == null) ''
-                  printf "%s%s\n" \
-                    "bevy-flake: Building to MacOS target without SDK, " \
-                    "compilation will most likely fail." 1>&2
-                ''}
-              ;&
-              *-unknown-linux-gnu*);&
-              "wasm32-unknown-unknown")
-                ${optionalString (pkgs.stdenv.isDarwin) ''
-                  # Stops `cargo-zigbuild` from jamming with Zig on MacOS systems.
-                  ulimit -n 4096
-                ''}
-                if [[ "$1" == "build" ]]; then
-                  echo "bevy-flake: Switching to 'cargo-zigbuild'" 1>&2 
-                  exec ${pkgs.cargo-zigbuild}/bin/cargo-zigbuild zigbuild "''${@:2}"
-                fi
-              ;;
-            esac
+            fi
           '';
-        };
-      in
-      (makeOverridable (
-        wrapArgsInput:
-        let
-          wrapped-rust-toolchain = (wrapExecutable wrapArgsInput);
-          symlinked-wrapped-rust-toolchain =
-            if (wrapArgsInput.executable != wrapArgs.executable) then
-              throw "Don't override the executable of rust-toolchain. "
-              + "Set it to use a different toolchain through the config."
-            else
-              # Merging the wrapper with the input toolchain, such that users get
-              # all the useful binaries in their path, like rust-analyzer, etc.,
-              # and only the 'cargo' binary is replaced by the wrapper.
-              pkgs.buildEnv {
-                name = "bf-wrapped-rust-toolchain";
-                ignoreCollisions = true;
-                paths = [
-                  wrapped-rust-toolchain
-                  wrapExecutable.input-rust-toolchain
-                ];
-              }
-              // {
-                inherit wrapExecutable;
-                wrapped = wrapped-rust-toolchain;
-                unwrapped = wrapExecutable.input-rust-toolchain;
-              };
-        in
-        symlinked-wrapped-rust-toolchain
-      ) wrapArgs)
+
+        postPostScript = ''
+          # Set linker for specific targets.
+          case $BF_TARGET in
+            *-apple-darwin*)
+              ${optionalString (macos.sdk == null) ''
+                printf "%s%s\n" \
+                  "bevy-flake: Building to MacOS target without SDK, " \
+                  "compilation will most likely fail." 1>&2
+              ''}
+            ;&
+            *-unknown-linux-gnu*);&
+            "wasm32-unknown-unknown")
+              ${optionalString (pkgs.stdenv.isDarwin) ''
+                # Stops `cargo-zigbuild` from jamming with Zig on MacOS systems.
+                ulimit -n 4096
+              ''}
+              if [[ "$1" == "build" ]]; then
+                echo "bevy-flake: Switching to 'cargo-zigbuild'" 1>&2 
+                exec ${pkgs.cargo-zigbuild}/bin/cargo-zigbuild zigbuild "''${@:2}"
+              fi
+            ;;
+          esac
+        '';
+      })
       // {
         targetPlatforms = systems;
         badTargetPlatforms = [ ];

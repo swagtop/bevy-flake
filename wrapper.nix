@@ -103,6 +103,7 @@ in
     {
       name,
       executable,
+      symlinkPackage ? null,
       argParser ? (default: default),
       postPostScript ? "",
       extraRuntimeInputs ? [ ],
@@ -118,71 +119,82 @@ in
           pkgs.lld
         ];
       argParser' = if (isFunction argParser) then argParser defaultArgParser else argParser;
-    in
-    pkgs.writeShellApplication {
-      inherit name runtimeInputs;
-      bashOptions = [
-        "errexit"
-        "pipefail"
-      ];
-      text = ''
-        ${argParser'}
+      wrapped = pkgs.writeShellApplication {
+        inherit name runtimeInputs;
+        bashOptions = [
+          "errexit"
+          "pipefail"
+        ];
+        text = ''
+          ${argParser'}
 
-        if [[ $BF_NO_WRAPPER == "1" ]]; then
-          exec ${executable} "$@"
-        fi
+          if [[ $BF_NO_WRAPPER == "1" ]]; then
+            exec ${executable} "$@"
+          fi
 
-        # Set up MacOS SDK if configured.
-        export BF_MACOS_SDK_PATH="${if (macos.sdk != null) then macos.sdk else ""}"
+          # Set up MacOS SDK if configured.
+          export BF_MACOS_SDK_PATH="${if (macos.sdk != null) then macos.sdk else ""}"
 
-        export BF_WINDOWS_SDK_PATH="${windowsSdk}"
+          export BF_WINDOWS_SDK_PATH="${windowsSdk}"
 
-        # Base environment for all targets.
-        export PKG_CONFIG_ALLOW_CROSS="1"
-        export LIBCLANG_PATH="${pkgs.libclang.lib}/lib";
-        export LIBRARY_PATH="${pkgs.libiconv}/lib";
-        ${exportEnv final.sharedEnvironment}
+          # Base environment for all targets.
+          export PKG_CONFIG_ALLOW_CROSS="1"
+          export LIBCLANG_PATH="${pkgs.libclang.lib}/lib";
+          export LIBRARY_PATH="${pkgs.libiconv}/lib";
+          ${exportEnv final.sharedEnvironment}
 
-        case $BF_TARGET in
-          "")
-            ${exportEnv (
-              final.devEnvironment
-              // {
-                PKG_CONFIG_PATH =
-                  (final.devEnvironment.PKG_CONFIG_PATH or "")
-                  + makeSearchPath "lib/pkgconfig" (map (p: p.dev or null) (runtimeInputsBase ++ extraRuntimeInputs));
-                RUSTFLAGS =
-                  (final.devEnvironment.RUSTFLAGS or "")
-                  + optionalString (pkgs.stdenv.isLinux) "-C link-args=-Wl,-rpath,${
-                    makeSearchPath "lib" (runtimeInputsBase ++ extraRuntimeInputs)
-                  }";
-              }
-            )}
-          ;;
-
-          ${concatStringsSep "\n" (
-            mapAttrsToList (target: env: ''
-              ${target}*)
+          case $BF_TARGET in
+            "")
               ${exportEnv (
-                env
+                final.devEnvironment
                 // {
+                  PKG_CONFIG_PATH =
+                    (final.devEnvironment.PKG_CONFIG_PATH or "")
+                    + makeSearchPath "lib/pkgconfig" (map (p: p.dev or null) (runtimeInputsBase ++ extraRuntimeInputs));
                   RUSTFLAGS =
-                    (env.RUSTFLAGS or "")
-                    + optionalString (final.crossPlatformRustflags != [ ]) (
-                      " " + (concatStringsSep " " final.crossPlatformRustflags)
-                    );
+                    (final.devEnvironment.RUSTFLAGS or "")
+                    + optionalString (pkgs.stdenv.isLinux) "-C link-args=-Wl,-rpath,${
+                      makeSearchPath "lib" (runtimeInputsBase ++ extraRuntimeInputs)
+                    }";
                 }
               )}
-              ;;
-            '') final.targetEnvironments
-          )}
-        esac
+            ;;
 
-        ${final.postScript}
+            ${concatStringsSep "\n" (
+              mapAttrsToList (target: env: ''
+                ${target}*)
+                ${exportEnv (
+                  env
+                  // {
+                    RUSTFLAGS =
+                      (env.RUSTFLAGS or "")
+                      + optionalString (final.crossPlatformRustflags != [ ]) (
+                        " " + (concatStringsSep " " final.crossPlatformRustflags)
+                      );
+                  }
+                )}
+                ;;
+              '') final.targetEnvironments
+            )}
+          esac
 
-        ${postPostScript}
+          ${final.postScript}
 
-        exec ${executable} "$@"
-      '';
-    };
+          ${postPostScript}
+
+          exec ${executable} "$@"
+        '';
+      };
+    in
+    if (symlinkPackage == null) then
+      wrapped
+    else
+      pkgs.symlinkJoin {
+        inherit name;
+        ignoreCollisions = true;
+        paths = [
+          wrapped
+          symlinkPackage
+        ];
+      };
 }
