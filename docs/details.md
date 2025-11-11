@@ -7,7 +7,7 @@ who wants to use a Nix environment to compile portable binaries for the major
 desktop platforms on their own computer, instead of having to resort to using
 Docker, GitHub actions, or the like.
 
-Its goal is to be as easy to use for beginners, as it is ergonomic to use for
+Its goal is to be easy to use for beginners, while also being very ergonomic for
 power users. The flake provides a suite of packages useful for Bevy development,
 that all are configured from a single place.
 
