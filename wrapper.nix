@@ -37,7 +37,7 @@ let
 
   optionalPkgs = input: if isFunction input then input pkgs else input;
 
-  # Letting users optionally reference 'pkgs', for the following 4 configs:
+  # Letting users optionally reference 'pkgs', for the following 5 configs:
   final = {
     crossPlatformRustflags = optionalPkgs crossPlatformRustflags;
     sharedEnvironment = optionalPkgs sharedEnvironment;
