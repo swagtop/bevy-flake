@@ -7,6 +7,7 @@
     { nixpkgs, ... }:
     let
       inherit (builtins)
+        isFunction
         concatStringsSep
         warn
         ;
@@ -148,7 +149,10 @@
         let
           r = f args;
         in
-        r // { override = a: makeOverridable f (args // a); };
+        r
+        // {
+          override = a: makeOverridable f (args // (if isFunction a then a args else a));
+        };
       mkBf = bf: (makeOverridable bf config);
     in
     mkBf (
