@@ -45,7 +45,7 @@ This flake is equipped with `flake-compat`, should you be a non-flake user.
 ## How to use
 
 Add the packages you want from `bevy-flake` to your environment with
-`nix develop`, with `nix shell .#package-name`, or other means.
+`nix develop`, with `nix shell`, or any other means.
 
 Then, you can use them like so:
 
