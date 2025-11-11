@@ -204,7 +204,11 @@ bf = bevy-flake.override {
 </details>
 
 
-## Environments
+## The environments and additional scripting
+
+For these attributes, should you want to refer to `pkgs`, you can optionally
+make the value a function that takes in a single argument. The main `pkgs`
+instance used by `bevy-flake` will then be passed into the function.
 
 <details> <summary><code>crossPlatformRustflags</code></summary>
 
