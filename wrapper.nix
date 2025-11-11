@@ -61,7 +61,11 @@ let
   };
 in
 {
-  inherit input-rust-toolchain;
+  inherit
+    input-rust-toolchain
+    runtimeInputsBase
+    stdenv
+    ;
   inherit (final)
     crossPlatformRustflags
     sharedEnvironment

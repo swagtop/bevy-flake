@@ -210,10 +210,7 @@ genAttrs systems (
       let
         manifest = (importTOML "${buildSource}/Cargo.toml").package;
         packageNamePrefix =
-          if (manifest ? version) then
-            "${manifest.name}-${manifest.version}-"
-          else
-            "${manifest.name}-";
+          if (manifest ? version) then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
 
         rustPlatform = pkgs.makeRustPlatform {
           cargo = rust-toolchain;
