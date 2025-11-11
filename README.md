@@ -18,8 +18,8 @@ Windows, MacOS and WASM targets.
 
 ## Quick setup
 
-Navigate to your Bevy project root, then pull the template with your preferred
-Rust toolchain provider:
+Navigate to your Bevy project root, then pull the template with the toolchain
+from your favourite provider:
 
 ```sh
 # The one using oxalica's rust-overlay:
