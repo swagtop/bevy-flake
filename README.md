@@ -16,11 +16,6 @@ Windows and MacOS targets.
 
 [license]: https://go.microsoft.com/fwlink/?LinkId=2086102
 
-> [!WARNING]
-> This flake will remain stable until `2026-01-01`, where there will be an
-> update that may have breaking changes, based on feedback on this initial
-> release. After that, you can again count on the flake being stable.
-
 ## Quick setup
 
 Navigate to your Bevy project root, then pull the template with your preferred
