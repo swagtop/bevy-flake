@@ -4,7 +4,7 @@
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
     bevy-flake = {
-      url = "github:swagtop/bevy-flake/dev";
+      url = "github:swagtop/bevy-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
