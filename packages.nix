@@ -221,7 +221,7 @@ genAttrs systems (
           "x86_64-apple-darwin"
         ]) (attrNames wrapExecutable.targetEnvironments);
 
-        eachTarget = genAttrs validTargets (
+        everyTarget = genAttrs validTargets (
           target:
           rustPlatform.buildRustPackage (
             {
@@ -291,7 +291,7 @@ genAttrs systems (
 
         full-build = pkgs.stdenvNoCC.mkDerivation (
           let
-            buildList = (nixpkgs.lib.attrsToList eachTarget);
+            buildList = (nixpkgs.lib.attrsToList everyTarget);
           in
           {
             name = packageNamePrefix + "all-targets";
@@ -306,7 +306,7 @@ genAttrs systems (
           }
         );
       in
-      full-build // eachTarget
+      full-build // everyTarget
     ) { };
   }
 )
