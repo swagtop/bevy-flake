@@ -103,7 +103,7 @@
             "aarch64-pc-windows-msvc" = windowsEnvFor "arm64";
           };
 
-        extraScript = "";
+        postScript = "";
 
         mkRustToolchain =
           targets: pkgs:

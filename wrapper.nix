@@ -12,7 +12,7 @@
   sharedEnvironment,
   devEnvironment,
   targetEnvironments,
-  extraScript,
+  postScript,
 
   mkRustToolchain,
   mkRuntimeInputs,
@@ -43,7 +43,7 @@ let
     sharedEnvironment = optionalPkgs sharedEnvironment;
     devEnvironment = optionalPkgs devEnvironment;
     targetEnvironments = optionalPkgs targetEnvironments;
-    extraScript = optionalPkgs extraScript;
+    postScript = optionalPkgs postScript;
   };
 
   targets = (attrNames final.targetEnvironments);
@@ -95,7 +95,7 @@ in
     sharedEnvironment
     devEnvironment
     targetEnvironments
-    extraScript
+    postScript
     ;
 
   __functor =
@@ -104,7 +104,7 @@ in
       name,
       executable,
       argParser ? (default: default),
-      postScript ? "",
+      postPostScript ? "",
       extraRuntimeInputs ? [ ],
     }:
     let
@@ -178,9 +178,9 @@ in
           )}
         esac
 
-        ${final.extraScript}
+        ${final.postScript}
 
-        ${postScript}
+        ${postPostScript}
 
         exec ${executable} "$@"
       '';

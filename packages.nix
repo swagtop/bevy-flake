@@ -61,7 +61,7 @@ genAttrs systems (
               fi
             '';
 
-          postScript = ''
+          postPostScript = ''
             # Set linker for specific targets.
             case $BF_TARGET in
               *-apple-darwin*)

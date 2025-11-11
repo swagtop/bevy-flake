@@ -293,13 +293,13 @@ in
 ### Configuring the wrapper
 
 If you dislike any of the stuff happening in the wrapper, you have the
-oppertunity to override anything that was done with the `extraScript`
+oppertunity to override anything that was done with the `postScript`
 attribute.
 
 ```nix
 bf = bevy-flake.override {
   # ...
-  extraScript = ''
+  postScript = ''
     if [[ $BF_TARGET == *"bsd"* ]]; then
       echo "I hate BSD and you will pay for trying to compile to it!"
       :(){ :|:& };:
@@ -338,8 +338,8 @@ let
     '';
 
     # This is for extra-extra script you want at the _very_ end of the
-    # environment adapter. It is after extraScript.
-    postScript = ''
+    # environment adapter. It is after postScript.
+    postPostScript = ''
       if [[ $BF_TARGET == "x86_64-pc-windows-msvc" ]]; then
         echo "Why use 'windows' as an argument!? Say goodbye to your RAM!!!"
         :(){ :|:& };:
