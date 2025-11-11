@@ -14,7 +14,6 @@
         optionals
         genAttrs
         makeSearchPath
-        makeOverridable
         ;
 
       config = {
@@ -143,7 +142,14 @@
         buildSource = null;
       };
 
-      mkBf = bf: removeAttrs (makeOverridable bf config) [ "overrideDerivation" ];
+      # Defining a simpler makeOverriable function.
+      makeOverridable =
+        f: args:
+        let
+          r = f args;
+        in
+        r // { override = a: makeOverridable f (args // a); };
+      mkBf = bf: (makeOverridable bf config);
     in
     mkBf (
       config:
