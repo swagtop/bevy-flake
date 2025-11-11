@@ -296,18 +296,13 @@ genAttrs systems (
           {
             name = packageNamePrefix + "all-targets";
 
-            nativeBuildInputs = map (build: build.value) buildList;
+            buildInputs = map (build: build.value) buildList;
             installPhase = ''
               mkdir -p $out
               ${concatStringsSep "\n" (map (build: "ln -s \"${build.value}\" $out/\"${build.name}\"") buildList)}
             '';
 
-            dontUnpack = true;
-            dontPatch = true;
-            dontBuild = true;
-            dontPatchELF = true;
-            dontAutoPatchelf = true;
-            doCheck = false;
+            phases = [ "installPhase" ];
           }
         );
       in
