@@ -98,21 +98,21 @@ environment needed for it yourself. More on that [here.][environments]
 --------------------------------------------------------------------------------
 
 ```
-                                            $ cargo
-                                                ▼
-                                 [bevy-flake Environment Adapters]
-                                                ▼
-                             ╭─────1────╴ rust-toolchain ╶─────2──────╮
-                             │                                        │
-                             │                                        │
-                             │    ╔═══════════target/═══════════╗     │
-                             ├─────► debug/                     ║     │
-                             ╰─────► release/                   ║     │
-                                  ║  x86_64-unknown-linux-gnu/ ◄──────┤
-                                  ║  x86_64-pc-windows-msvc/ ◄────────┤
-                                  ║  aarch64-apple-darwin/ ◄──────────┤
-                                  ║    (...and so on. )  ◄────────────╯
-                                  ╚═════════════════════════════╝
+                                           $ cargo
+                                               ▼
+                                [bevy-flake Environment Adapters]
+                                               ▼
+                            ╭─────1────╴ rust-toolchain ╶─────2──────╮
+                            │                                        │
+                            │                                        │
+                            │    ╔═══════════target/═══════════╗     │
+                            ├─────► debug/                     ║     │
+                            ╰─────► release/                   ║     │
+                                 ║  x86_64-unknown-linux-gnu/ ◄──────┤
+                                 ║  x86_64-pc-windows-msvc/ ◄────────┤
+                                 ║  aarch64-apple-darwin/ ◄──────────┤
+                                 ║    (...and so on. )  ◄────────────╯
+                                 ╚═════════════════════════════╝
 
 
       (1) Develop on your Nix systems                          Cross-compile for targets (2)
