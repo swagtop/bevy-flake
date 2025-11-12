@@ -100,7 +100,7 @@ environment needed for it yourself. More on that [here.][environments]
 ```
                                          $ executable
                                                ▼
-                            ╭──╴ (bevy-flakes environment adapter) ╶──╮
+                            ╭─── (bevy-flakes environment adapter) ───╮
                             │                                         │
                             1                                         2
                             │     ╔═══════════target/═══════════╗     │
