@@ -98,8 +98,8 @@ environment needed for it yourself. More on that [here.][environments]
 --------------------------------------------------------------------------------
 
 ```
-                                         $ executable
-                                               ▼
+                                           $ executable
+                                                 ▼
                             ╭─── (bevy-flakes environment adapter) ───╮
                             │                                         │
                             1                                         2
