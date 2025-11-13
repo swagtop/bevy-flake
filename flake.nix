@@ -29,8 +29,18 @@
           glibcVersion = "2.41";
         };
 
-        # There is currently nothing to configure for the Windows targets.
-        windows = { };
+        windows = {
+          # Setting the Windows SDK to the latest one in nixpkgs, both arches.
+          sdk =
+            pkgs:
+            pkgs.symlinkJoin {
+              name = "windows-sdk-both-arches";
+              paths = [
+                pkgs.pkgsCross.aarch64-windows.windows.sdk
+                pkgs.pkgsCross.x86_64-windows.windows.sdk
+              ];
+            };
+        };
 
         macos = {
           # You will not be able to cross-compile to MacOS targets without an SDK.

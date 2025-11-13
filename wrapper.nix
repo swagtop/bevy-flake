@@ -52,14 +52,6 @@ let
   runtimeInputsBase = mkRuntimeInputs pkgs;
   stdenv = mkStdenv pkgs;
 
-  windowsSdk = pkgs.symlinkJoin {
-    name = "merged-windows-sdk";
-    paths = [
-      pkgs.pkgsCross.aarch64-windows.windows.sdk
-      pkgs.pkgsCross.x86_64-windows.windows.sdk
-    ];
-  };
-
   defaultArgParser = ''
     # Check if what the adapter is being run with.
     TARGET_ARG_NO=1
@@ -135,7 +127,8 @@ in
           # Set up MacOS SDK if configured.
           export BF_MACOS_SDK_PATH="${if (macos.sdk != null) then macos.sdk else ""}"
 
-          export BF_WINDOWS_SDK_PATH="${windowsSdk}"
+          # Passings pkgs to 'windows.sdk', such that the SDK can be defined.
+          export BF_WINDOWS_SDK_PATH="${windows.sdk pkgs}"
 
           # Base environment for all targets.
           export PKG_CONFIG_ALLOW_CROSS="1"
