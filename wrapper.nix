@@ -38,7 +38,7 @@ let
   optionalPkgs = input: if isFunction input then input pkgs else input;
 
   # Letting users optionally reference 'pkgs', for the following 5 configs:
-  final = {
+  op = {
     crossPlatformRustflags = optionalPkgs crossPlatformRustflags;
     sharedEnvironment = optionalPkgs sharedEnvironment;
     devEnvironment = optionalPkgs devEnvironment;
@@ -46,7 +46,7 @@ let
     prePostScript = optionalPkgs prePostScript;
   };
 
-  targets = (attrNames final.targetEnvironments);
+  targets = (attrNames op.targetEnvironments);
   # Users need to reference 'pkgs' in the following 4 configs:
   windowsSdk = windows.mkSdk pkgs;
   input-rust-toolchain = mkRustToolchain targets pkgs;
@@ -84,7 +84,7 @@ in
     runtimeInputsBase
     stdenv
     ;
-  inherit (final)
+  inherit (op)
     crossPlatformRustflags
     sharedEnvironment
     devEnvironment
@@ -136,18 +136,18 @@ in
           export PKG_CONFIG_ALLOW_CROSS="1"
           export LIBCLANG_PATH="${pkgs.libclang.lib}/lib";
           export LIBRARY_PATH="${pkgs.libiconv}/lib";
-          ${exportEnv final.sharedEnvironment}
+          ${exportEnv op.sharedEnvironment}
 
           case $BF_TARGET in
             "")
               ${exportEnv (
-                final.devEnvironment
+                op.devEnvironment
                 // {
                   PKG_CONFIG_PATH =
-                    (final.devEnvironment.PKG_CONFIG_PATH or "")
+                    (op.devEnvironment.PKG_CONFIG_PATH or "")
                     + makeSearchPath "lib/pkgconfig" (map (p: p.dev or null) (runtimeInputsBase ++ extraRuntimeInputs));
                   RUSTFLAGS =
-                    (final.devEnvironment.RUSTFLAGS or "")
+                    (op.devEnvironment.RUSTFLAGS or "")
                     + optionalString (pkgs.stdenv.isLinux) "-C link-args=-Wl,-rpath,${
                       makeSearchPath "lib" (runtimeInputsBase ++ extraRuntimeInputs)
                     }";
@@ -163,17 +163,17 @@ in
                   // {
                     RUSTFLAGS =
                       (env.RUSTFLAGS or "")
-                      + optionalString (final.crossPlatformRustflags != [ ]) (
-                        " " + (concatStringsSep " " final.crossPlatformRustflags)
+                      + optionalString (op.crossPlatformRustflags != [ ]) (
+                        " " + (concatStringsSep " " op.crossPlatformRustflags)
                       );
                   }
                 )}
                 ;;
-              '') final.targetEnvironments
+              '') op.targetEnvironments
             )}
           esac
 
-          ${final.prePostScript}
+          ${op.prePostScript}
 
           ${postScript}
 
