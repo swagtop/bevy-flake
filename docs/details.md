@@ -59,6 +59,21 @@ The flake provides a preconfigured environment for the Rust toolchain, and a
 couple of packages that are helpful for Bevy development. The environment for
 these packages can be overridden with ones own configuration.
 
+The packages contain what you would expect, with the binaries wrapped in a shell
+script made by the `wrapExecutable` function. This wrapper goes through a couple
+of steps, that change the environment based on the configuration of
+`bevy-flake`.
+
+These are the steps:
+
+  1. The args are parsed
+  2. The base environment is set up
+  3. The 'sharedEnvironment' is set up
+  4. The environment for the specific target you're using is set up
+  5. The 'prePostScript' section runs
+  6. The 'postScript' section runs
+  7. The executable wrapped is run.
+
 
 ## How does `bevy-flake` work?
 
