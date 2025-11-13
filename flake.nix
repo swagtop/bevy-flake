@@ -31,7 +31,7 @@
 
         windows = {
           # Setting the Windows SDK to the latest one in nixpkgs, both arches.
-          sdk =
+          mkSdk =
             pkgs:
             pkgs.symlinkJoin {
               name = "windows-sdk-both-arches";

@@ -47,10 +47,12 @@ let
   };
 
   targets = (attrNames final.targetEnvironments);
-  # Users need to reference 'pkgs' in the following 3 configs:
+  # Users need to reference 'pkgs' in the following 4 configs:
+  windowsSdk = windows.mkSdk pkgs;
   input-rust-toolchain = mkRustToolchain targets pkgs;
   runtimeInputsBase = mkRuntimeInputs pkgs;
   stdenv = mkStdenv pkgs;
+
 
   defaultArgParser = ''
     # Check if what the adapter is being run with.
@@ -125,10 +127,10 @@ in
           fi
 
           # Set up MacOS SDK if configured.
-          export BF_MACOS_SDK_PATH="${if (macos.sdk != null) then macos.sdk else ""}"
+          export BF_MACOS_SDK_PATH="${optionalString (macos.sdk != null) macos.sdk}"
 
-          # Passings pkgs to 'windows.sdk', such that the SDK can be defined.
-          export BF_WINDOWS_SDK_PATH="${windows.sdk pkgs}"
+          # Set up Windows SDK, based on 'windows.mkSdk' builder.
+          export BF_WINDOWS_SDK_PATH="${windowsSdk}"
 
           # Base environment for all targets.
           export PKG_CONFIG_ALLOW_CROSS="1"
