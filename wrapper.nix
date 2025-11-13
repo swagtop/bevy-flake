@@ -12,7 +12,7 @@
   sharedEnvironment,
   devEnvironment,
   targetEnvironments,
-  postScript,
+  prePostScript,
 
   mkRustToolchain,
   mkRuntimeInputs,
@@ -27,9 +27,9 @@ let
     isFunction
     ;
   inherit (pkgs.lib)
+    makeSearchPath
     mapAttrsToList
     optionalString
-    makeSearchPath
     ;
 
   exportEnv =
@@ -43,7 +43,7 @@ let
     sharedEnvironment = optionalPkgs sharedEnvironment;
     devEnvironment = optionalPkgs devEnvironment;
     targetEnvironments = optionalPkgs targetEnvironments;
-    postScript = optionalPkgs postScript;
+    prePostScript = optionalPkgs prePostScript;
   };
 
   targets = (attrNames final.targetEnvironments);
@@ -55,8 +55,8 @@ let
   windowsSdk = pkgs.symlinkJoin {
     name = "merged-windows-sdk";
     paths = [
-      pkgs.pkgsCross.x86_64-windows.windows.sdk
       pkgs.pkgsCross.aarch64-windows.windows.sdk
+      pkgs.pkgsCross.x86_64-windows.windows.sdk
     ];
   };
 
@@ -95,7 +95,7 @@ in
     sharedEnvironment
     devEnvironment
     targetEnvironments
-    postScript
+    prePostScript
     ;
 
   __functor =
@@ -105,7 +105,7 @@ in
       executable,
       symlinkPackage ? null,
       argParser ? (default: default),
-      postPostScript ? "",
+      postScript ? "",
       extraRuntimeInputs ? [ ],
     }:
     let
@@ -178,9 +178,9 @@ in
             )}
           esac
 
-          ${final.postScript}
+          ${final.prePostScript}
 
-          ${postPostScript}
+          ${postScript}
 
           exec ${executable} "$@"
         '';

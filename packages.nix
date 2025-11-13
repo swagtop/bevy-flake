@@ -3,22 +3,21 @@ let
   inherit (builtins)
     attrNames
     concatStringsSep
-    throw
     ;
   inherit (nixpkgs.lib)
     genAttrs
-    optionalAttrs
-    subtractLists
     importTOML
+    makeOverridable
+    optionalAttrs
     optionals
     optionalString
-    makeOverridable
+    subtractLists
     ;
   inherit (config)
-    systems
-    macos
-    linux
     buildSource
+    linux
+    macos
+    systems
     ;
 in
 genAttrs systems (
@@ -61,7 +60,7 @@ genAttrs systems (
             fi
           '';
 
-        postPostScript = ''
+        postScript = ''
           # Set linker for specific targets.
           case $BF_TARGET in
             *-apple-darwin*)
@@ -158,8 +157,8 @@ genAttrs systems (
       makeOverridable wrapExecutable {
         name = "bevy";
         extraRuntimeInputs = [
-          pkgs.wasm-bindgen-cli_0_2_104
           pkgs.binaryen
+          pkgs.wasm-bindgen-cli_0_2_104
         ];
         executable = "${bevy-cli-package}/bin/bevy";
         argParser =

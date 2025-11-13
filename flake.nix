@@ -19,12 +19,13 @@
 
       config = {
         systems = [
-          "x86_64-linux"
-          "aarch64-linux"
           "aarch64-darwin"
+          "aarch64-linux"
+          "x86_64-linux"
         ];
 
         linux = {
+          # Setting GLIBC version to the one Debian stable uses.
           glibcVersion = "2.41";
         };
 
@@ -64,9 +65,9 @@
             windowsEnvFor = arch: {
               RUSTFLAGS = concatStringsSep " " [
                 "-C linker=lld-link"
-                "-L $BF_WINDOWS_SDK_PATH/sdk/lib/um/${arch}"
-                "-L $BF_WINDOWS_SDK_PATH/sdk/lib/ucrt/${arch}"
                 "-L $BF_WINDOWS_SDK_PATH/crt/lib/${arch}"
+                "-L $BF_WINDOWS_SDK_PATH/sdk/lib/ucrt/${arch}"
+                "-L $BF_WINDOWS_SDK_PATH/sdk/lib/um/${arch}"
               ];
             };
             macosEnv =
@@ -99,7 +100,7 @@
             };
           };
 
-        postScript = "";
+        prePostScript = "";
 
         mkRustToolchain =
           targets: pkgs:
