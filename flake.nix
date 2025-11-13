@@ -49,9 +49,8 @@
         # Environment variables set for individual targets.
         targetEnvironments =
           let
-            linuxHeadersFor =
-              system:
-              makeSearchPath "lib/pkgconfig" (
+            linuxEnvFor = system: {
+              PKG_CONFIG_PATH = makeSearchPath "lib/pkgconfig" (
                 with nixpkgs.legacyPackages.${system};
                 [
                   alsa-lib-with-plugins.dev
@@ -61,6 +60,7 @@
                   wayland.dev
                 ]
               );
+            };
             windowsEnvFor = arch: {
               RUSTFLAGS = concatStringsSep " " [
                 "-C linker=lld-link"
@@ -88,19 +88,15 @@
               };
           in
           {
-            "x86_64-unknown-linux-gnu" = {
-              PKG_CONFIG_PATH = linuxHeadersFor "x86_64-linux";
-            };
-            "aarch64-unknown-linux-gnu" = {
-              PKG_CONFIG_PATH = linuxHeadersFor "aarch64-linux";
-            };
+            "x86_64-unknown-linux-gnu" = linuxEnvFor "x86_64-linux";
+            "aarch64-unknown-linux-gnu" = linuxEnvFor "aarch64-linux";
+            "x86_64-pc-windows-msvc" = windowsEnvFor "x64";
+            "aarch64-pc-windows-msvc" = windowsEnvFor "arm64";
+            "x86_64-apple-darwin" = macosEnv;
+            "aarch64-apple-darwin" = macosEnv;
             "wasm32-unknown-unknown" = {
               RUSTFLAGS = ''--cfg getrandom_backend=\"wasm_js\"'';
             };
-            "x86_64-apple-darwin" = macosEnv;
-            "aarch64-apple-darwin" = macosEnv;
-            "x86_64-pc-windows-msvc" = windowsEnvFor "x64";
-            "aarch64-pc-windows-msvc" = windowsEnvFor "arm64";
           };
 
         postScript = "";
