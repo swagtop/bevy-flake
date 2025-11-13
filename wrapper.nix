@@ -53,7 +53,6 @@ let
   runtimeInputsBase = mkRuntimeInputs pkgs;
   stdenv = mkStdenv pkgs;
 
-
   defaultArgParser = ''
     # Check if what the adapter is being run with.
     TARGET_ARG_NO=1
