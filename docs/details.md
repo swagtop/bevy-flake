@@ -66,41 +66,41 @@ These are the steps:
 
   **1. Arg parsing**
 
-  The input args are by default parsed for the '--target' flag, to figure out
-  which target is being compiled for.
+    The input args are by default parsed for the '--target' flag, to figure out
+    which target is being compiled for.
 
 
   **2. Base environment is set up**
 
-  Basic environment variables are exported, eg.
-  `PKG_CONFIG_CONFIG_ALLOW_CROSS=1`.
+    Basic environment variables are exported, eg.
+    `PKG_CONFIG_CONFIG_ALLOW_CROSS=1`.
 
 
   **3. 'sharedEnvironment' is set up**
 
-  The user configured environment for all targets is set up.
+    The user configured environment for all targets is set up.
 
     
   **4. The `targetSpecificEnviornments.<target>` environment is set up.**
 
-  The environment for the target found by the arg parser is set up. The target
-  triple is stored in the `BF_TARGET` environment variable. If it is empty,
-  the wrapper script assumes that you are developing, and sets up the
-  development environhment.
+    The environment for the target found by the arg parser is set up. The target
+    triple is stored in the `BF_TARGET` environment variable. If it is empty,
+    the wrapper script assumes that you are developing, and sets up the
+    development environhment.
 
 
   **5. The 'prePostScript' section runs**
 
-  If you want to add some functionality to the wrapper for all packages that
-  is wrapped with it, you can add it in this section. By default this is
-  configured to do nothing.
+    If you want to add some functionality to the wrapper for all packages that
+    is wrapped with it, you can add it in this section. By default this is
+    configured to do nothing.
     
   
   **6. The 'postScript' section runs**
 
-  If you want to add some functionality to a singular package, you can add it
-  in this section. It is used to swap to `cargo-zigbuild` for some targets in
-  the `rust-toolchain` package.
+    If you want to add some functionality to a singular package, you can add it
+    in this section. It is used to swap to `cargo-zigbuild` for some targets in
+    the `rust-toolchain` package.
 
   
   **7. The executable wrapped is run.**
