@@ -136,7 +136,7 @@ genAttrs systems (
         bevy-cli-package = pkgs.rustPlatform.buildRustPackage (
           let
             version = "0.1.0-alpha.2";
-            src = builtins.fetchTarball {
+            src = fetchTarball {
               url = "https://github.com/TheBevyFlock/bevy_cli/archive/refs/tags/cli-v${version}.tar.gz";
               sha256 = "sha256:02p2c3fzxi9cs5y2fn4dfcyca1z8l5d8i09jia9h5b50ym82cr8l";
             };
