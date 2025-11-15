@@ -92,15 +92,15 @@ These are the steps:
  5. The `prePostScript` section runs
 
     _If you want to add some functionality to the wrapper for all packages that_
-    _is wrapped with it, you can add it in this section. By default this is_
-    _configured to do nothing._
+    _is wrapped with it, you can add it here in through the configuration. By_
+    _default this is configured to do nothing._
 
   
  6. The `postScript` section runs
 
     _If you want to add some functionality to a singular package, you can_
-    _add it in this section. It is used to swap to `cargo-zigbuild` for some_
-    _targets in the `rust-toolchain` package._
+    _add it here when wrapping a package with `wrapExecutable`. It is used to_
+    _swap to `cargo-zigbuild` for some targets in the `rust-toolchain` package._
 
   
  7. The executable wrapped is run.
