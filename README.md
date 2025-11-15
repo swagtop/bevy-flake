@@ -85,8 +85,9 @@ nix build github:username/repository/branch#targets -j 1
 ```
 
 You can compile to every target with a `targetEnvironments` [entry.][entries]
-If the target you want isn't in the config, you can add it, and set up the
-environment needed for it yourself. More on that [here.][environments]
+If the target you want isn't in the default configuration, you set up the
+environment needed for it and add it yourself.
+More on that [here.][environments]
 
 [entries]: flake.nix#L101
 [environments]: docs/config.md#environments
