@@ -64,16 +64,16 @@ of steps, that change the environment based on the configuration of
 
 These are the steps:
 
-### 1. Arg parsing
+| **1. Arg parsing**                                                          |
+|-----------------------------------------------------------------------------|
+| The input args are by default parsed for the '--target' flag, to figure out |
+| which target is being compiled for.                                         |
 
-The input args are by default parsed for the '--target' flag, to figure out
-which target is being compiled for.
 
-
-### 2. Base environment is set up
-
-Basic environment variables are exported, eg.
-`PKG_CONFIG_CONFIG_ALLOW_CROSS=1`.
+| **2. Base environment is set up**             |
+|-----------------------------------------------|
+| Basic environment variables are exported, eg. |
+| `PKG_CONFIG_CONFIG_ALLOW_CROSS=1`.            |
 
 
 ### 3. 'sharedEnvironment' is set up
