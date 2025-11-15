@@ -18,7 +18,7 @@
   mkRuntimeInputs,
   mkStdenv,
 
-  buildSource,
+  src,
 }:
 let
   inherit (builtins)

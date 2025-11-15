@@ -13,7 +13,7 @@
     { nixpkgs, bevy-flake, ... }:
     let
       bf = bevy-flake.override (default: {
-        buildSource = ./.;
+        src = ./.;
 
         targetEnvironments =
           pkgs:

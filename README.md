@@ -70,7 +70,7 @@ bevy run
 bevy run web --open
 ```
 
-If you've set `buildSource = ./.` in the config, you can build your project
+If you've set `src = ./.` in the config, you can build your project
 using Nix:
 
 ```sh

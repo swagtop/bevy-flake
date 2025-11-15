@@ -147,7 +147,7 @@
 
         mkStdenv = pkgs: pkgs.clangStdenv;
 
-        buildSource = null;
+        src = null;
       };
 
       # Defining a simpler makeOverriable function.

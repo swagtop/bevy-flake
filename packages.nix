@@ -14,7 +14,7 @@ let
     subtractLists
     ;
   inherit (config)
-    buildSource
+    src
     linux
     macos
     systems
@@ -171,14 +171,14 @@ genAttrs systems (
           '';
       };
   }
-  # If buildSource is defined in config, add the 'targets' package, which builds
+  # If 'src' is defined in config, add the 'targets' package, which builds
   # every target defined in targetEnvironments. Individual targets can be built
   # with 'targets.target-specific-triple', eg. 'targets.wasm32-unknown-unknown'.
-  // optionalAttrs (buildSource != null) {
+  // optionalAttrs (src != null) {
     targets = makeOverridable (
       overridedAttrs:
       let
-        manifest = (importTOML "${buildSource}/Cargo.toml").package;
+        manifest = (importTOML "${src}/Cargo.toml").package;
         packageNamePrefix =
           if (manifest ? version) then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
 
@@ -195,13 +195,13 @@ genAttrs systems (
           target:
           rustPlatform.buildRustPackage (
             {
-              name = packageNamePrefix + target;
+              inherit src;
 
-              src = buildSource;
+              name = packageNamePrefix + target;
 
               nativeBuildInputs = [ rust-toolchain ];
 
-              cargoLock.lockFile = "${buildSource}/Cargo.lock";
+              cargoLock.lockFile = "${src}/Cargo.lock";
               cargoProfile = "release";
               cargoBuildFlags = [ ];
 

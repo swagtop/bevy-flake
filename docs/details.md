@@ -37,7 +37,7 @@ or a package wrapped, that isn't included by default.
     dioxus-cli = <derivation>;
     bevy-cli = <derivation>;
 
-    # If you've set up the Nix builder with `buildSource = ./.`
+    # If you've set up the Nix builder with `src = ./.`
     targets = <derivation>; # All targets, symlinked to the same directory.
     targets."<target>" = <derivation>; # The individual targets.
   };

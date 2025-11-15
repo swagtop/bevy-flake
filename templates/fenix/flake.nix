@@ -22,7 +22,7 @@
     }:
     let
       bf = bevy-flake.override {
-        buildSource = ./.;
+        src = ./.;
         mkRustToolchain =
           targets: pkgs:
           let
