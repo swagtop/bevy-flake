@@ -36,7 +36,7 @@
       };
     in
     {
-      inherit (bf) packages;
+      inherit (bf) packages formatter;
 
       devShells = bf.eachSystem (
         system:
