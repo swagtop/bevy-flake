@@ -76,7 +76,7 @@ These are the steps:
     _`PKG_CONFIG_CONFIG_ALLOW_CROSS=1`._
 
 
- 3. 'sharedEnvironment' is set up
+ 3. `sharedEnvironment` is set up
 
     _The user configured environment for all targets is set up._
 
@@ -89,14 +89,14 @@ These are the steps:
     _development environhment._
 
 
- 5. The 'prePostScript' section runs
+ 5. The `prePostScript` section runs
 
     _If you want to add some functionality to the wrapper for all packages that_
     _is wrapped with it, you can add it in this section. By default this is_
     _configured to do nothing._
 
   
- 6. The 'postScript' section runs
+ 6. The `postScript` section runs
 
     _If you want to add some functionality to a singular package, you can_
     _add it in this section. It is used to swap to `cargo-zigbuild` for some_
