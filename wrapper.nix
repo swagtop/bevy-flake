@@ -180,15 +180,20 @@ in
         '';
       };
     in
-    if (symlinkPackage == null) then
-      wrapped
-    else
-      pkgs.symlinkJoin {
-        inherit name;
-        ignoreCollisions = true;
-        paths = [
-          wrapped
-          symlinkPackage
-        ];
-      };
+    (
+      if (symlinkPackage == null) then
+        wrapped
+      else
+        pkgs.symlinkJoin {
+          inherit name;
+          ignoreCollisions = true;
+          paths = [
+            wrapped
+            symlinkPackage
+          ];
+        }
+    )
+    // {
+      inherit runtimeInputs;
+    };
 }
