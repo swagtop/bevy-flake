@@ -88,7 +88,7 @@ You can compile to every target with a `targetEnvironments` [entry.][entries]
 If the target you want isn't in the config, you can add it, and set up the
 environment needed for it yourself. More on that [here.][environments]
 
-[entries]: flake.nix#L89
+[entries]: flake.nix#L101
 [environments]: docs/config.md#environments
 
 - [Configuration](docs/config.md)
