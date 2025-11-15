@@ -291,9 +291,11 @@ in
 
 </details>
 
-<details> <summary><code>postScript</code></summary>
+<details> <summary><code>prePostScript</code></summary>
 
-Here you can add some scripting at the very end.
+Here you can add some scripting to run before `postScript` but after the rest
+of the wrapper script. It could be used to extend `bevy-flake` functionality
+across all things it wraps.
 
 </details>
 
