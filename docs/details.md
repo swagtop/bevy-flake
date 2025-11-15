@@ -53,6 +53,11 @@ or a package wrapped, that isn't included by default.
 
 ## What does `bevy-flake` do?
 
+Normally, cross-compiling with Nix is done through `pkgsCross`, with a big focus
+on which `system` building for some other `system`. This flake takes a different
+approach, focusing on a few systems (`aarch64-darwin`, `aarch64-linux`,
+`x86_64-linux`) building all targets.
+ 
 The flake provides a preconfigured environment for the Rust toolchain, and a
 couple of packages that are helpful for Bevy development. The environment for
 these packages can be overridden with ones own configuration.
