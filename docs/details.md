@@ -64,7 +64,7 @@ of steps, that change the environment based on the configuration of
 
 These are the steps:
 
- **1. Arg parsing**
+ 1. **Arg parsing**
 
     _The input args are by default parsed for the '--target' flag, to figure out_
     _which target is being compiled for._
