@@ -50,7 +50,9 @@
         crossPlatformRustflags = [ ];
 
         # Base environment for every target to build on.
-        sharedEnvironment = { };
+        sharedEnvironment = {
+          CARGO_FEATURE_PURE = "1";
+        };
 
         devEnvironment = { };
 
@@ -86,7 +88,7 @@
             let
               frameworks = "$BF_MACOS_SDK_PATH/System/Library/Frameworks";
             in {
-              SDKROOT = "$BF_MACOS_SDK_PATH";
+              # SDKROOT = "$BF_MACOS_SDK_PATH";
               COREAUDIO_SDK_PATH = "${frameworks}/System/Library/Frameworks/CoreAudio.framwork/Headers";
               BINDGEN_EXTRA_CLANG_ARGS = concatStringsSep " " [
                 "-F $BF_MACOS_SDK_PATH/System/Library/Frameworks"
