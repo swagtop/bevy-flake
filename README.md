@@ -68,6 +68,9 @@ BEVY_ASSET_ROOT="." dx serve --hot-patch --features bevy/hotpatching
 # With `bevy-cli`, use the alpha CLI tooling that is useful for web builds:
 bevy run
 bevy run web --open
+
+# Like cargo, build for other targets with '--target':
+bevy build --target aarch64-pc-windows-msvc
 ```
 
 If you've set `src = ./.` in the config, you can build your project
@@ -82,9 +85,6 @@ nix build .#targets.x86_64-unknown-linux-gnu
 
 # Build your project from any machine with access to your repo:
 nix build github:username/repository/branch#targets -j 1
-
-# Like cargo, build for other targets with '--target':
-bevy build --target aarch64-pc-windows-msvc
 ```
 
 You can compile to every target with a `targetEnvironments` [entry.][entries]
