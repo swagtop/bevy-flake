@@ -82,6 +82,9 @@ nix build .#targets.x86_64-unknown-linux-gnu
 
 # Build your project from any machine with access to your repo:
 nix build github:username/repository/branch#targets -j 1
+
+# Like cargo, build for other targets with '--target':
+bevy build --target aarch64-pc-windows-msvc
 ```
 
 You can compile to every target with a `targetEnvironments` [entry.][entries]
