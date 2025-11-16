@@ -103,8 +103,6 @@
                 "-C link-arg=-isysroot"
                 "-C link-arg=$BF_MACOS_SDK_PATH"
                 "-C link-args=${concatStringsSep "," [
-                  "-fuse-ld=lld"
-                  "--target=$BF_TARGET"
                   "-Wl"
                   "-platform_version"
                   "macos"
