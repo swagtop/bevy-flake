@@ -30,6 +30,8 @@ let
     makeSearchPath
     mapAttrsToList
     optionalString
+    optionalAttrs
+    importJSON
     ;
 
   exportEnv =
@@ -130,7 +132,18 @@ in
           fi
 
           # Set up MacOS SDK if configured.
-          export BF_MACOS_SDK_PATH="${optionalString (macos.sdk != null) macos.sdk}"
+          ${exportEnv (
+            optionalAttrs (macos.sdk != null) (
+              let
+                json = importJSON (macos.sdk + "/SDKSettings.json");
+              in
+              {
+                BF_MACOS_SDK_PATH = macos.sdk;
+                BF_MACOS_SDK_MINIMUM_VERSION = json.SupportedTargets.macosx.MinimumDeploymentTarget;
+                BF_MACOS_SDK_DEFAULT_VERSION = json.SupportedTargets.macosx.DefaultDeploymentTarget;
+              }
+            )
+          )}
 
           # Set up Windows SDK, based on 'windows.mkSdk' builder.
           export BF_WINDOWS_SDK_PATH="${windowsSdk}"
