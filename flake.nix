@@ -105,6 +105,7 @@
                   "$BF_MACOS_SDK_MINIMUM_VERSION"
                   "$BF_MACOS_SDK_DEFAULT_VERSION"
                 ]}"
+                "-L ${frameworks}/System/Library/Frameworks/CoreAudio.framework/Headers"
               ];
             };
           in
