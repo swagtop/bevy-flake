@@ -98,18 +98,20 @@
               ];
               RUSTFLAGS = concatStringsSep " " [
                 "-C linker=clang-unwrapped"
-                "-C link-arg=-fuse-ld=lld"
-                "-C link-arg=--target=$BF_TARGET"
+                # "-C link-arg=-fuse-ld=lld"
+                # "-C link-arg=--target=$BF_TARGET"
                 "-C link-args=${concatStringsSep "," [
+                  "-isysroot=$BF_MACOS_SDK_PATH"
+                  "-fuse-ld=lld"
+                  "--target=$BF_TARGET"
                   "-Wl"
                   "-platform_version"
                   "macos"
                   "$BF_MACOS_SDK_MINIMUM_VERSION"
                   "$BF_MACOS_SDK_DEFAULT_VERSION"
                 ]}"
-                "-C link-arg=-isysroot"
-                "-C link-arg=$BF_MACOS_SDK_PATH"
-                # "-L $BF_MACOS_SDK_PATH/System/Library/Frameworks/CoreAudio.framwork/Headers"
+                # "-C link-arg=-isysroot"
+                # "-C link-arg=$BF_MACOS_SDK_PATH"
               ];
             };
           in
