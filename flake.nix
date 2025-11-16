@@ -100,7 +100,7 @@
                 "-C linker=clang-unwrapped"
                 "-C link-args=${concatStringsSep " " [
                   "-fuse-ld=lld"  
-                  "-isysroot=$BF_MACOS_SDK_PATH"
+                  "-sysroot=$BF_MACOS_SDK_PATH"
                 ]}"
                 "-C link-arg=${concatStringsSep "," [
                   "-Wl"
