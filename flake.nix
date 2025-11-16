@@ -99,7 +99,7 @@
               RUSTFLAGS = concatStringsSep " " [
                 "-C linker=clang-unwrapped"
                 "-C link-arg=-fuse-ld=lld"
-                "-C --target=$BF_TARGET"
+                "-C link-arg=--target=$BF_TARGET"
                 # "-C -isysroot=$BF_MACOS_SDK_PATH"
                 "-C link-arg=${concatStringsSep "," [
                   "-Wl"
