@@ -97,7 +97,7 @@
                 "--sysroot=$BF_MACOS_SDK_PATH"
               ];
               RUSTFLAGS = concatStringsSep " " [
-                "-C linker=clang-unwrapped"
+                "-C linker=lld"
                 "-C link-arg=-fuse-ld=lld"
                 "-C link-arg=--target=$BF_TARGET"
                 "-C link-arg=-isysroot"
