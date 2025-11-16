@@ -85,11 +85,14 @@
                 "-L $BF_WINDOWS_SDK_PATH/sdk/lib/um/${arch}"
               ];
             };
-            macosEnv = {
+            macosEnv =
+            let
+              frameworks = "$BF_MACOS_SDK_PATH/System/Library/Frameworks";
+            in {
               SDKROOT = "$BF_MACOS_SDK_PATH";
               # COREAUDIO_SDK_PATH = "-L $BF_MACOS_SDK_PATH/System/Library/Frameworks/CoreAudio.framwork/Headers";
               BINDGEN_EXTRA_CLANG_ARGS = concatStringsSep " " [
-                "-F BF_MACOS_SDK_PATH/System/Library/Frameworks"
+                "-F $BF_MACOS_SDK_PATH/System/Library/Frameworks"
                 "-I$BF_MACOS_SDK_PATH/usr/include"
                 "--sysroot=$BF_MACOS_SDK_PATH"
               ];
@@ -106,7 +109,7 @@
                 ]}"
                 "-C link-arg=-isysroot"
                 "-C link-arg=$BF_MACOS_SDK_PATH"
-                "-L $BF_MACOS_SDK_PATH/System/Library/Frameworks/CoreAudio.framwork/Headers"
+                # "-L $BF_MACOS_SDK_PATH/System/Library/Frameworks/CoreAudio.framwork/Headers"
               ];
             };
           in
