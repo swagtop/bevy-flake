@@ -97,7 +97,7 @@
                 "-C linker=clang-unwrapped"
                 "-C link-arg=-fuse-ld=lld"
                 "-C link-arg=--target=$BF_TARGET"
-                "-C -isysroot=$BF_MACOS_SDK_PATH"
+                "-C link-arg=-isysroot=$BF_MACOS_SDK_PATH"
                 "-C link-arg=${concatStringsSep "," [
                   "-Wl"
                   "-platform_version"
