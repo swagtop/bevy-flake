@@ -110,7 +110,7 @@ in
           input-rust-toolchain
           pkgs.pkg-config
           pkgs.lld
-          (pkgs.wrapShellScriptBin "clang-unwrapped" ''
+          (pkgs.writeShellScriptBin "clang-unwrapped" ''
             exec ${pkgs.clangStdenv.cc.cc}/bin/clang "$@"
           '')
           pkgs.wasm-bindgen-cli_0_2_104
