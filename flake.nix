@@ -98,10 +98,8 @@
               ];
               RUSTFLAGS = concatStringsSep " " [
                 "-C linker=clang-unwrapped"
-                "-C link-args=${concatStringsSep " " [
-                  "-fuse-ld=lld"  
-                  "-sysroot=$BF_MACOS_SDK_PATH"
-                ]}"
+                "-C link-arg=-fuse-ld=lld"
+                "-C link-arg=-isysroot=$BF_MACOS_SDK_PATH"
                 "-C link-arg=${concatStringsSep "," [
                   "-Wl"
                   "-platform_version"
