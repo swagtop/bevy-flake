@@ -115,7 +115,7 @@ in
           (pkgs.writeShellScriptBin "clang-unwrapped" ''
             exec ${pkgs.clangStdenv.cc.cc}/bin/clang "$@"
           '')
-          pkgs.wasm-bindgen-cli_0_2_104
+          pkgs.wasm-bindgen-cli
         ];
       argParser' = if (isFunction argParser) then argParser defaultArgParser else argParser;
       wrapped = pkgs.writeShellApplication {
