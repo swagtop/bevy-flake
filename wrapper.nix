@@ -110,6 +110,10 @@ in
           input-rust-toolchain
           pkgs.pkg-config
           pkgs.lld
+          (pkgs.wrapShellScriptBin "clang-unwrapped" ''
+            exec ${pkgs.clangStdenv.cc.cc}/bin/clang "$@"
+          '')
+          pkgs.wasm-bindgen-cli_0_2_104
         ];
       argParser' = if (isFunction argParser) then argParser defaultArgParser else argParser;
       wrapped = pkgs.writeShellApplication {
