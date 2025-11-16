@@ -135,12 +135,12 @@ in
           ${exportEnv (
             optionalAttrs (macos.sdk != null) (
               let
-                json = importJSON (macos.sdk + "/SDKSettings.json");
+                versions = (importJSON (macos.sdk + "/SDKSettings.json")).SupportedTargets.macosx;
               in
               {
                 BF_MACOS_SDK_PATH = macos.sdk;
-                BF_MACOS_SDK_MINIMUM_VERSION = json.SupportedTargets.macosx.MinimumDeploymentTarget;
-                BF_MACOS_SDK_DEFAULT_VERSION = json.SupportedTargets.macosx.DefaultDeploymentTarget;
+                BF_MACOS_SDK_MINIMUM_VERSION = versions.MinimumDeploymentTarget;
+                BF_MACOS_SDK_DEFAULT_VERSION = versions.DefaultDeploymentTarget;
               }
             )
           )}

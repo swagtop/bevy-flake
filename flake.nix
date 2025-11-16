@@ -85,24 +85,28 @@
                 "-L $BF_WINDOWS_SDK_PATH/sdk/lib/um/${arch}"
               ];
             };
-            macosEnv =
-              let
-                frameworks = "$BF_MACOS_SDK_PATH/System/Library/Frameworks";
-              in
-              {
-                SDKROOT = "$BF_MACOS_SDK_PATH";
-                COREAUDIO_SDK_PATH = "${frameworks}/CoreAudio.framework/Headers";
-                BINDGEN_EXTRA_CLANG_ARGS = concatStringsSep " " [
-                  "--sysroot=$BF_MACOS_SDK_PATH"
-                  "-F ${frameworks}"
-                  "-I$BF_MACOS_SDK_PATH/usr/include"
-                ];
-                RUSTFLAGS = concatStringsSep " " [
-                  "-C linker=ld64.lld"
-                  "-L $BF_MACOS_SDK_PATH/usr/lib"
-                  "-L framework=${frameworks}"
-                ];
-              };
+            macosEnv = {
+              SDKROOT = "$BF_MACOS_SDK_PATH";
+              BINDGEN_EXTRA_CLANG_ARGS = concatStringsSep " " [
+                "-F BF_MACOS_SDK_PATH/System/Library/Frameworks"
+                "-I$BF_MACOS_SDK_PATH/usr/include"
+                "--sysroot=$BF_MACOS_SDK_PATH"
+              ];
+              RUSTFLAGS = concatStringsSep " " [
+                "-C linker=clang-unwrapped"
+                "-C link-arg=-fuse-ld=lld"
+                "-C link-arg=--target=$BF_TARGET"
+                "-C link-args=${concatStringsSep "," [
+                  "-Wl"
+                  "-platform_version"
+                  "macos"
+                  "$BF_MACOS_SDK_MINIMUM_VERSION"
+                  "$BF_MACOS_SDK_DEFAULT_VERSION"
+                ]}"
+                "-C link-arg=-isysroot"
+                "-C link-arg=$BF_MACOS_SDK_PATH"
+              ];
+            };
           in
           {
             "x86_64-unknown-linux-gnu" = linuxEnvFor "x86_64-linux";
