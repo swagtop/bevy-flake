@@ -88,7 +88,7 @@
             let
               frameworks = "$BF_MACOS_SDK_PATH/System/Library/Frameworks";
             in {
-              # SDKROOT = "$BF_MACOS_SDK_PATH";
+              SDKROOT = "$BF_MACOS_SDK_PATH";
               COREAUDIO_SDK_PATH = "${frameworks}/System/Library/Frameworks/CoreAudio.framwork/Headers";
               BINDGEN_EXTRA_CLANG_ARGS = concatStringsSep " " [
                 "-F $BF_MACOS_SDK_PATH/System/Library/Frameworks"
@@ -99,7 +99,7 @@
                 "-C linker=clang-unwrapped"
                 "-C link-arg=-fuse-ld=lld"
                 "-C link-arg=--target=$BF_TARGET"
-                "-C link-arg=-isysroot=$BF_MACOS_SDK_PATH"
+                # "-C link-arg=-isysroot=$BF_MACOS_SDK_PATH"
                 "-C link-arg=${concatStringsSep "," [
                   "-Wl"
                   "-platform_version"
