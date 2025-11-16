@@ -87,7 +87,7 @@
               frameworks = "$BF_MACOS_SDK_PATH/System/Library/Frameworks";
             in {
               SDKROOT = "$BF_MACOS_SDK_PATH";
-              # COREAUDIO_SDK_PATH = "${frameworks}/System/Library/Frameworks/CoreAudio.framwork/Headers";
+              COREAUDIO_SDK_PATH = "${frameworks}/System/Library/Frameworks/CoreAudio.framwork/Headers";
               BINDGEN_EXTRA_CLANG_ARGS = concatStringsSep " " [
                 "-F $BF_MACOS_SDK_PATH/System/Library/Frameworks"
                 "-I$BF_MACOS_SDK_PATH/usr/include"
@@ -104,7 +104,6 @@
                   "$BF_MACOS_SDK_MINIMUM_VERSION"
                   "$BF_MACOS_SDK_DEFAULT_VERSION"
                 ]}"
-                "-L ${frameworks}/System/Library/Frameworks/CoreAudio.framework/Headers"
               ];
             };
           in
