@@ -104,8 +104,7 @@ These are the steps:
  6. The `postScript` section runs
 
     _If you want to add some functionality to a singular package, you can_
-    _add it here when wrapping a package with `wrapExecutable`. It is used to_
-    _swap to `cargo-zigbuild` for some targets in the `rust-toolchain` package._
+    _add it here when wrapping a package with `wrapExecutable`._
 
   
  7. The executable wrapped is run.

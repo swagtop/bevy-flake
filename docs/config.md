@@ -76,22 +76,7 @@ probably find `steam-run` to be useful here.
 
 <details> <summary><code>linux</code></summary>
 
-Setting the `glibcVersion` variable only affects the builds made with the
-wrapped `cargo` included with the `rust-toolchain` package. It works by changing
-the target you are using to include the glibc version you are targeting, for
-`cargo-zigbuild` to consume. Read more about this [here.][glibc]
-
-[glibc]: https://github.com/rust-cross/cargo-zigbuild?tab=readme-ov-file#specify-glibc-version
-
-Set it like so:
-
-```nix
-bf = bevy-flake.override {
-  # ...
-  linux.glibcVersion = "2.34";
-  # ...
-};
-```
+Currently there is nothign to configure for the Linux targets.
 
 </details>
 
