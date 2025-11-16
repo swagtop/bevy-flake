@@ -10,7 +10,6 @@ let
     makeOverridable
     optionalAttrs
     optionals
-    optionalString
     subtractLists
     ;
   inherit (config)
@@ -41,48 +40,8 @@ genAttrs systems (
     rust-toolchain =
       (wrapExecutable {
         name = "cargo";
-        extraRuntimeInputs = with pkgs; [ cargo-zigbuild ];
         executable = "${wrapExecutable.input-rust-toolchain}/bin/cargo";
         symlinkPackage = wrapExecutable.input-rust-toolchain;
-
-        argParser =
-          default:
-          default
-          + ''
-            if [[ $BF_NO_WRAPPER != "1" ]]; then
-               if [[ $BF_TARGET == *"-unknown-linux-gnu"* ]]; then
-                 # Insert glibc version into args for Linux targets.
-                 set -- \
-                   "''${@:1:((TARGET_ARG_NO-1))}" \
-                   "$BF_TARGET.${linux.glibcVersion}" \
-                   "''${@:$((TARGET_ARG_NO+1))}"
-              fi
-            fi
-          '';
-
-        # postScript = ''
-        #   # Set linker for specific targets.
-        #   case $BF_TARGET in
-        #     *-apple-darwin*)
-        #       ${optionalString (macos.sdk == null) ''
-        #         printf "%s%s\n" \
-        #           "bevy-flake: Building to MacOS target without SDK, " \
-        #           "compilation will most likely fail." 1>&2
-        #       ''}
-        #     ;&
-        #     *-unknown-linux-gnu*);&
-        #     "wasm32-unknown-unknown")
-        #       ${optionalString (pkgs.stdenv.isDarwin) ''
-        #         # Stops `cargo-zigbuild` from jamming with Zig on MacOS systems.
-        #         ulimit -n 4096
-        #       ''}
-        #       if [[ "$1" == "build" ]]; then
-        #         echo "bevy-flake: Switching to 'cargo-zigbuild'" 1>&2
-        #         exec ${pkgs.cargo-zigbuild}/bin/cargo-zigbuild zigbuild "''${@:2}"
-        #       fi
-        #     ;;
-        #   esac
-        # '';
       })
       // {
         targetPlatforms = systems;
@@ -158,7 +117,6 @@ genAttrs systems (
         name = "bevy";
         extraRuntimeInputs = [
           pkgs.binaryen
-          pkgs.wasm-bindgen-cli_0_2_104
         ];
         executable = "${bevy-cli-package}/bin/bevy";
         argParser =

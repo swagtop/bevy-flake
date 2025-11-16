@@ -112,10 +112,10 @@ in
           input-rust-toolchain
           pkgs.pkg-config
           pkgs.lld
+          pkgs.wasm-bindgen-cli
           (pkgs.writeShellScriptBin "clang-unwrapped" ''
             exec ${pkgs.clangStdenv.cc.cc}/bin/clang "$@"
           '')
-          pkgs.wasm-bindgen-cli
         ];
       argParser' = if (isFunction argParser) then argParser defaultArgParser else argParser;
       wrapped = pkgs.writeShellApplication {
@@ -131,7 +131,7 @@ in
             exec ${executable} "$@"
           fi
 
-          # Set up MacOS SDK if configured.
+          # Set up MacOS SDK environment variables, if configured.
           ${exportEnv (
             optionalAttrs (macos.sdk != null) (
               let
