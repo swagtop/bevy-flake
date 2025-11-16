@@ -93,6 +93,7 @@
                   "-I$BF_MACOS_SDK_PATH/usr/include"
                 ];
                 RUSTFLAGS = concatStringsSep " " [
+                  "-C linker=ld64.lld"
                   "-L $BF_MACOS_SDK_PATH/usr/lib"
                   "-L framework=${frameworks}"
                 ];
