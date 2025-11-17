@@ -72,9 +72,9 @@
               );
               RUSTFLAGS =
                 if system == "aarch64-linux" then
-                  "-C link-args=-Wl,--dynamic-inker=/lib64/ld-linux-aarch64.so.1"
+                  "-C link-args=-Wl,--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
                 else
-                  "-C link-args=-Wl,--dynamic-inker=/lib64/ld-linux-x86_64.so.2";
+                  "-C link-args=-Wl,--dynamic-linker=/lib64/ld-linux-x86_64.so.2";
             };
             windowsEnvFor = arch: {
               RUSTFLAGS = concatStringsSep " " [
