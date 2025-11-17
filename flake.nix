@@ -72,11 +72,11 @@
               );
               RUSTFLAGS = concatStringsSep " " [
                 "-C linker=ld.lld"
-                "-C link-arg=--target=$BF_TARGET"
+                # "-C link-arg=--target=$BF_TARGET"
                 (if system == "aarch64-linux" then
-                  "-C link-args=-Wl,--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
+                  "-C link-arg=--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
                 else
-                  "-C link-args=-Wl,--dynamic-linker=/lib64/ld-linux-x86_64.so.2")
+                  "-C link-arg=--dynamic-linker=/lib64/ld-linux-x86_64.so.2")
               ];
             };
             windowsEnvFor = arch: {
