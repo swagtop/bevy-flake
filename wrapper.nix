@@ -139,8 +139,6 @@ in
               in
               {
                 BF_MACOS_SDK_PATH = macos.sdk;
-                # # Bevy internals use this 
-                # BF_MACOS_SDK_MINIMUM_VERSION = "11.0.0";
                 BF_MACOS_SDK_MINIMUM_VERSION = versions.MinimumDeploymentTarget;
                 BF_MACOS_SDK_DEFAULT_VERSION = versions.DefaultDeploymentTarget;
               }
@@ -214,5 +212,9 @@ in
     )
     // {
       inherit runtimeInputs;
+      meta = {
+        mainProgram = name;
+        platforms = systems;
+      };
     };
 }

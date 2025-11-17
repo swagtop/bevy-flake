@@ -85,29 +85,32 @@
               ];
             };
             macosEnv =
-            let
-              frameworks = "$BF_MACOS_SDK_PATH/System/Library/Frameworks";
-            in {
-              SDKROOT = "$BF_MACOS_SDK_PATH";
-              COREAUDIO_SDK_PATH = "${frameworks}/System/Library/Frameworks/CoreAudio.framwork/Headers";
-              BINDGEN_EXTRA_CLANG_ARGS = concatStringsSep " " [
-                "-F $BF_MACOS_SDK_PATH/System/Library/Frameworks"
-                "-I$BF_MACOS_SDK_PATH/usr/include"
-                "--sysroot=$BF_MACOS_SDK_PATH"
-              ];
-              RUSTFLAGS = concatStringsSep " " [
-                "-C linker=clang-unwrapped"
-                "-C link-arg=-fuse-ld=lld"
-                "-C link-arg=--target=$BF_TARGET"
-                "-C link-arg=${concatStringsSep "," [
-                  "-Wl"
-                  "-platform_version"
-                  "macos"
-                  "$BF_MACOS_SDK_MINIMUM_VERSION"
-                  "$BF_MACOS_SDK_DEFAULT_VERSION"
-                ]}"
-              ];
-            };
+              let
+                frameworks = "$BF_MACOS_SDK_PATH/System/Library/Frameworks";
+              in
+              {
+                SDKROOT = "$BF_MACOS_SDK_PATH";
+                COREAUDIO_SDK_PATH = "${frameworks}/System/Library/Frameworks/CoreAudio.framwork/Headers";
+                BINDGEN_EXTRA_CLANG_ARGS = concatStringsSep " " [
+                  "-F $BF_MACOS_SDK_PATH/System/Library/Frameworks"
+                  "-I$BF_MACOS_SDK_PATH/usr/include"
+                  "--sysroot=$BF_MACOS_SDK_PATH"
+                ];
+                RUSTFLAGS = concatStringsSep " " [
+                  "-C linker=clang-unwrapped"
+                  "-C link-arg=-fuse-ld=lld"
+                  "-C link-arg=--target=$BF_TARGET"
+                  "-C link-arg=${
+                    concatStringsSep "," [
+                      "-Wl"
+                      "-platform_version"
+                      "macos"
+                      "$BF_MACOS_SDK_MINIMUM_VERSION"
+                      "$BF_MACOS_SDK_DEFAULT_VERSION"
+                    ]
+                  }"
+                ];
+              };
           in
           {
             "x86_64-unknown-linux-gnu" = linuxEnvFor "x86_64-linux";
