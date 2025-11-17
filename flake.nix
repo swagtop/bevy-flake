@@ -71,7 +71,8 @@
                 ]
               );
               RUSTFLAGS = concatStringsSep " " [
-                "-C linker=clang-unwrapped"
+                "-C linker=ld.lld"
+                "-C linker-arg=--target=$BF_TARGET"
                 (if system == "aarch64-linux" then
                   "-C link-args=-Wl,--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
                 else
