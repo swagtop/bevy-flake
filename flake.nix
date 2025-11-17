@@ -51,6 +51,7 @@
 
         # Base environment for every target to build on.
         sharedEnvironment = {
+          # Cross-compiling the 'blake3' crate to Linux breaks without this feature.
           CARGO_FEATURE_PURE = "1";
         };
 
@@ -72,7 +73,7 @@
               );
               RUSTFLAGS = concatStringsSep " " [
                 "-C linker=ld.lld"
-                # "-C link-arg=--target=$BF_TARGET"
+                "-C link-arg=--sysroot=${nixpkgs.legacyPackages.${system}.glibc}"
                 (if system == "aarch64-linux" then
                   "-C link-arg=--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
                 else
