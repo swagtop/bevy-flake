@@ -48,7 +48,7 @@
             name = "bevy-flake-fenix";
             packages = [
               bf.packages.${system}.rust-toolchain
-              # bf.packages.${system}.dioxus-cli
+              bf.packages.${system}.dioxus-cli
               # bf.packages.${system}.bevy-cli
             ];
           };

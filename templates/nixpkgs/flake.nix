@@ -40,7 +40,7 @@
             name = "bevy-flake-nixpkgs";
             packages = [
               bf.packages.${system}.rust-toolchain
-              # bf.packages.${system}.dioxus-cli
+              bf.packages.${system}.dioxus-cli
               # bf.packages.${system}.bevy-cli
             ];
           };

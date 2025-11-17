@@ -51,42 +51,10 @@ genAttrs systems (
   {
     inherit rust-toolchain;
 
-    # For now we have to override the package for hot-reloading.
     dioxus-cli =
-      let
-        version = "0.7.1";
-        dioxus-cli-package = pkgs.dioxus-cli.override (old: {
-          rustPlatform = old.rustPlatform // {
-            buildRustPackage =
-              args:
-              old.rustPlatform.buildRustPackage (
-                args
-                // {
-                  inherit version;
-                  src = old.fetchCrate {
-                    inherit version;
-                    pname = "dioxus-cli";
-                    hash = "sha256-tPymoJJvz64G8QObLkiVhnW0pBV/ABskMdq7g7o9f1A=";
-                  };
-                  cargoHash = "sha256-mgscu6mJWinB8WXLnLNq/JQnRpHRJKMQXnMwECz1vwc=";
-
-                  cargoPatches = [ ];
-                  buildFeatures = [ ];
-
-                  postPatch = "";
-                  checkFlags = [
-                    "--skip"
-                    "test_harnesses::run_harness"
-                  ];
-                }
-              );
-          };
-        });
-      in
       makeOverridable wrapExecutable {
         name = "dx";
-        extraRuntimeInputs = [ ];
-        executable = "${dioxus-cli-package}/bin/dx";
+        executable = "${pkgs.dioxus-cli}/bin/dx";
       };
 
     # For now we package 'bevy-cli' ourselves, as it is not in nixpkgs yet.
