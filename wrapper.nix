@@ -1,4 +1,4 @@
-{
+config@{
   pkgs,
 
   systems,
@@ -80,21 +80,22 @@ let
   '';
 in
 {
-  inherit
-    input-rust-toolchain
-    runtimeInputsBase
-    stdenv
-    ;
-  inherit (op)
-    crossPlatformRustflags
-    sharedEnvironment
-    devEnvironment
-    targetEnvironments
-    prePostScript
-    ;
+  finalConfig = config // {
+    inherit
+      input-rust-toolchain
+      runtimeInputsBase
+      stdenv
+      ;
+    inherit (op)
+      crossPlatformRustflags
+      sharedEnvironment
+      devEnvironment
+      targetEnvironments
+      prePostScript
+      ;
+  };
 
-  __functor =
-    _:
+  wrapExecutable =
     {
       name,
       executable,

@@ -30,26 +30,30 @@ genAttrs systems (
       };
     };
 
-    wrapExecutable = import ./wrapper.nix (
-      config
-      // {
-        inherit pkgs;
-      }
+    builtWrapper = (
+      import ./wrapper.nix (
+        config
+        // {
+          inherit pkgs;
+        }
+      )
     );
+    inherit (builtWrapper) wrapExecutable finalConfig;
 
     rust-toolchain =
       (wrapExecutable {
         name = "cargo";
-        executable = "${wrapExecutable.input-rust-toolchain}/bin/cargo";
-        symlinkPackage = wrapExecutable.input-rust-toolchain;
+        executable = "${finalConfig.input-rust-toolchain}/bin/cargo";
+        symlinkPackage = finalConfig.input-rust-toolchain;
       })
       // {
+        inherit wrapExecutable finalConfig;
         targetPlatforms = systems;
         badTargetPlatforms = [ ];
       };
   in
   {
-    inherit rust-toolchain;
+    inherit rust-toolchain builtWrapper;
 
     dioxus-cli = makeOverridable wrapExecutable {
       name = "dx";
@@ -114,7 +118,7 @@ genAttrs systems (
         validTargets = subtractLists (optionals (macos.sdk == null) [
           "aarch64-apple-darwin"
           "x86_64-apple-darwin"
-        ]) (attrNames wrapExecutable.targetEnvironments);
+        ]) (attrNames finalConfig.targetEnvironments);
 
         everyTarget = genAttrs validTargets (
           target:
