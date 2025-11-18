@@ -63,34 +63,26 @@
           pkgs:
           let
             linuxEnvFor =
-              system:
+              crossSystem:
               let
-                checkCross = pkgs': system': {
-                  stdenv = (pkgs'.pkgsCross.${system'} or pkgs').stdenv;
-                  isCross = pkgs'.pkgsCross ? system';
-                };
+                hostSystem = pkgs.stdenv.hostPlatform.system;
+                stringIfNoCross = str: optionalString (hostSystem != crossSystem) str;
                 flags = {
                   aarch64-linux =
-                    let
-                      inherit (checkCross pkgs "aarch64-multiplatform") stdenv isCross;
-                    in
                     [
                       "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
-                      "-C linker=${stdenv.cc + "/bin/${optionalString (isCross) "aarch64-unknown-linux-gnu-"}cc"}"
+                      "-C linker=${pkgs.pkgsCross.aarch64-multiplatform.cc + "/bin/${stringIfNoCross "aarch64-unknown-linux-gnu-"}cc"}"
                     ];
                   x86_64-linux =
-                    let
-                      inherit (checkCross pkgs "x86_64-linux") stdenv isCross;
-                    in
                     [
                       "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-x86_64.so.2"
-                      "-C linker=${stdenv.cc + "/bin/${optionalString (isCross) "x86_64-unknown-linux-gnu-"}cc"}"
+                      "-C linker=${pkgs.pkgsCross.gnu64.cc + "/bin/${stringIfNoCross "x86_64-unknown-linux-gnu-"}cc"}"
                     ];
                 };
               in
               {
                 PKG_CONFIG_PATH = makeSearchPath "lib/pkgconfig" (
-                  with nixpkgs.legacyPackages.${system};
+                  with nixpkgs.legacyPackages.${crossSystem};
                   [
                     alsa-lib-with-plugins.dev
                     libxkbcommon.dev
@@ -99,7 +91,7 @@
                     wayland.dev
                   ]
                 );
-                RUSTFLAGS = concatStringsSep " " flags.${system};
+                RUSTFLAGS = concatStringsSep " " flags.${crossSystem};
               };
             windowsEnvFor = arch: {
               RUSTFLAGS = concatStringsSep " " [
