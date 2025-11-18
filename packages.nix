@@ -3,6 +3,7 @@ let
   inherit (builtins)
     attrNames
     concatStringsSep
+    isFunction
     ;
   inherit (nixpkgs.lib)
     genAttrs
@@ -12,14 +13,8 @@ let
     optionals
     subtractLists
     ;
-  inherit (config)
-    src
-    linux
-    macos
-    systems
-    ;
 in
-genAttrs systems (
+genAttrs (config null).systems (
   system:
   let
     pkgs = import nixpkgs {
@@ -30,19 +25,26 @@ genAttrs systems (
       };
     };
 
-    builtWrapper = import ./wrapper.nix (
-      config
+    finalConfig = if isFunction config then config pkgs else config;
+    inherit (finalConfig)
+      src
+      linux
+      macos
+      systems
+      ;
+
+    wrapExecutable = import ./wrapper.nix (
+      finalConfig
       // {
         inherit pkgs;
       }
     );
-    inherit (builtWrapper) wrapExecutable finalConfig;
 
     rust-toolchain =
       (wrapExecutable {
         name = "cargo";
-        executable = "${finalConfig.input-rust-toolchain}/bin/cargo";
-        symlinkPackage = finalConfig.input-rust-toolchain;
+        executable = "${(finalConfig.mkRustToolchain finalConfig.targets)}/bin/cargo";
+        symlinkPackage = finalConfig.mkRustToolchain finalConfig.targets;
       })
       // {
         inherit wrapExecutable finalConfig;

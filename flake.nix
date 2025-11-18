@@ -18,7 +18,7 @@
         makeSearchPath
         ;
 
-      config = {
+      config = pkgs: {
         systems = [
           "aarch64-darwin"
           "aarch64-linux"
@@ -32,15 +32,13 @@
 
         windows = {
           # Setting the Windows SDK to the latest one in nixpkgs, both arches.
-          mkSdk =
-            pkgs:
-            pkgs.symlinkJoin {
-              name = "windows-sdk-both-arches";
-              paths = [
-                pkgs.pkgsCross.aarch64-windows.windows.sdk
-                pkgs.pkgsCross.x86_64-windows.windows.sdk
-              ];
-            };
+          mkSdk = pkgs.symlinkJoin {
+            name = "windows-sdk-both-arches";
+            paths = [
+              pkgs.pkgsCross.aarch64-windows.windows.sdk
+              pkgs.pkgsCross.x86_64-windows.windows.sdk
+            ];
+          };
         };
 
         macos = {
@@ -60,7 +58,6 @@
 
         # Environment variables set for individual targets.
         targetEnvironments =
-          pkgs:
           let
             linuxEnvFor =
               crossSystem:
@@ -144,7 +141,7 @@
         prePostScript = "";
 
         mkRustToolchain =
-          targets: pkgs:
+          targets:
           pkgs.symlinkJoin {
             name = "nixpkgs-rust-toolchain";
             pname = "cargo";
@@ -157,51 +154,54 @@
             ];
           };
 
-        mkRuntimeInputs =
-          pkgs:
-          optionals (pkgs.stdenv.isLinux) (
-            with pkgs;
-            [
-              alsa-lib-with-plugins
-              libGL
-              libxkbcommon
-              openssl
-              udev
-              vulkan-loader
-              wayland
-              xorg.libX11
-              xorg.libXcursor
-              xorg.libXi
-              xorg.libXrandr
-            ]
-          );
+        mkRuntimeInputs = optionals (pkgs.stdenv.isLinux) (
+          with pkgs;
+          [
+            alsa-lib-with-plugins
+            libGL
+            libxkbcommon
+            openssl
+            udev
+            vulkan-loader
+            wayland
+            xorg.libX11
+            xorg.libXcursor
+            xorg.libXi
+            xorg.libXrandr
+          ]
+        );
 
-        mkStdenv = pkgs: pkgs.clangStdenv;
+        mkStdenv = pkgs.clangStdenv;
 
         src = null;
       };
 
-      # Defining a simpler makeOverriable function.
-      makeOverridable =
-        f: args:
+      mkBf =
+        bf:
         let
-          r = f args;
+          # Defining a simpler makeOverriable function.
+          makeOverridable =
+            f: args:
+            let
+              result = f args;
+            in
+            result
+            // {
+              override = a: makeOverridable f (args // (if isFunction a then a args else a));
+            };
         in
-        r
-        // {
-          override = a: makeOverridable f (args // (if isFunction a then a args else a));
-        };
-      mkBf = bf: (makeOverridable bf config);
+        makeOverridable bf config;
     in
     mkBf (
       config:
       let
-        eachSystem = genAttrs config.systems;
+        eachSystem = genAttrs (config null).systems;
         packages = import ./packages.nix { inherit config nixpkgs; };
       in
       {
-        inherit (config) systems;
-        inherit config eachSystem packages;
+        inherit packages eachSystem;
+
+        config = config null;
 
         devShells = eachSystem (system: {
           default = nixpkgs.legacyPackages.${system}.mkShell {
