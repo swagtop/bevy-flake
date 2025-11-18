@@ -111,7 +111,7 @@ in
           stdenv.cc
           input-rust-toolchain
           pkgs.pkg-config
-          pkgs.lld
+          pkgs.llvmPackates.bintools-unwrapped
           pkgs.wasm-bindgen-cli
           (pkgs.writeShellScriptBin "clang-unwrapped" ''
             exec ${pkgs.clangStdenv.cc.cc}/bin/clang "$@"
