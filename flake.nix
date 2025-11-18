@@ -77,7 +77,7 @@
                 "-L ${nixpkgs.legacyPackages.${system}.glibc}/lib"
                 # "-L ${nixpkgs.legacyPackages.${system}.libgcc}/lib"
                 # Workaround stolen from the 'pocl' package in nixpkgs.
-                "-L $(dirname \"$(find ${nixpkgs.legacyPackages.${system}.stdenv.cc.cc}/lib/ -name libgcc.a))\""
+                "-L \"$(dirname $(find ${nixpkgs.legacyPackages.${system}.stdenv.cc.cc}/lib/ -name libgcc.a))\""
                 (if system == "aarch64-linux" then
                   "-C link-arg=--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
                 else
