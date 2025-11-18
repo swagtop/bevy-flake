@@ -66,20 +66,17 @@
               crossSystem:
               let
                 hostSystem = pkgs.stdenv.hostPlatform.system;
-                stringIfNoCross = str: optionalString (hostSystem != crossSystem) str;
+                ifCross = str: optionalString (hostSystem != crossSystem) str;
                 flags = {
                   aarch64-linux = [
                     "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
                     "-C linker=${
-                      pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc
-                      + "/bin/${stringIfNoCross "aarch64-unknown-linux-gnu-"}cc"
+                      pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc + "/bin/${ifCross "aarch64-unknown-linux-gnu-"}cc"
                     }"
                   ];
                   x86_64-linux = [
                     "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-x86-64.so.2"
-                    "-C linker=${
-                      pkgs.pkgsCross.gnu64.stdenv.cc + "/bin/${stringIfNoCross "x86_64-unknown-linux-gnu-"}cc"
-                    }"
+                    "-C linker=${pkgs.pkgsCross.gnu64.stdenv.cc + "/bin/${ifCross "x86_64-unknown-linux-gnu-"}cc"}"
                   ];
                 };
               in
