@@ -64,10 +64,20 @@
               system:
               let
                 pkgs = nixpkgs.legacyPackages.${system};
-                x86_64-ld =
-                  (pkgs.pkgsCross.x86_64-linux or pkgs).stdenv.cc.cc + "/bin/x86_64-unknown-linux-gnu-gcc";
-                aarch64-ld =
-                  (pkgs.pkgsCross.aarch64-multiplatform or pkgs).stdenv.cc.cc + "/bin/aarch64-unknown-linux-gnu-gcc";
+                flags = {
+                  aarch64-linux = [
+                    "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
+                    "-C linker=${
+                      (pkgs.pkgsCross.aarch64-multiplatform or pkgs).stdenv.cc.cc + "/bin/aarch64-unknown-linux-gnu-gcc"
+                    }"
+                  ];
+                  x86_64-linux = [
+                    "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-x86_64.so.2"
+                    "-C linker=${
+                      (pkgs.pkgsCross.x86_64-linux or pkgs).stdenv.cc.cc + "/bin/x86_64-unknown-linux-gnu-gcc"
+                    }"
+                  ];
+                };
               in
               {
                 PKG_CONFIG_PATH = makeSearchPath "lib/pkgconfig" (
@@ -80,18 +90,7 @@
                     wayland.dev
                   ]
                 );
-                RUSTFLAGS = concatStringsSep " " (
-                  if system == "aarch64-linux" then
-                    [
-                      "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
-                      "-C linker=${aarch64-ld}"
-                    ]
-                  else
-                    [
-                      "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-x86-64.so.2"
-                      "-C linker=${x86_64-ld}"
-                    ]
-                );
+                RUSTFLAGS = concatStringsSep " " flags.${system};
               };
             windowsEnvFor = arch: {
               RUSTFLAGS = concatStringsSep " " [
