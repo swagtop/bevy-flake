@@ -81,7 +81,7 @@
                 "-C link-arg=-fuse-ld=lld"
                 "-L ${pkgs.glibc}/lib"
                 "-L ${nixpkgs.legacyPackages.${system}.libgcc}/lib"
-                "-L ${cc.cc}/lib/gcc/${config}/${cc.version}"
+                "-L native=${cc.cc}/lib/gcc/${config}/${cc.version}"
                 (if system == "aarch64-linux" then
                   "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
                 else
