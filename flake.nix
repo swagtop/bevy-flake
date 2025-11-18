@@ -76,7 +76,7 @@
                     in
                     [
                       "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
-                      "-C linker=${stdenv.cc + "/bin/${optionalString (isCross) "aarch64-unknown-linux-gnu-"}clang"}"
+                      "-C linker=${stdenv.cc + "/bin/${optionalString (isCross) "aarch64-unknown-linux-gnu-"}cc"}"
                     ];
                   x86_64-linux =
                     let
@@ -84,7 +84,7 @@
                     in
                     [
                       "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-x86_64.so.2"
-                      "-C linker=${stdenv.cc + "/bin/${optionalString (isCross) "x86_64-unknown-linux-gnu-"}clang"}"
+                      "-C linker=${stdenv.cc + "/bin/${optionalString (isCross) "x86_64-unknown-linux-gnu-"}cc"}"
                     ];
                 };
               in
