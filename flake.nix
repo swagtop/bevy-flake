@@ -72,7 +72,7 @@
                 ]
               );
               RUSTFLAGS = concatStringsSep " " [
-                "-C link-arg=-fule-ld=lld"
+                "-C link-arg=-fuse-ld=lld"
                 "-L ${nixpkgs.legacyPackages.${system}.glibc}/lib"
                 "-L ${nixpkgs.legacyPackages.${system}.libgcc}/lib"
                 (if system == "aarch64-linux" then
