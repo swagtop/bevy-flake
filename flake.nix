@@ -77,7 +77,8 @@
                 ]
               );
               RUSTFLAGS = concatStringsSep " " [
-                "-C linker=ld.lld"
+                # "-C linker=ld.lld"
+                "-C link-arg=-fuse-ld=lld"
                 "-L ${pkgs.glibc}/lib"
                 "-L ${nixpkgs.legacyPackages.${system}.libgcc}/lib"
                 "-L ${cc.cc}/lib/gcc/${config}/${cc.version}"
