@@ -148,9 +148,6 @@ in
           # Set up Windows SDK, based on 'windows.mkSdk' builder.
           export BF_WINDOWS_SDK_PATH="${windowsSdk}"
 
-          export BF_LINUX_X86_64_LIBGCC_PATH="$(dirname $(find ${stdenv.cc.cc}/lib/ -name libgcc.a))"
-\"\"
-
           # Base environment for all targets.
           export PKG_CONFIG_ALLOW_CROSS="1"
           export LIBCLANG_PATH="${pkgs.libclang.lib}/lib";
