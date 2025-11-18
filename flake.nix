@@ -104,7 +104,7 @@
                 ];
                 RUSTFLAGS = concatStringsSep " " [
                   "-C linker=clang-unwrapped"
-                  "-C link-args=-fuse-ld=lld,--target=$BF_TARGET"
+                  "-C link-args='-fuse-ld=lld --target=$BF_TARGET'"
                   "-C link-arg=${
                     concatStringsSep "," [
                       "-Wl"
