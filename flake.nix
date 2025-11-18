@@ -78,10 +78,10 @@
               );
               RUSTFLAGS = concatStringsSep " " [
                 "-C linker=ld.lld"
-                # "-C link-arg=-fuse-ld=lld"
+                "-C link-arg=-fuse-ld=lld"
                 "-C link-arg=--sysroot=${cc.cc}"
-                # "-L ${pkgs.glibc}/lib"
-                # "-L ${nixpkgs.legacyPackages.${system}.libgcc}/lib"
+                "-L ${pkgs.glibc}/lib"
+                "-L ${nixpkgs.legacyPackages.${system}.libgcc}/lib"
                 (if system == "aarch64-linux" then
                   "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
                 else
