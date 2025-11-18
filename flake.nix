@@ -13,6 +13,7 @@
         ;
       inherit (nixpkgs.lib)
         optionals
+        optionalString
         genAttrs
         makeSearchPath
         ;
@@ -68,13 +69,15 @@
                   aarch64-linux = [
                     "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
                     "-C linker=${
-                      (pkgs.pkgsCross.aarch64-multiplatform or pkgs).stdenv.cc + "/bin/aarch64-unknown-linux-gnu-gcc"
+                      (pkgs.pkgsCross.aarch64-multiplatform or pkgs).stdenv.cc
+                      + "/bin/${optionalString (pkgs.pkgsCross ? aarch64-multiplatform) "$aarch64-unknown-linux-gnu-"}gcc"
                     }"
                   ];
                   x86_64-linux = [
                     "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-x86_64.so.2"
                     "-C linker=${
-                      (pkgs.pkgsCross.x86_64-linux or pkgs).stdenv.cc + "/bin/x86_64-unknown-linux-gnu-gcc"
+                      (pkgs.pkgsCross.x86_64-linux or pkgs).stdenv.cc
+                      + "/bin/${optionalString (pkgs.pkgsCross ? x86_64-linux) "$x86_64-unknown-linux-gnu-"}gcc"
                     }"
                   ];
                 };
