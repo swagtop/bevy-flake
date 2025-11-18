@@ -72,7 +72,7 @@
                 ]
               );
               RUSTFLAGS = concatStringsSep " " [
-                "-C linker=ld.lld"
+                "-C linker=clang-unwrapped"
                 "-C link-arg=-fuse-ld=lld"
                 "-L ${nixpkgs.legacyPackages.${system}.glibc}/lib"
                 "-L ${nixpkgs.legacyPackages.${system}.libgcc}/lib"
@@ -104,7 +104,8 @@
                 ];
                 RUSTFLAGS = concatStringsSep " " [
                   "-C linker=clang-unwrapped"
-                  "-C link-args='-fuse-ld=lld --target=$BF_TARGET'"
+                  "-C link-arg=-fuse-ld=lld"
+                  "-C link-arg=--target=$BF_TARGET"
                   "-C link-arg=${
                     concatStringsSep "," [
                       "-Wl"
