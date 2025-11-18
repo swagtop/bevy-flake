@@ -185,6 +185,9 @@ There are a couple of things that I would like to be added to `bevy-flake`.
    cannot do properly yet, such as setting up the Window icon, or easily making
    a MacOS `.app` directory.
 
+   _Or maybe it shouldn't? I've been reading stuff about how there are plans_
+   _for `bevy-cli` having these capabilities. I will have to think on this._
+
 If you manage to configure any of this stuff yourself, please open a pull
 request!
 
