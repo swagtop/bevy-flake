@@ -72,8 +72,8 @@
                 ]
               );
               RUSTFLAGS = concatStringsSep " " [
-                "-C linker=clang-unwrapped"
-                "-C link-arg=-fuse-ld=lld"
+                "-C linker=ld.lld"
+                # "-C link-arg=-fuse-ld=lld"
                 "-L ${nixpkgs.legacyPackages.${system}.glibc}/lib"
                 # "-L ${nixpkgs.legacyPackages.${system}.libgcc}/lib"
                 # Workaround stolen from the 'pocl' package in nixpkgs.
