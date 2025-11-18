@@ -66,7 +66,7 @@
               system:
               let
                 checkCross = pkgs': system': {
-                  stdenv = (pkgs'.pkgsCross.${system'} or pkgs').clangStdenv;
+                  stdenv = (pkgs'.pkgsCross.${system'} or pkgs').stdenv;
                   isCross = pkgs'.pkgsCross ? system';
                 };
                 flags = {
