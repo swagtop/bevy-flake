@@ -30,13 +30,11 @@ genAttrs systems (
       };
     };
 
-    builtWrapper = (
-      import ./wrapper.nix (
-        config
-        // {
-          inherit pkgs;
-        }
-      )
+    builtWrapper = import ./wrapper.nix (
+      config
+      // {
+        inherit pkgs;
+      }
     );
     inherit (builtWrapper) wrapExecutable finalConfig;
 
@@ -53,7 +51,7 @@ genAttrs systems (
       };
   in
   {
-    inherit rust-toolchain builtWrapper;
+    inherit rust-toolchain;
 
     dioxus-cli = makeOverridable wrapExecutable {
       name = "dx";
