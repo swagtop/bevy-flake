@@ -76,7 +76,7 @@
                     }"
                   ];
                   x86_64-linux = [
-                    "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-x86_64.so.2"
+                    "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-x86-64.so.2"
                     "-C linker=${
                       pkgs.pkgsCross.gnu64.stdenv.cc + "/bin/${stringIfNoCross "x86_64-unknown-linux-gnu-"}cc"
                     }"
