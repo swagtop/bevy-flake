@@ -68,16 +68,19 @@
                 hostSystem = pkgs.stdenv.hostPlatform.system;
                 stringIfNoCross = str: optionalString (hostSystem != crossSystem) str;
                 flags = {
-                  aarch64-linux =
-                    [
-                      "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
-                      "-C linker=${pkgs.pkgsCross.aarch64-multiplatform.cc + "/bin/${stringIfNoCross "aarch64-unknown-linux-gnu-"}cc"}"
-                    ];
-                  x86_64-linux =
-                    [
-                      "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-x86_64.so.2"
-                      "-C linker=${pkgs.pkgsCross.gnu64.cc + "/bin/${stringIfNoCross "x86_64-unknown-linux-gnu-"}cc"}"
-                    ];
+                  aarch64-linux = [
+                    "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
+                    "-C linker=${
+                      pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc
+                      + "/bin/${stringIfNoCross "aarch64-unknown-linux-gnu-"}cc"
+                    }"
+                  ];
+                  x86_64-linux = [
+                    "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-x86_64.so.2"
+                    "-C linker=${
+                      pkgs.pkgsCross.gnu64.stdenv.cc + "/bin/${stringIfNoCross "x86_64-unknown-linux-gnu-"}cc"
+                    }"
+                  ];
                 };
               in
               {
