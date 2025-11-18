@@ -65,12 +65,9 @@
               let
                 pkgs = nixpkgs.legacyPackages.${system};
                 x86_64-ld =
-                  (if pkgs.pkgsCross ? x86_64-linux then pkgs.pkgsCross.x86_64-linux else pkgs).stdenv.cc.cc
-                  + "/bin/x86_64-unknown-linux-gnu-gcc";
+                  (pkgs.pkgsCross.x86_64-linux or pkgs).stdenv.cc.cc + "/bin/x86_64-unknown-linux-gnu-gcc";
                 aarch64-ld =
-                  (if pkgs.pkgsCross ? aarch64-multiplatform then pkgs.pkgsCross.aarch64-multiplatform else pkgs)
-                  .stdenv.cc.cc
-                  + "/bin/aarch64-linux-gnu-gcc";
+                  (pkgs.pkgsCross.aarch64-multiplatform or pkgs).stdenv.cc.cc + "/bin/aarch64-unknown-linux-gnu-gcc";
               in
               {
                 PKG_CONFIG_PATH = makeSearchPath "lib/pkgconfig" (
@@ -86,12 +83,12 @@
                 RUSTFLAGS = concatStringsSep " " (
                   if system == "aarch64-linux" then
                     [
-                      "-C link-arg=--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
+                      "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
                       "-C linker=${aarch64-ld}"
                     ]
                   else
                     [
-                      "-C link-arg=--dynamic-linker=/lib64/ld-linux-x86-64.so.2"
+                      "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-x86-64.so.2"
                       "-C linker=${x86_64-ld}"
                     ]
                 );
