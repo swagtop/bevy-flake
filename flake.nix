@@ -59,11 +59,11 @@
 
         # Environment variables set for individual targets.
         targetEnvironments =
+          pkgs:
           let
             linuxEnvFor =
               system:
               let
-                pkgs = nixpkgs.legacyPackages.${system};
                 flags = {
                   aarch64-linux = [
                     "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
