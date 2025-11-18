@@ -60,35 +60,42 @@
         # Environment variables set for individual targets.
         targetEnvironments =
           let
-            linuxEnvFor = system:
-            let
-              pkgs = nixpkgs.legacyPackages.${system};
-              cc = pkgs.stdenv.cc;
-              config = pkgs.stdenv.hostPlatform.config;
-            in {
-              PKG_CONFIG_PATH = makeSearchPath "lib/pkgconfig" (
-                with pkgs;
-                [
-                  alsa-lib-with-plugins.dev
-                  libxkbcommon.dev
-                  openssl.dev
-                  udev.dev
-                  wayland.dev
-                ]
-              );
-              RUSTFLAGS = concatStringsSep " " [
-                "-C linker=ld.lld"
-                # "-C link-arg=-fuse-ld=lld"
-                "-L native=${cc.cc}/lib/gcc/${config}/${cc.version}"
-                "-C link-arg=--sysroot=${cc.cc}"
-                "-L ${pkgs.glibc}/lib"
-                "-L ${nixpkgs.legacyPackages.${system}.libgcc}/lib"
-                (if system == "aarch64-linux" then
-                  "-C link-arg=--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
-                else
-                  "-C link-arg=--dynamic-linker=/lib64/ld-linux-x86-64.so.2")
-              ];
-            };
+            linuxEnvFor =
+              system:
+              let
+                pkgs = nixpkgs.legacyPackages.${system};
+                x86_64-ld =
+                  (if pkgs.pkgsCross ? x86_64-linux then pkgs.pkgsCross.x86_64-linux else pkgs).stdenv.cc.cc
+                  + "/bin/x86_64-unknown-linux-gnu-gcc";
+                aarch64-ld =
+                  (if pkgs.pkgsCross ? aarch64-multiplatform then pkgs.pkgsCross.aarch64-multiplatform else pkgs)
+                  .stdenv.cc.cc
+                  + "/bin/aarch64-linux-gnu-gcc";
+              in
+              {
+                PKG_CONFIG_PATH = makeSearchPath "lib/pkgconfig" (
+                  with pkgs;
+                  [
+                    alsa-lib-with-plugins.dev
+                    libxkbcommon.dev
+                    openssl.dev
+                    udev.dev
+                    wayland.dev
+                  ]
+                );
+                RUSTFLAGS = concatStringsSep " " (
+                  if system == "aarch64-linux" then
+                    [
+                      "-C link-arg=--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
+                      "-C linker=${aarch64-ld}"
+                    ]
+                  else
+                    [
+                      "-C link-arg=--dynamic-linker=/lib64/ld-linux-x86-64.so.2"
+                      "-C linker=${x86_64-ld}"
+                    ]
+                );
+              };
             windowsEnvFor = arch: {
               RUSTFLAGS = concatStringsSep " " [
                 "-C linker=lld-link"

@@ -51,11 +51,10 @@ genAttrs systems (
   {
     inherit rust-toolchain;
 
-    dioxus-cli =
-      makeOverridable wrapExecutable {
-        name = "dx";
-        executable = "${pkgs.dioxus-cli}/bin/dx";
-      };
+    dioxus-cli = makeOverridable wrapExecutable {
+      name = "dx";
+      executable = "${pkgs.dioxus-cli}/bin/dx";
+    };
 
     # For now we package 'bevy-cli' ourselves, as it is not in nixpkgs yet.
     bevy-cli =
