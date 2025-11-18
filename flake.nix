@@ -65,21 +65,27 @@
             linuxEnvFor =
               system:
               let
+                checkCross = pkgs': system': {
+                  stdenv = (pkgs'.pkgsCross.${system'} or pkgs').clangStdenv;
+                  isCross = pkgs'.pkgsCross ? system';
+                };
                 flags = {
-                  aarch64-linux = [
-                    "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
-                    "-C linker=${
-                      (pkgs.pkgsCross.aarch64-multiplatform or pkgs).stdenv.cc
-                      + "/bin/${optionalString (pkgs.pkgsCross ? aarch64-multiplatform) "aarch64-unknown-linux-gnu-"}gcc"
-                    }"
-                  ];
-                  x86_64-linux = [
-                    "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-x86_64.so.2"
-                    "-C linker=${
-                      (pkgs.pkgsCross.x86_64-linux or pkgs).stdenv.cc
-                      + "/bin/${optionalString (pkgs.pkgsCross ? x86_64-linux) "x86_64-unknown-linux-gnu-"}gcc"
-                    }"
-                  ];
+                  aarch64-linux =
+                    let
+                      inherit (checkCross pkgs "aarch64-multiplatform") stdenv isCross;
+                    in
+                    [
+                      "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
+                      "-C linker=${stdenv.cc + "/bin/${optionalString (isCross) "aarch64-unknown-linux-gnu-"}clang"}"
+                    ];
+                  x86_64-linux =
+                    let
+                      inherit (checkCross pkgs "x86_64-linux") stdenv isCross;
+                    in
+                    [
+                      "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-x86_64.so.2"
+                      "-C linker=${stdenv.cc + "/bin/${optionalString (isCross) "x86_64-unknown-linux-gnu-"}clang"}"
+                    ];
                 };
               in
               {
