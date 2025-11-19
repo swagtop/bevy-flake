@@ -25,6 +25,16 @@
         "x86_64-linux"
       ];
 
+      mergeConfig =
+        old: new:
+        builtins.foldl' (
+          acc: key:
+          let
+            val = new.${key};
+          in
+          if builtins.isFunction val then acc else acc // { ${key} = val; }
+        ) old (builtins.attrNames new);
+
       mkBf =
         overridedConfig:
         let
@@ -36,12 +46,10 @@
               builtConfig = import ./config.nix { inherit system nixpkgs; };
               inherit (builtConfig) pkgs;
 
-              config =
-                builtConfig.config
-                // (cfgFn {
-                  inherit pkgs;
-                  old = builtConfig.config;
-                });
+              config = mergeConfig builtConfig.config (cfgFn {
+                inherit pkgs;
+                old = builtConfig.config;
+              });
             in
             import ./packages.nix { inherit pkgs nixpkgs config; }
           );
@@ -68,7 +76,7 @@
         };
     in
     let
-      base = makeOverridable mkBf ({ });
+      base = makeOverridable mkBf ({ }); # default empty overrides
     in
     base
     // {
