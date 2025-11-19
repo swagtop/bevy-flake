@@ -32,7 +32,12 @@
           let
             val = new.${key};
           in
-          if builtins.isFunction val then acc else acc // { ${key} = val; }
+          if builtins.isAttrs val && builtins.isAttrs (old.${key} or { }) then
+            acc // { ${key} = mergeConfig (old.${key}) val; }
+          else if builtins.isFunction val then
+            acc // { ${key} = val; }
+          else
+            acc // { ${key} = val; }
         ) old (builtins.attrNames new);
 
       mkBf =
@@ -76,7 +81,7 @@
         };
     in
     let
-      base = makeOverridable mkBf ({ }); # default empty overrides
+      base = makeOverridable mkBf ({ });
     in
     base
     // {
