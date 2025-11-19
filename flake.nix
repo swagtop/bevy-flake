@@ -28,22 +28,22 @@
       mkBf =
         overridedConfig:
         let
+          cfgFn = if builtins.isFunction overridedConfig then overridedConfig else (_: overridedConfig);
+
           packages = eachSystem (
             system:
             let
               builtConfig = import ./config.nix { inherit system nixpkgs; };
               inherit (builtConfig) pkgs;
 
-              cfgApplied = overridedConfig {
-                inherit pkgs;
-                old = builtConfig.config;
-              };
-
-              config = builtConfig.config // cfgApplied;
+              config =
+                builtConfig.config
+                // (cfgFn {
+                  inherit pkgs;
+                  old = builtConfig.config;
+                });
             in
-            import ./packages.nix {
-              inherit pkgs nixpkgs config;
-            }
+            import ./packages.nix { inherit pkgs nixpkgs config; }
           );
 
           devShells = eachSystem (system: {
@@ -59,19 +59,31 @@
           formatter = eachSystem (system: nixpkgs.legacyPackages.${system}.nixfmt-tree);
         in
         {
-          inherit packages devShells formatter eachSystem;
+          inherit
+            packages
+            devShells
+            formatter
+            eachSystem
+            ;
         };
-
     in
     let
-      base = makeOverridable mkBf (cfg: {});
+      base = makeOverridable mkBf ({ });
     in
-    base // {
-      configure = cfgFn:
-        base.override (prevFn: (args: cfgFn {
-          inherit (args) pkgs;
-          old = prevFn args;
-        }));
+    base
+    // {
+      configure =
+        cfgFn:
+        base.override (
+          prevFn:
+          (
+            args:
+            cfgFn {
+              inherit (args) pkgs;
+              old = prevFn args;
+            }
+          )
+        );
     };
   # mkBf (_: {
   #   templates = {
