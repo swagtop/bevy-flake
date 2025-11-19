@@ -1,0 +1,180 @@
+{ system, nixpkgs }:
+
+let
+  inherit (builtins)
+    concatStringsSep
+    ;
+  inherit (pkgs.lib)
+    makeSearchPath
+    optionals
+    optionalString
+    ;
+
+  pkgs = import nixpkgs {
+    inherit system;
+    config = {
+      allowUnfree = true;
+      microsoftVisualStudioLicenseAccepted = true;
+    };
+  };
+in
+{
+  inherit pkgs;
+
+  config = {
+    systems = [
+      "aarch64-darwin"
+      "aarch64-linux"
+      "x86_64-linux"
+    ];
+
+    linux = {
+      # Setting GLIBC version to the one Debian stable uses.
+      glibcVersion = "2.41";
+    };
+
+    windows = {
+      # Setting the Windows SDK to the latest one in nixpkgs, both arches.
+      mkSdk = pkgs.symlinkJoin {
+        name = "windows-sdk-both-arches";
+        paths = [
+          pkgs.pkgsCross.aarch64-windows.windows.sdk
+          pkgs.pkgsCross.x86_64-windows.windows.sdk
+        ];
+      };
+    };
+
+    macos = {
+      # You will not be able to cross-compile to MacOS targets without an SDK.
+      sdk = null;
+    };
+
+    crossPlatformRustflags = [ ];
+
+    # Base environment for every target to build on.
+    sharedEnvironment = { };
+
+    devEnvironment = { };
+
+    # Environment variables set for individual targets.
+    targetEnvironments =
+      let
+        linuxEnvFor =
+          crossSystem:
+          let
+            hostSystem = pkgs.stdenv.hostPlatform.system;
+            ifCross = str: optionalString (hostSystem != crossSystem) str;
+            flags = {
+              aarch64-linux = [
+                "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
+                "-C linker=${
+                  pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc + "/bin/${ifCross "aarch64-unknown-linux-gnu-"}cc"
+                }"
+              ];
+              x86_64-linux = [
+                "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-x86-64.so.2"
+                "-C linker=${pkgs.pkgsCross.gnu64.stdenv.cc + "/bin/${ifCross "x86_64-unknown-linux-gnu-"}cc"}"
+              ];
+            };
+          in
+          {
+            PKG_CONFIG_PATH = makeSearchPath "lib/pkgconfig" (
+              with nixpkgs.legacyPackages.${system};
+              [
+                alsa-lib-with-plugins.dev
+                libxkbcommon.dev
+                openssl.dev
+                udev.dev
+                wayland.dev
+              ]
+            );
+            RUSTFLAGS = concatStringsSep " " flags.${crossSystem};
+            # Cross-compiling the 'blake3' crate to Linux breaks without this feature.
+            CARGO_FEATURE_PURE = "1";
+          };
+        windowsEnvFor = arch: {
+          RUSTFLAGS = concatStringsSep " " [
+            "-C linker=lld-link"
+            "-L $BF_WINDOWS_SDK_PATH/crt/lib/${arch}"
+            "-L $BF_WINDOWS_SDK_PATH/sdk/lib/ucrt/${arch}"
+            "-L $BF_WINDOWS_SDK_PATH/sdk/lib/um/${arch}"
+          ];
+        };
+        macosEnv =
+          let
+            frameworks = "$BF_MACOS_SDK_PATH/System/Library/Frameworks";
+          in
+          {
+            SDKROOT = "$BF_MACOS_SDK_PATH";
+            COREAUDIO_SDK_PATH = "${frameworks}/System/Library/Frameworks/CoreAudio.framwork/Headers";
+            BINDGEN_EXTRA_CLANG_ARGS = concatStringsSep " " [
+              "-F $BF_MACOS_SDK_PATH/System/Library/Frameworks"
+              "-I$BF_MACOS_SDK_PATH/usr/include"
+              "--sysroot=$BF_MACOS_SDK_PATH"
+            ];
+            RUSTFLAGS = concatStringsSep " " [
+              "-C linker=clang-unwrapped"
+              "-C link-arg=-fuse-ld=lld"
+              "-C link-arg=--target=$BF_TARGET"
+              "-C link-arg=${
+                concatStringsSep "," [
+                  "-Wl"
+                  "-platform_version"
+                  "macos"
+                  "$BF_MACOS_SDK_MINIMUM_VERSION"
+                  "$BF_MACOS_SDK_DEFAULT_VERSION"
+                ]
+              }"
+            ];
+          };
+      in
+      {
+        "x86_64-unknown-linux-gnu" = linuxEnvFor "x86_64-linux";
+        "aarch64-unknown-linux-gnu" = linuxEnvFor "aarch64-linux";
+        "x86_64-pc-windows-msvc" = windowsEnvFor "x64";
+        "aarch64-pc-windows-msvc" = windowsEnvFor "arm64";
+        "x86_64-apple-darwin" = macosEnv;
+        "aarch64-apple-darwin" = macosEnv;
+        "wasm32-unknown-unknown" = {
+          RUSTFLAGS = ''--cfg getrandom_backend=\"wasm_js\"'';
+        };
+      };
+
+    prePostScript = "";
+
+    mkRustToolchain =
+      targets:
+      pkgs.symlinkJoin {
+        name = "nixpkgs-rust-toolchain";
+        pname = "cargo";
+        paths = with pkgs; [
+          cargo
+          clippy
+          rust-analyzer
+          rustc
+          rustfmt
+        ];
+      };
+
+    mkRuntimeInputs = optionals (pkgs.stdenv.isLinux) (
+      with pkgs;
+      [
+        alsa-lib-with-plugins
+        libGL
+        libxkbcommon
+        openssl
+        udev
+        vulkan-loader
+        wayland
+        xorg.libX11
+        xorg.libXcursor
+        xorg.libXi
+        xorg.libXrandr
+      ]
+    );
+
+    mkStdenv = pkgs.clangStdenv;
+
+    src = null;
+  };
+}
