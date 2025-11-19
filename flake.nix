@@ -41,7 +41,7 @@
               makeConfigurable =
                 f: args:
                 let
-                  result = f args;
+                  result = if isFunction f then f args else f;
                   prev = args.prev // result;
                 in
                 result
