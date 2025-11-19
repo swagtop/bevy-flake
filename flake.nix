@@ -52,7 +52,7 @@
           formatter = eachSystem (system: nixpkgs.legacyPackages.${system}.nixfmt-tree);
         in
         {
-          inherit packages devShells formatter;
+          inherit packages devShells formatter eachSystem;
         };
     in
     makeOverridable mkBf {};
