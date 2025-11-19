@@ -12,6 +12,7 @@
         warn
         ;
       inherit (nixpkgs.lib)
+        makeOverridable
         optionals
         optionalString
         genAttrs
@@ -25,12 +26,14 @@
       ];
 
       mkBf =
+        overridedConfig:
         let
           packages = eachSystem (
             system:
             let
               builtConfig = import ./config.nix { inherit system nixpkgs; };
-              inherit (builtConfig) config pkgs;
+              inherit (builtConfig) pkgs;
+              config = builtConfig.config // overridedConfig;
             in
             import ./packages.nix {
               inherit pkgs nixpkgs config;
@@ -52,7 +55,7 @@
           inherit packages devShells formatter;
         };
     in
-    mkBf;
+    makeOverridable mkBf {};
   # mkBf (_: {
   #   templates = {
   #     nixpkgs = warn "This template does not support any cross-compilation." {
