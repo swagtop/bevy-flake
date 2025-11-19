@@ -47,9 +47,9 @@
                 result
                 // {
                   configure =
-                    newArgs:
+                    newConfig:
                     prev
-                    // (makeConfigurable newArgs (
+                    // (makeConfigurable newConfig (
                       args
                       // {
                         inherit pkgs prev;
@@ -58,10 +58,10 @@
                 };
 
               defaultConfig = import ./config.nix { inherit nixpkgs; };
-              config = makeConfigurable defaultConfig {
+              config = (makeConfigurable defaultConfig {
                 inherit pkgs;
                 prev = { };
-              };
+              });
             in
             import ./packages.nix {
               inherit pkgs nixpkgs config;
@@ -77,6 +77,7 @@
               ];
             };
           });
+
           formatter = eachSystem (system: nixpkgs.legacyPackages.${system}.nixfmt-tree);
         in
         {
