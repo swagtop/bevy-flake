@@ -26,14 +26,42 @@
       ];
 
       mkBf =
-        overridedConfig:
         let
           packages = eachSystem (
             system:
             let
-              builtConfig = import ./config.nix { inherit system nixpkgs; };
-              inherit (builtConfig) pkgs;
-              config = builtConfig.config // overridedConfig;
+              pkgs = import nixpkgs {
+                inherit system;
+                config = {
+                  allowUnfree = true;
+                  microsoftVisualStudioLicenseAccepted = true;
+                };
+              };
+
+              makeConfigurable =
+                f: args:
+                let
+                  result = f args;
+                  prev = args.prev // result;
+                in
+                result
+                // {
+                  configure =
+                    newArgs:
+                    prev
+                    // (makeConfigurable newArgs (
+                      args
+                      // {
+                        inherit pkgs prev;
+                      }
+                    ));
+                };
+
+              defaultConfig = import ./config.nix { inherit nixpkgs; };
+              config = makeConfigurable defaultConfig {
+                inherit pkgs;
+                prev = { };
+              };
             in
             import ./packages.nix {
               inherit pkgs nixpkgs config;
@@ -52,10 +80,15 @@
           formatter = eachSystem (system: nixpkgs.legacyPackages.${system}.nixfmt-tree);
         in
         {
-          inherit packages devShells formatter eachSystem;
+          inherit
+            packages
+            devShells
+            formatter
+            eachSystem
+            ;
         };
     in
-    makeOverridable mkBf {};
+    mkBf;
   # mkBf (_: {
   #   templates = {
   #     nixpkgs = warn "This template does not support any cross-compilation." {
