@@ -48,7 +48,7 @@ let
       i = "don't " + prev.i;
     }
   );
-  bf'' = bf.configure (
+  bf'' = bf'.configure (
     { default, ... }:
     {
       i = default.i;
