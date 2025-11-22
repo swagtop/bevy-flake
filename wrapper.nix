@@ -157,7 +157,7 @@ let
                 }";
             }
           )}
-        ;
+        ;;
 
         ${concatStringsSep "\n" (
           mapAttrsToList (target: env: ''
