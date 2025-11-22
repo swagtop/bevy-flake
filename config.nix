@@ -1,5 +1,10 @@
 { nixpkgs }:
-{ pkgs, prev }:
+{
+  pkgs,
+  # prev,
+  # default,
+  ...
+}:
 
 let
   inherit (builtins)

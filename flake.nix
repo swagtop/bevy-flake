@@ -8,25 +8,36 @@
     let
       inherit (builtins)
         isFunction
-        concatStringsSep
         warn
         ;
       inherit (nixpkgs.lib)
-        makeOverridable
-        optionals
-        optionalString
         genAttrs
-        makeSearchPath
         ;
 
-      eachSystem = genAttrs [
-        "aarch64-linux"
-        "aarch-darwin"
-        "x86_64-linux"
-      ];
+      defaultConfig = import ./config.nix { inherit nixpkgs; };
+      configAssembler =
+        configList: pkgs:
+        builtins.foldl' (
+          acc: configInput:
+          (
+            acc
+            // (
+              if isFunction configInput then
+                configInput {
+                  inherit pkgs;
+                  prev = acc;
+                  default = defaultConfig { inherit pkgs; };
+                }
+              else
+                configInput
+            )
+          )
+        ) { } configList;
 
       mkBf =
+        configListInput:
         let
+          eachSystem = genAttrs (configAssembler configListInput { }).systems;
           packages = eachSystem (
             system:
             let
@@ -37,34 +48,10 @@
                   microsoftVisualStudioLicenseAccepted = true;
                 };
               };
-
-              makeConfigurable =
-                f: args:
-                let
-                  result = if isFunction f then f args else f;
-                  prev = args.prev // result;
-                in
-                result
-                // {
-                  configure =
-                    newConfig:
-                    prev
-                    // (makeConfigurable newConfig (
-                      args
-                      // {
-                        inherit pkgs prev;
-                      }
-                    ));
-                };
-
-              defaultConfig = import ./config.nix { inherit nixpkgs; };
-              config = (makeConfigurable defaultConfig {
-                inherit pkgs;
-                prev = { };
-              });
             in
             import ./packages.nix {
-              inherit pkgs nixpkgs config;
+              inherit pkgs nixpkgs;
+              config = configAssembler configListInput pkgs;
             }
           );
           devShells = eachSystem (system: {
@@ -88,24 +75,34 @@
             eachSystem
             ;
         };
-    in
-    mkBf;
-  # mkBf (_: {
-  #   templates = {
-  #     nixpkgs = warn "This template does not support any cross-compilation." {
-  #       path = ./templates/nixpkgs;
-  #       description = "Get the Rust toolchain from nixpkgs.";
-  #     };
-  #     rust-overlay = {
-  #       path = ./templates/rust-overlay;
-  #       description = "Get the Rust toolchain through oxalica's rust-overlay.";
-  #     };
-  #     fenix = {
-  #       path = ./templates/fenix;
-  #       description = "Get the Rust toolchain through nix-community's fenix.";
-  #     };
-  #   };
 
-  #   formatter = eachSystem (system: nixpkgs.legacyPackages.${system}.nixfmt-tree);
-  # });
+      makeConfigurable =
+        f: config: prev:
+        let
+          new = prev ++ [ config ];
+          result = f new;
+        in
+        result
+        // {
+          configure = newConfig: makeConfigurable f newConfig new;
+        };
+
+    in
+    (makeConfigurable mkBf defaultConfig [ ])
+    // {
+      templates = {
+        nixpkgs = warn "This template does not support any cross-compilation." {
+          path = ./templates/nixpkgs;
+          description = "Get the Rust toolchain from nixpkgs.";
+        };
+        rust-overlay = {
+          path = ./templates/rust-overlay;
+          description = "Get the Rust toolchain through oxalica's rust-overlay.";
+        };
+        fenix = {
+          path = ./templates/fenix;
+          description = "Get the Rust toolchain through nix-community's fenix.";
+        };
+      };
+    };
 }
