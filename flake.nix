@@ -74,11 +74,11 @@
         in
         {
           inherit
-            packages
             devShells
-            formatter
-            systems
             eachSystem
+            formatter
+            packages
+            systems
             ;
         };
 
