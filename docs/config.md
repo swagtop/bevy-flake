@@ -10,7 +10,21 @@ The convention used in the templates looks like this:
 
 ```nix
 let
-  bf = bevy-flake.override {
+  bf = bevy-flake.configure (
+    { pkgs, prev, default }:
+    {
+      # Config goes here.
+    };
+  );
+in
+```
+
+If you don't need to reference `pkgs`, `prev`, or `default`, you can call
+`bevy-flake.configure` with just an attribute set:
+
+```nix
+let
+  bf = bevy-flake.configure {
     # Config goes here.
   };
 in
@@ -18,6 +32,31 @@ in
 
 Afterwards, all usage of `bevy-flake` should be done through this new `bf`
 variable. Anything using this will be using your customized configuration.
+
+You can reconfigure `bevy-flake` as many times as you want.
+This could be done like so (this example obviously wouldn't work, because there
+is no config named 'i'):
+
+```nix
+let
+  bf = bevy-flake.configure {
+    i = "need more string";
+  };
+  bf' = bf.configure (
+    { prev, ... }:
+    {
+      i = "don't " + prev.i;
+    }
+  );
+  bf'' = bf.configure (
+    { default, ... }:
+    {
+      i = default.i;
+      back = "to basics";
+    }
+  );
+in
+```
 
 If you find most of this Nix stuff confusing, you can browse the old version of
 `bevy-flake` [here.][old-bevy-flake] You may find it easier to configure.
