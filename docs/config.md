@@ -106,6 +106,11 @@ bf = bevy-flake.configure (
 );
 ```
 
+> ![Warning]
+> It is crucial that you never refer to the `pkgs` from `{ pkgs, ... }:` when
+> editing the `systems` config. This will not evaluate. Read the `flake.nix`
+> source code for the reason why.
+
 </details>
 
 
@@ -155,9 +160,9 @@ of packages need to be done through these <something> functions. These are funct
 that return either a package, or a list of packages, given an input 'pkgs'.
 
 
-<details> <summary><code>rustToolchain</code></summary>
+<details> <summary><code>rustToolchainFor</code></summary>
 
-This function also takes in a `targets` argument, which is produced from the
+This function takes in a `targets` argument, which is produced from the
 `targetEnvironments` attribute names.
 
 You can think of this function as the recipe of building the Rust toolchain you
