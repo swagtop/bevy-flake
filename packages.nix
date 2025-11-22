@@ -19,20 +19,20 @@ let
     ;
   inherit (config)
     src
-    targets
+    systems
     mkRustToolchain
     macos
     targetEnvironments
     ;
-in
-let
-  inherit (config) systems;
+
   wrapExecutable = import ./wrapper.nix (
     config
     // {
       inherit pkgs;
     }
   );
+
+  targets = attrNames targetEnvironments;
 
   rust-toolchain =
     (wrapExecutable {
