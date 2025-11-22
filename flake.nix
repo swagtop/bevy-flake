@@ -40,7 +40,8 @@
           # Get the systems to genAttrs for.
           # We don't have a 'pkgs' yet, so we pass an empty attribute set.
           # This is why only the 'systems' config cannot reference 'pkgs'.
-          eachSystem = genAttrs (configAssembler configListInput { }).systems;
+          systems = (configAssembler configListInput { }).systems;
+          eachSystem = genAttrs systems;
           packages = eachSystem (
             system:
             let
@@ -75,6 +76,7 @@
             packages
             devShells
             formatter
+            systems
             eachSystem
             ;
         };

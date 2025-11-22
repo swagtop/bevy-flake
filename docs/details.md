@@ -7,9 +7,9 @@ who wants to use a Nix environment to compile portable binaries for the major
 desktop platforms on their own computer, instead of having to resort to using
 Docker, GitHub actions, or the like.
 
-Its goal is to be easy to use for beginners, while also being very ergonomic for
-power users. The flake provides a suite of packages useful for Bevy development,
-that all are configured from a single place.
+Its goal is to be both easy to use for beginners, and powerfully ergonomic for
+experienced users. The flake provides a suite of packages useful for Bevy
+development, that all are configured from a single place.
 
 The flake is easy to configure and extend, should you want support for a target,
 or a package wrapped, that isn't included by default.
@@ -19,9 +19,6 @@ or a package wrapped, that isn't included by default.
 
 ```nix
 {
-  # The config used for creating this instance.
-  config = <config>;
-
   # Systems supported and the eachSystem helper function for this instance.
   systems = [ <string> ];
   eachSystem = <function>;
@@ -31,14 +28,15 @@ or a package wrapped, that isn't included by default.
 
   # All packages pre-wrapped by bevy-flake.
   packages."<system>" = {
-    rust-toolchain = <derivation>; # The input toolchain, with 'cargo' wrapped.
+    rust-toolchain = <derivation>; # The wrapped Rust toolchain.
+    rust-toolchain.unwrapped = <derivation>; # The unwrapped Rust toolchain.
     rust-toolchain.wrapExecutable = <function>; # Use to wrap your own packages.
     
     dioxus-cli = <derivation>;
     bevy-cli = <derivation>;
 
     # If you've set up the Nix builder with `src = ./.`
-    targets = <derivation>; # All targets, symlinked to the same directory.
+    targets = <derivation>; # All targets, symlinked to the same derivation.
     targets."<target>" = <derivation>; # The individual targets.
   };
 

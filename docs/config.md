@@ -38,16 +38,22 @@ This could be done like so (this example obviously wouldn't work, because there
 is no config named 'i'):
 
 ```nix
+# NEED BETTER EXAMPLES HERE!
+
 let
   bf = bevy-flake.configure {
     i = "need more string";
   };
+  # bf.i == "neew more string"
+  
   bf' = bf.configure (
     { prev, ... }:
     {
       i = "don't " + prev.i;
     }
   );
+  # bf'.i = "don't need more string"
+  
   bf'' = bf'.configure (
     { default, ... }:
     {
@@ -55,6 +61,8 @@ let
       back = "to basics";
     }
   );
+  # bf''.i = "need more string"
+  # bf''.back = "to basics"
 in
 ```
 
