@@ -42,6 +42,8 @@ let
     // {
       inherit wrapExecutable;
       unwrapped = input-rust-toolchain;
+
+      # Attributes needed for 'makeRustPlatform' compatibility.
       targetPlatforms = systems;
       badTargetPlatforms = [ ];
     };
@@ -96,7 +98,7 @@ in
 }
 # If 'src' is defined in config, add the 'targets' package, which builds
 # every target defined in targetEnvironments. Individual targets can be built
-# with 'targets.target-specific-triple', eg. 'targets.wasm32-unknown-unknown'.
+# with 'targets.target-triple', eg. 'targets.wasm32-unknown-unknown'.
 // optionalAttrs (src != null) {
   targets = makeOverridable (
     overridedAttrs:

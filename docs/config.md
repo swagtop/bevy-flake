@@ -318,7 +318,7 @@ bf = bevy-flake.configure (
   {
     # ...
     targetEnvironments = default.targetEnvironments // {
-      "new-target-with-abi" = {};
+      "target-triple" = {};
     };
     # ...
   }
