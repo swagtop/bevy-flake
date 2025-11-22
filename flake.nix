@@ -37,13 +37,11 @@
       mkBf =
         configListInput:
         let
-          # Get the systems to genAttrs for.
-          systems =
-            (
-              # We don't have a 'pkgs' yet, so we pass an empty attribute set.
-              # This is why 'systems' is the only config that cannot reference 'pkgs'.
-              assembleConfigs configListInput { }
-            ).systems;
+          # We don't have a 'pkgs' yet, so we pass an empty attribute set.
+          # This is why 'systems' is the only config attribute that cannot
+          # reference 'pkgs'.
+          inherit (assembleConfigs configListInput { }) systems;
+
           eachSystem = genAttrs systems;
           packages = eachSystem (
             system:
