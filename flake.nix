@@ -39,7 +39,7 @@
         let
           # Get the systems to genAttrs for.
           # We don't have a 'pkgs' yet, so we pass an empty attribute set.
-          # This is why only the 'systems' config cannot reference 'pkgs'.
+          # This is why 'systems' is the only config that cannot reference 'pkgs'.
           systems = (configAssembler configListInput { }).systems;
           eachSystem = genAttrs systems;
           packages = eachSystem (
