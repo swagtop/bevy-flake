@@ -83,14 +83,16 @@
         };
 
       makeConfigurable =
-        f: config: prev:
+        f: addedConfig: previousConfigs:
         let
-          new = prev ++ [ config ];
-          result = f new;
+          configs = previousConfigs ++ [ addedConfig ];
+          result = f configs;
         in
         result
         // {
-          configure = newConfig: makeConfigurable f newConfig new;
+          configure =
+            nextAddedConfig:
+            makeConfigurable f nextAddedConfig configs;
         };
 
     in
