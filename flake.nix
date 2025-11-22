@@ -18,14 +18,14 @@
       assembleConfigs =
         configs: pkgs:
         builtins.foldl' (
-          acc: config:
+          accumulator: config:
           (
-            acc
+            accumulator
             // (
               if isFunction config then
                 config {
                   inherit pkgs;
-                  previous = acc;
+                  previous = accumulator;
                   default = defaultConfig { inherit pkgs; };
                 }
               else
