@@ -25,7 +25,7 @@
               if isFunction configInput then
                 configInput {
                   inherit pkgs;
-                  prev = acc;
+                  previous = acc;
                   default = defaultConfig { inherit pkgs; };
                 }
               else

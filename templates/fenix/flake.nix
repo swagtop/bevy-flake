@@ -21,19 +21,22 @@
       ...
     }:
     let
-      bf = bevy-flake.override ({ pkgs, ... }: {
-        src = ./.;
-        rustToolchainFor =
-          targets:
-          let
-            fx = fenix.packages.${pkgs.stdenv.hostPlatform.system};
-            channel = "stable"; # For nightly, use "latest".
-          in
-          fx.combine (
-            [ (fx.${channel}.completeToolchain or fx.channel.toolchain) ]
-            ++ map (target: fx.targets.${target}.${channel}.rust-std) targets
-          );
-      });
+      bf = bevy-flake.override (
+        { pkgs, ... }:
+        {
+          src = ./.;
+          rustToolchainFor =
+            targets:
+            let
+              fx = fenix.packages.${pkgs.stdenv.hostPlatform.system};
+              channel = "stable"; # For nightly, use "latest".
+            in
+            fx.combine (
+              [ (fx.${channel}.completeToolchain or fx.channel.toolchain) ]
+              ++ map (target: fx.targets.${target}.${channel}.rust-std) targets
+            );
+        }
+      );
     in
     {
       inherit (bf) packages formatter;

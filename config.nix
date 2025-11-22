@@ -2,7 +2,7 @@
 
 {
   pkgs,
-  # prev,
+  # previous,
   # default,
   ...
 }:
@@ -16,7 +16,6 @@ let
     optionals
     optionalString
     ;
-  inherit (pkgs.stdenv.hostPlatform) system;
 in
 
 {

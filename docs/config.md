@@ -11,7 +11,7 @@ The convention used in the templates looks like this:
 ```nix
 let
   bf = bevy-flake.configure (
-    { pkgs, prev, default }:
+    { pkgs, previous, default }:
     {
       # Config goes here.
     };
@@ -19,7 +19,7 @@ let
 in
 ```
 
-If you don't need to reference `pkgs`, `prev`, or `default`, you can call
+If you don't need to reference `pkgs`, `previous`, or `default`, you can call
 `bevy-flake.configure` with just an attribute set:
 
 ```nix
@@ -44,15 +44,15 @@ let
   bf = bevy-flake.configure {
     i = "need more string";
   };
-  # bf.i == "neew more string"
+  # bf.i == "need more string"
   
   bf' = bf.configure (
-    { prev, ... }:
+    { previous, ... }:
     {
-      i = "don't " + prev.i;
+      i = "don't " + previous.i;
     }
   );
-  # bf'.i = "don't need more string"
+  # bf'.i == "don't need more string"
   
   bf'' = bf'.configure (
     { default, ... }:
@@ -61,8 +61,8 @@ let
       back = "to basics";
     }
   );
-  # bf''.i = "need more string"
-  # bf''.back = "to basics"
+  # bf''.i == "need more string"
+  # bf''.back == "to basics"
 in
 ```
 
