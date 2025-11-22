@@ -112,28 +112,28 @@ bf = bevy-flake.configure (
 ## The operating systems
 
 These define the cross-compiled builds of the targets. For example, setting the
-`linux.glibcVersion` will not change the glibc version used when running
-`cargo build`, but only when running
-`cargo build --target x86_64-unknown-linux-gnu`.
-
-Likewise, setting the MacOS SDK will not change your local build created by
-`cargo build` on MacOS systems.
+MacOS SDK will not change your local build created by `cargo build` on MacOS
+systems.
 
 If you want to test how these builds run with these settings on your Nix
-machine, just compile them with '--target' and run those. On NixOS you will
-probably find `steam-run` to be useful here.
+machine, just compile them with `--target` and run those. On NixOS you will
+probably find the `steam-run` package to be useful here.
 
 
 <details> <summary><code>linux</code></summary>
 
-Currently there is nothign to configure for the Linux targets.
+Currently there is nothing to configure for the Linux targets.
 
 </details>
 
 
 <details> <summary><code>windows</code></summary>
 
-Currently there is nothing to configure for the Windows targets.
+By default this will be the latest Windows SDK provided by `nixpkgs`. You could
+set a specific version here yourself, but beware of platform specific issues
+that `xwin`-made SDK's could create, when packaging them manually with tarballs.
+
+The SDK set here should contain the libs for both `x86_64` and `aarch64` arches.
 
 </details>
 
