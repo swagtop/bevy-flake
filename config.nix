@@ -1,4 +1,5 @@
 { nixpkgs }:
+
 {
   pkgs,
   # prev,
@@ -32,7 +33,7 @@ in
 
   windows = {
     # Setting the Windows SDK to the latest one in nixpkgs, both arches.
-    mkSdk = pkgs.symlinkJoin {
+    sdk = pkgs.symlinkJoin {
       name = "windows-sdk-both-arches";
       paths = [
         pkgs.pkgsCross.aarch64-windows.windows.sdk
@@ -139,7 +140,7 @@ in
 
   prePostScript = "";
 
-  mkRustToolchain =
+  rustToolchainFor =
     targets:
     pkgs.symlinkJoin {
       name = "nixpkgs-rust-toolchain";
@@ -153,7 +154,7 @@ in
       ];
     };
 
-  mkRuntimeInputs = optionals (pkgs.stdenv.isLinux) (
+  runtimeInputs = optionals (pkgs.stdenv.isLinux) (
     with pkgs;
     [
       alsa-lib-with-plugins
@@ -170,7 +171,7 @@ in
     ]
   );
 
-  mkStdenv = pkgs.clangStdenv;
+  stdenv = pkgs.clangStdenv;
 
   src = null;
 }

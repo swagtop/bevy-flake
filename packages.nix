@@ -1,13 +1,12 @@
 {
+  nixpkgs,
   pkgs,
   config,
-  nixpkgs,
 }:
 let
   inherit (builtins)
     attrNames
     concatStringsSep
-    isFunction
     ;
   inherit (nixpkgs.lib)
     genAttrs
@@ -20,7 +19,7 @@ let
   inherit (config)
     src
     systems
-    mkRustToolchain
+    rustToolchainFor
     macos
     targetEnvironments
     ;
@@ -37,8 +36,8 @@ let
   rust-toolchain =
     (wrapExecutable {
       name = "cargo";
-      executable = "${(mkRustToolchain targets)}/bin/cargo";
-      symlinkPackage = mkRustToolchain targets;
+      executable = "${(rustToolchainFor targets)}/bin/cargo";
+      symlinkPackage = rustToolchainFor targets;
     })
     // {
       inherit wrapExecutable;

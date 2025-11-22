@@ -37,6 +37,9 @@
       mkBf =
         configListInput:
         let
+          # Get the systems to genAttrs for.
+          # We don't have a 'pkgs' yet, so we pass an empty attribute set.
+          # This is why only the 'systems' config cannot reference 'pkgs'.
           eachSystem = genAttrs (configAssembler configListInput { }).systems;
           packages = eachSystem (
             system:

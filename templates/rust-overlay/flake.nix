@@ -21,10 +21,10 @@
       ...
     }:
     let
-      bf = bevy-flake.override {
+      bf = bevy-flake.override ({ pkgs, ... }: {
         src = ./.;
-        mkRustToolchain =
-          targets: pkgs:
+        rustToolchainFor =
+          targets:
           let
             pkgs-with-overlay = (
               import nixpkgs {
@@ -41,7 +41,7 @@
               "rust-analyzer"
             ];
           };
-      };
+      });
     in
     {
       inherit (bf) packages formatter;

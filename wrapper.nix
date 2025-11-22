@@ -1,4 +1,4 @@
-{
+config@{
   pkgs,
 
   systems,
@@ -14,9 +14,9 @@
   targetEnvironments,
   prePostScript,
 
-  mkRustToolchain,
-  mkRuntimeInputs,
-  mkStdenv,
+  rustToolchainFor,
+  runtimeInputs,
+  stdenv,
 
   src,
 
@@ -40,11 +40,7 @@ let
     env: concatStringsSep "\n" (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env);
 
   targets = (attrNames targetEnvironments);
-  # Users need to reference 'pkgs' in the following 4 configs:
-  windowsSdk = windows.mkSdk;
-  input-rust-toolchain = mkRustToolchain targets;
-  runtimeInputsBase = mkRuntimeInputs;
-  stdenv = mkStdenv;
+  input-rust-toolchain = rustToolchainFor targets;
 
   defaultArgParser = ''
     # Check if what the adapter is being run with.
@@ -80,7 +76,7 @@ in
 }:
 let
   runtimeInputs =
-    runtimeInputsBase
+    config.runtimeInputs
     ++ extraRuntimeInputs
     ++ [
       stdenv.cc
@@ -138,7 +134,7 @@ let
       )}
 
       # Set up Windows SDK, based on 'windows.mkSdk' builder.
-      export BF_WINDOWS_SDK_PATH="${windowsSdk}"
+      export BF_WINDOWS_SDK_PATH="${windows.sdk}"
 
       # Base environment for all targets.
       export PKG_CONFIG_ALLOW_CROSS="1"
@@ -153,15 +149,15 @@ let
             // {
               PKG_CONFIG_PATH =
                 (devEnvironment.PKG_CONFIG_PATH or "")
-                + makeSearchPath "lib/pkgconfig" (map (p: p.dev or null) (runtimeInputsBase ++ extraRuntimeInputs));
+                + makeSearchPath "lib/pkgconfig" (map (p: p.dev or null) (runtimeInputs ++ extraRuntimeInputs));
               RUSTFLAGS =
                 (devEnvironment.RUSTFLAGS or "")
                 + optionalString (pkgs.stdenv.isLinux) "-C link-args=-Wl,-rpath,${
-                  makeSearchPath "lib" (runtimeInputsBase ++ extraRuntimeInputs)
+                  makeSearchPath "lib" (runtimeInputs ++ extraRuntimeInputs)
                 }";
             }
           )}
-        ;;
+        ;
 
         ${concatStringsSep "\n" (
           mapAttrsToList (target: env: ''
