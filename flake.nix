@@ -99,10 +99,6 @@
     (makeConfigurable mkBf defaultConfig [ ])
     // {
       templates = {
-        nixpkgs = warn "This template does not support any cross-compilation." {
-          path = ./templates/nixpkgs;
-          description = "Get the Rust toolchain from nixpkgs.";
-        };
         rust-overlay = {
           path = ./templates/rust-overlay;
           description = "Get the Rust toolchain through oxalica's rust-overlay.";
@@ -110,6 +106,10 @@
         fenix = {
           path = ./templates/fenix;
           description = "Get the Rust toolchain through nix-community's fenix.";
+        };
+        nixpkgs = warn "This template does not support any cross-compilation." {
+          path = ./templates/nixpkgs;
+          description = "Get the Rust toolchain from nixpkgs.";
         };
       };
     };
