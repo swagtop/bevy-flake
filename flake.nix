@@ -15,7 +15,7 @@
         ;
 
       defaultConfig = import ./config.nix { inherit nixpkgs; };
-      configAssembler =
+      assembleConfig =
         configList: pkgs:
         builtins.foldl' (
           acc: configInput:
@@ -40,7 +40,7 @@
           # Get the systems to genAttrs for.
           # We don't have a 'pkgs' yet, so we pass an empty attribute set.
           # This is why 'systems' is the only config that cannot reference 'pkgs'.
-          systems = (configAssembler configListInput { }).systems;
+          systems = (assembleConfig configListInput { }).systems;
           eachSystem = genAttrs systems;
           packages = eachSystem (
             system:
@@ -55,7 +55,7 @@
             in
             import ./packages.nix {
               inherit pkgs nixpkgs;
-              config = configAssembler configListInput pkgs;
+              config = assembleConfig configListInput pkgs;
             }
           );
           devShells = eachSystem (system: {
