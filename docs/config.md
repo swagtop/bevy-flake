@@ -77,7 +77,7 @@ If you find most of this Nix stuff confusing, you can browse the old version of
 <details> <summary><code>systems</code></summary>
 
 > **It is crucial that you never refer to the `pkgs` from `{ pkgs, ... }:` when**
-> **editing the `systems` config. This will not evaluate.**
+> **configuring the `systems` attribue.**
 > 
 > **Read the `flake.nix` source code for the reason why.**
 
