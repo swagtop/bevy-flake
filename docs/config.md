@@ -73,7 +73,7 @@ default, or if you want to exclude a system, you can set this up yourself by
 overriding the `systems` attribute.
 
 ```nix
-bf = bevy-flake.override {
+bf = bevy-flake.configure {
   # ...
   systems = [
     "x86_64-darwin"
@@ -86,13 +86,16 @@ Now `bf.eachSystem` produces the systems you have input. If you want to add onto
 the existing ones, this could be done like so:
 
 ```nix
-bf = bevy-flake.override (default: {
-  # ...
-  systems = default.systems ++ [
-    "x86_64-darwin"
-  ];
-  # ...
-});
+bf = bevy-flake.configure (
+  { default, ... }:
+  {
+    # ...
+    systems = default.systems ++ [
+      "x86_64-darwin"
+    ];
+    # ...
+  }
+);
 ```
 
 </details>
@@ -137,14 +140,14 @@ Read how you can do this [here.](macos.md)
 </details>
 
 
-## The `mk` functions
+## The <something> functions
 
 The configuration of `bevy-flake` should be system-agnostic. Therefore all usage
-of packages need to be done through these 'mk' functions. These are functions
+of packages need to be done through these <something> functions. These are functions
 that return either a package, or a list of packages, given an input 'pkgs'.
 
 
-<details> <summary><code>mkRustToolchain</code></summary>
+<details> <summary><code>rustToolchain</code></summary>
 
 This function also takes in a `targets` argument, which is produced from the
 `targetEnvironments` attribute names.
@@ -154,29 +157,32 @@ want to use. The toolchain you make should have all the binaries needed for
 compilation, `cargo`, `rustc`, etc.
 
 ```nix
-bf = bevy-flake.override {
-  # ...
-  mkRustToolchain = targets: pkgs:
-  let
-    fx =
-      (import nixpkgs {
-        inherit (pkgs.stdenv.hostPlatform) system;
-        overlays = [ (fenix.overlays.default ) ];
-      }).fenix;
-    channel = "stable"; # For nightly, use "latest".
-  in
-    fx.combine (
-      [ fx.${channel}.toolchain ]
-      ++ map (target: fx.targets.${target}.${channel}.rust-std) targets
-    );
-  # ...
-};
+bf = bevy-flake.override (
+  { pkgs, ... }
+  {
+    # ...
+    rustToolchainFor = targets:
+    let
+      fx =
+        (import nixpkgs {
+          inherit (pkgs.stdenv.hostPlatform) system;
+          overlays = [ (fenix.overlays.default ) ];
+        }).fenix;
+      channel = "stable"; # For nightly, use "latest".
+    in
+      fx.combine (
+        [ fx.${channel}.toolchain ]
+        ++ map (target: fx.targets.${target}.${channel}.rust-std) targets
+      );
+    # ...
+  };
+);
 ```
 
 </details>
 
 
-<details> <summary><code>mkStdenv</code></summary>
+<details> <summary><code>stdenv</code></summary>
 
 The `bevy-flake` uses the stdenv created by this functions output for its C
 compiler toolchain. By default this is set by `bevy-flake` to be clang.
@@ -188,17 +194,20 @@ well.
 Here is an example of setting some other stdenv:
 
 ```nix
-bf = bevy-flake.override {
-  # ...
-  mkStdenv = pkgs: pkgs.gnuStdenv;
-  # ...
-};
+bf = bevy-flake.configure (
+  { pkgs, ... }:
+  {
+    # ...
+    stdenv = pkgs: pkgs.gnuStdenv;
+    # ...
+  };
+);
 ```
 
 </details>
 
 
-<details> <summary><code>mkRuntimeInputs</code></summary>
+<details> <summary><code>runtimeInputs</code></summary>
 
 This should return a list of packages that are needed for the system you are on
 to actually run the program. This will mostly be graphics libraries and the
@@ -207,22 +216,26 @@ You could configure `bevy-flake` to just use some of these by for example
 removing the X and OpenGL libaries:
 
 ```nix
-bf = bevy-flake.override {
-  # ...
-  mkRuntimeInputs = pkgs:
-    # Only including these for Linux, they aren't needed for MacOS, and would
-    # actually break evaluation on MacOS if we did not do this.
-    optionals (pkgs.stdenv.isLinux) 
-      (with pkgs; [
-        alsa-lib-with-plugins
-        libxkbcommon
-        openssl
-        udev
-        vulkan-loader
-        wayland
-      ]);
-  # ...
-};
+bf = bevy-flake.configure (
+  { pkgs, ... }:
+  {
+    # ...
+    runtimeInputs =
+      # Only including these for Linux, they aren't needed for MacOS, and would
+      # actually break evaluation on MacOS if we did not do this.
+      optionals (pkgs.stdenv.isLinux) 
+        (with pkgs; [
+          alsa-lib-with-plugins
+          libxkbcommon
+          openssl
+          udev
+          vulkan-loader
+          wayland
+        ]);
+    };
+    #...
+  };
+);
 ```
 
 </details>
@@ -248,7 +261,7 @@ Set environment variables before the target specific ones. Uses the same syntax
 as in `mkShell.env`.
 
 ```nix
-bf = bevy-flake.override {
+bf = bevy-flake.configure {
   # ...
   sharedEnvironment = {
     CARGO_BUILD_JOBS = "100";
@@ -286,13 +299,16 @@ into the creation of the Rust toolchain, so if you want a target that is not
 included by default, just add it to the `targetEnvironments` set.
 
 ```nix
-bf = bevy-flake.override (default: {
-  # ...
-  targetEnvironments = default.targetEnvironments // {
-    "new-target-with-abi" = {};
-  };
-  # ...
-});
+bf = bevy-flake.configure (
+  { default, ... }:
+  {
+    # ...
+    targetEnvironments = default.targetEnvironments // {
+      "new-target-with-abi" = {};
+    };
+    # ...
+  }
+);
 ```
 
 If you are editing existing environments, the constant use of `old` will
@@ -301,15 +317,18 @@ probably be annoying. It could be helpful here to use `lib.recursiveUpdate`:
 ```nix
 let
   inherit (nixpkgs.lib) recursiveUpdate;
-  bf = bevy-flake.override (default: {
-    # ...
-    targetEnvironment = recursiveUpdate default.targetEnvironments {
-      "x86_64-unknown-linux-gnu" = {
-        BINDGEN_EXTRA_CLANG_ARGS = "-I${some-library}/usr/include";
+  bf = bevy-flake.configure (
+    { default, ...}:
+    {
+      # ...
+      targetEnvironment = recursiveUpdate default.targetEnvironments {
+        "x86_64-unknown-linux-gnu" = {
+          BINDGEN_EXTRA_CLANG_ARGS = "-I${some-library}/usr/include";
+        };
       };
-    };
-    # ...
-  });
+      # ...
+    }
+  );
 in
 ```
 
@@ -333,7 +352,7 @@ oppertunity to override anything that was done with the `prePostScript`
 attribute.
 
 ```nix
-bf = bevy-flake.override {
+bf = bevy-flake.configure {
   # ...
   prePostScript = ''
     if [[ $BF_TARGET == *"bsd"* ]]; then
