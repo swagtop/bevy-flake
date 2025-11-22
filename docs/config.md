@@ -106,7 +106,7 @@ bf = bevy-flake.configure (
 );
 ```
 
-> ![Warning]
+> ![WARNING]
 > It is crucial that you never refer to the `pkgs` from `{ pkgs, ... }:` when
 > editing the `systems` config. This will not evaluate. Read the `flake.nix`
 > source code for the reason why.
