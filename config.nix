@@ -77,7 +77,7 @@ in
         in
         {
           PKG_CONFIG_PATH = makeSearchPath "lib/pkgconfig" (
-            with nixpkgs.legacyPackages.${system};
+            with nixpkgs.legacyPackages.${crossSystem};
             [
               alsa-lib-with-plugins.dev
               libxkbcommon.dev
