@@ -32,21 +32,22 @@ let
   );
 
   targets = attrNames targetEnvironments;
-
-  rust-toolchain =
+  input-rust-toolchain = rustToolchainFor targets;
+  wrapped-rust-toolchain =
     (wrapExecutable {
       name = "cargo";
-      executable = "${(rustToolchainFor targets)}/bin/cargo";
-      symlinkPackage = rustToolchainFor targets;
+      executable = "${input-rust-toolchain}/bin/cargo";
+      symlinkPackage = input-rust-toolchain;
     })
     // {
       inherit wrapExecutable;
+      unwrapped = input-rust-toolchain;
       targetPlatforms = systems;
       badTargetPlatforms = [ ];
     };
 in
 {
-  inherit rust-toolchain;
+  rust-toolchain = wrapped-rust-toolchain;
 
   dioxus-cli = makeOverridable wrapExecutable {
     name = "dx";
@@ -105,8 +106,8 @@ in
         if (manifest ? version) then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
 
       rustPlatform = pkgs.makeRustPlatform {
-        cargo = rust-toolchain;
-        rustc = rust-toolchain;
+        cargo = wrapped-rust-toolchain;
+        rustc = wrapped-rust-toolchain;
       };
       validTargets = subtractLists (optionals (macos.sdk == null) [
         "aarch64-apple-darwin"
@@ -121,7 +122,7 @@ in
 
             name = packageNamePrefix + target;
 
-            nativeBuildInputs = [ rust-toolchain ];
+            nativeBuildInputs = [ wrapped-rust-toolchain ];
 
             cargoLock.lockFile = "${src}/Cargo.lock";
             cargoProfile = "release";
