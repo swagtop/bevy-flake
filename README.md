@@ -5,8 +5,8 @@
 A flake for painless development and distribution of [Bevy][bevy] programs.
 
 With `bevy-flake` you can easily configure, compile and run your project on
-NixOS and MacOS, as well as cross-compile portable binaries for non-Nix Linux,
-Windows, MacOS and WASM targets.
+NixOS and MacOS, as well as cross-compile portable binaries for WASM, and
+non-Nix Linux, Windows, MacOS targets.
 
 [bevy]: https://github.com/bevyengine/bevy
 
