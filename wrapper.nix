@@ -1,6 +1,4 @@
-config@{
-  pkgs,
-
+{
   systems,
 
   linux,
@@ -19,9 +17,10 @@ config@{
   stdenv,
 
   src,
-
-  ...
 }:
+
+pkgs:
+
 let
   inherit (builtins)
     attrNames
@@ -75,8 +74,8 @@ in
   extraRuntimeInputs ? [ ],
 }:
 let
-  runtimeInputs =
-    config.runtimeInputs
+  totalRuntimeInputs =
+    runtimeInputs
     ++ extraRuntimeInputs
     ++ [
       stdenv.cc
@@ -85,7 +84,8 @@ let
     ];
   argParser' = if (isFunction argParser) then argParser defaultArgParser else argParser;
   wrapped = pkgs.writeShellApplication {
-    inherit name runtimeInputs;
+    inherit name;
+    runtimeInputs = totalRuntimeInputs;
     bashOptions = [
       "errexit"
       "pipefail"

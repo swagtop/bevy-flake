@@ -24,19 +24,14 @@ let
     targetEnvironments
     ;
 
-  wrapExecutable = import ./wrapper.nix (
-    config
-    // {
-      inherit pkgs;
-    }
-  );
+  wrapExecutable = (import ./wrapper.nix config) pkgs;
 
   targets = attrNames targetEnvironments;
   input-rust-toolchain = rustToolchainFor targets;
   wrapped-rust-toolchain =
     (wrapExecutable {
       name = "cargo";
-      executable = "${input-rust-toolchain}/bin/cargo";
+      executable = input-rust-toolchain + "/bin/cargo";
       symlinkPackage = input-rust-toolchain;
     })
     // {
@@ -53,7 +48,7 @@ in
 
   dioxus-cli = makeOverridable wrapExecutable {
     name = "dx";
-    executable = "${pkgs.dioxus-cli}/bin/dx";
+    executable = pkgs.dioxus-cli + "/bin/dx";
   };
 
   # For now we package 'bevy-cli' ourselves, as it is not in nixpkgs yet.
@@ -74,7 +69,7 @@ in
             pkgs.openssl.dev
             pkgs.pkg-config
           ];
-          PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
+          PKG_CONFIG_PATH = pkgs.openssl.dev + "/lib/pkgconfig";
           cargoLock.lockFile = "${src}/Cargo.lock";
           doCheck = false;
         }
@@ -85,7 +80,7 @@ in
       extraRuntimeInputs = [
         pkgs.binaryen
       ];
-      executable = "${bevy-cli-package}/bin/bevy";
+      executable = bevy-cli-package + "/bin/bevy";
       argParser =
         default:
         default
@@ -135,7 +130,7 @@ in
 
             nativeBuildInputs = [ wrapped-rust-toolchain ];
 
-            cargoLock.lockFile = "${src}/Cargo.lock";
+            cargoLock.lockFile = src + "/Cargo.lock";
             cargoProfile = "release";
             cargoBuildFlags = [ ];
 
