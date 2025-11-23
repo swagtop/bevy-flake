@@ -79,7 +79,7 @@ If you find most of this Nix stuff confusing, you can browse the old version of
 
 > **You cannot refer to the `pkgs` from `{ pkgs, ... }:` when configuring the
 > `systems` attribue. We have a chicken-and-the-egg problem here, where the
-> 'pkgs' passed into the rest of the config depends on the 'systems' passed
+> `pkgs` passed into the rest of the config depends on the `systems` passed
 > in from the config.**
 >
 > **If you want to refer to somthing in `lib`, just access it through
