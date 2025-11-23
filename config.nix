@@ -47,7 +47,10 @@ in
   crossPlatformRustflags = [ ];
 
   # Base environment for every target to build on.
-  sharedEnvironment = { };
+  sharedEnvironment = {
+    # Cross-compiling the 'blake3' crate to Linux and MacOS breaks without this feature.
+    CARGO_FEATURE_PURE = "1";
+  };
 
   # Environment variables for the dev build environment, as in no '--target'.
   devEnvironment = { };
@@ -85,8 +88,6 @@ in
             ]
           );
           RUSTFLAGS = concatStringsSep " " flags.${crossSystem};
-          # Cross-compiling the 'blake3' crate to Linux breaks without this feature.
-          CARGO_FEATURE_PURE = "1";
         };
       windowsEnvFor = arch: {
         RUSTFLAGS = concatStringsSep " " [
