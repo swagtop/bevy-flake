@@ -1,5 +1,6 @@
 { nixpkgs }:
 
+# Default configuration begins here.
 {
   pkgs,
   # previous,

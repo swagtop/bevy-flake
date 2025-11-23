@@ -3,8 +3,9 @@
 ## Overview
 
 Configuring `bevy-flake` is done by calling `configure` from the the flake
-output. The default configuration can be found inside of the `config.nix` file
-in this repository.
+output. The default configuration can be found inside [here.][default-config]
+
+[default-config]: ../config.nix#L4
 
 The convention used in the templates looks like this:
 
