@@ -58,7 +58,7 @@ in
   # Environment variables set for individual targets.
   targetEnvironments =
     let
-      linuxEnvFor =
+      linuxEnvironmentFor =
         crossSystem:
         let
           hostSystem = pkgs.stdenv.hostPlatform.system;
@@ -90,7 +90,7 @@ in
           RUSTFLAGS = concatStringsSep " " flags.${crossSystem};
         };
 
-      windowsEnvFor = arch: {
+      windowsEnvironmentFor = arch: {
         RUSTFLAGS = concatStringsSep " " [
           "-C linker=${pkgs.lld}/bin/lld-link"
           "-L $BF_WINDOWS_SDK_PATH/crt/lib/${arch}"
@@ -99,7 +99,7 @@ in
         ];
       };
 
-      macosEnv =
+      macosEnvironment =
         let
           frameworks = "$BF_MACOS_SDK_PATH/System/Library/Frameworks";
         in
@@ -128,12 +128,12 @@ in
         };
     in
     {
-      "x86_64-unknown-linux-gnu" = linuxEnvFor "x86_64-linux";
-      "aarch64-unknown-linux-gnu" = linuxEnvFor "aarch64-linux";
-      "x86_64-pc-windows-msvc" = windowsEnvFor "x64";
-      "aarch64-pc-windows-msvc" = windowsEnvFor "arm64";
-      "x86_64-apple-darwin" = macosEnv;
-      "aarch64-apple-darwin" = macosEnv;
+      "x86_64-unknown-linux-gnu" = linuxEnvironmentFor "x86_64-linux";
+      "aarch64-unknown-linux-gnu" = linuxEnvironmentFor "aarch64-linux";
+      "x86_64-pc-windows-msvc" = windowsEnvironmentFor "x64";
+      "aarch64-pc-windows-msvc" = windowsEnvironmentFor "arm64";
+      "x86_64-apple-darwin" = macosEnvironment;
+      "aarch64-apple-darwin" = macosEnvironment;
       "wasm32-unknown-unknown" = {
         RUSTFLAGS = ''--cfg getrandom_backend=\"wasm_js\"'';
       };

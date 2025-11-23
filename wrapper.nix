@@ -82,7 +82,6 @@ let
       stdenv.cc
       input-rust-toolchain
       pkgs.pkg-config
-      pkgs.lld
       (pkgs.wasm-bindgen-cli_0_2_105 or (pkgs.buildWasmBindgenCli (
         let
           pname = "wasm-bindgen-cli";
