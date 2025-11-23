@@ -101,9 +101,6 @@ let
         }
       ))
       )
-      (pkgs.writeShellScriptBin "clang-unwrapped" ''
-        exec ${pkgs.clangStdenv.cc.cc}/bin/clang "$@"
-      '')
     ];
   argParser' = if (isFunction argParser) then argParser defaultArgParser else argParser;
   wrapped = pkgs.writeShellApplication {
@@ -119,28 +116,31 @@ let
         exec ${executable} "$@"
       fi
 
-      # Set up MacOS SDK environment variables, if configured.
-      ${exportEnv (
-        optionalAttrs (macos.sdk != null) (
-          let
-            versions = (importJSON (macos.sdk + "/SDKSettings.json")).SupportedTargets.macosx;
-          in
-          {
-            BF_MACOS_SDK_PATH = macos.sdk;
-            BF_MACOS_SDK_MINIMUM_VERSION = versions.MinimumDeploymentTarget;
-            BF_MACOS_SDK_DEFAULT_VERSION = versions.DefaultDeploymentTarget;
-          }
-        )
-      )}
-
-      # Set up Windows SDK, based on 'windows.mkSdk' builder.
-      export BF_WINDOWS_SDK_PATH="${windows.sdk}"
-
       # Base environment for all targets.
-      export PKG_CONFIG_ALLOW_CROSS="1"
-      export LIBCLANG_PATH="${pkgs.libclang.lib}/lib";
-      export LIBRARY_PATH="${pkgs.libiconv}/lib";
-      ${exportEnv sharedEnvironment}
+      ${exportEnv (
+        (
+          {
+            PKG_CONFIG_ALLOW_CROSS = "1";
+            LIBCLANG_PATH = pkgs.libclang.lib + "/lib";
+            LIBRARY_PATH = pkgs.libiconv + "/lib";
+
+            # Set up Windows SDK.
+            BF_WINDOWS_SDK_PATH = windows.sdk;
+          }
+          // optionalAttrs (macos.sdk != null) (
+            # Set up MacOS SDK, if configured.
+            let
+              versions = (importJSON (macos.sdk + "/SDKSettings.json")).SupportedTargets.macosx;
+            in
+            {
+              BF_MACOS_SDK_PATH = macos.sdk;
+              BF_MACOS_SDK_MINIMUM_VERSION = versions.MinimumDeploymentTarget;
+              BF_MACOS_SDK_DEFAULT_VERSION = versions.DefaultDeploymentTarget;
+            }
+          )
+        )
+        // sharedEnvironment
+      )}
 
       case $BF_TARGET in
         "")

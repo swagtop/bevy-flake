@@ -91,7 +91,7 @@ in
         };
       windowsEnvFor = arch: {
         RUSTFLAGS = concatStringsSep " " [
-          "-C linker=lld-link"
+          "-C linker=${pkgs.lld}/bin/lld-link"
           "-L $BF_WINDOWS_SDK_PATH/crt/lib/${arch}"
           "-L $BF_WINDOWS_SDK_PATH/sdk/lib/ucrt/${arch}"
           "-L $BF_WINDOWS_SDK_PATH/sdk/lib/um/${arch}"
@@ -110,7 +110,7 @@ in
             "--sysroot=$BF_MACOS_SDK_PATH"
           ];
           RUSTFLAGS = concatStringsSep " " [
-            "-C linker=clang-unwrapped"
+            "-C linker=${pkgs.clangStdenv.cc.cc}/bin/clang"
             "-C link-arg=-fuse-ld=lld"
             "-C link-arg=--target=$BF_TARGET"
             "-C link-arg=${
