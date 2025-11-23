@@ -118,7 +118,6 @@ in
             # "-C link-arg=--target=$BF_TARGET"
             "-C link-arg=${
               concatStringsSep "," [
-                "-Wl"
                 "-platform_version"
                 "macos"
                 "$BF_MACOS_SDK_MINIMUM_VERSION"
