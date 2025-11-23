@@ -17,13 +17,11 @@ When acquired, you can add it to your `bevy-flake` configuration via. an
 override:
 
 ```nix
-bf = bevy-flake.override {
-  # ...
+bf = bevy-flake.configure {
   mac.sdk = fetchTarball {
     url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
     sha256 = "sha256:some-long-hash-string-goes-here";
   };
-  # ...
 };
 ```
 

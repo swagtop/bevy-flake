@@ -168,7 +168,7 @@ want to use. The toolchain you make should have all the binaries needed for
 compilation, `cargo`, `rustc`, etc.
 
 ```nix
-bf = bevy-flake.override (
+bf = bevy-flake.configure (
   { pkgs, ... }
   {
     rustToolchainFor = targets:
@@ -284,7 +284,7 @@ environment that gets activated when running `cargo run` or `cargo build`
 without a `--target`.
 
 ```nix
-bf = bevy-flake.override {
+bf = bevy-flake.configure {
   devEnvironment = {
     CARGO_FEATURE_DEVELOPMENT = "1";
   };
