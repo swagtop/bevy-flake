@@ -111,10 +111,15 @@ in
         cargo = wrapped-rust-toolchain;
         rustc = wrapped-rust-toolchain;
       };
-      validTargets = subtractLists (optionals (macos.sdk == null) [
-        "aarch64-apple-darwin"
-        "x86_64-apple-darwin"
-      ]) (attrNames targetEnvironments);
+      validTargets =
+        if (wrapped-rust-toolchain ? bfDefaultToolchain) then
+          # Disable cross-compilation of 'targets' if using the nixpkgs toolchain.
+          [ pkgs.stdenv.hostPlatform.config ]
+        else
+          subtractLists (optionals (macos.sdk == null) [
+            "aarch64-apple-darwin"
+            "x86_64-apple-darwin"
+          ]) (attrNames targetEnvironments);
 
       everyTarget = genAttrs validTargets (
         target:
