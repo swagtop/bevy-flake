@@ -36,10 +36,18 @@
       mkBf =
         configList:
         let
-          # We don't have a 'pkgs' yet, so we pass an empty attribute set in its
-          # place. This is why 'systems' is the only config attribute that
-          # cannot reference 'pkgs'.
-          inherit (assembleConfigs configList { }) systems;
+          systems =
+            # Because the 'pkgs' produced by the config relies on the 'systems'
+            # config attribute, we have to get systems without passing in any
+            # 'pkgs' first. Due to lazy evaluation, this will not be a problem,
+            # unless the user refrences 'pkgs' in 'systems'.
+            # A nice little error message is thrown if this ever happens.
+            (assembleConfigs configList (
+              throw (
+                "You cannot reference 'pkgs' in 'systems'.\nIf you're using a "
+                + "'pkgs.lib' function, get it through 'nixpkgs.lib' instead."
+              )
+            )).systems;
 
           eachSystem = genAttrs systems;
           packages = eachSystem (
