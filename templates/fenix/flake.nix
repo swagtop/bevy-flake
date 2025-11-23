@@ -2,7 +2,7 @@
   description = "A flake using nix-community's fenix wrapped with bevy-flake.";
 
   inputs = {
-    nixpkgs.url = "nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     bevy-flake = {
       url = "github:swagtop/bevy-flake";
       inputs.nixpkgs.follows = "nixpkgs";

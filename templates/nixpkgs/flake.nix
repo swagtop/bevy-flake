@@ -2,7 +2,7 @@
   description = "A flake using the nixpkgs rust toolchain wrapped with bevy-flake.";
 
   inputs = {
-    nixpkgs.url = "nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     bevy-flake = {
       url = "github:swagtop/bevy-flake";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -12,9 +12,7 @@
   outputs =
     { nixpkgs, bevy-flake, ... }:
     let
-      bf = bevy-flake.configure {
-        src = ./.;
-      };
+      bf = bevy-flake.configure { src = ./.; };
     in
     {
       inherit (bf) packages formatter;
