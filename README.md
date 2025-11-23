@@ -73,8 +73,7 @@ bevy run web --open
 bevy build --target aarch64-pc-windows-msvc
 ```
 
-If you've set `src = ./.` in the config, you can build your project
-using Nix:
+If you've set the `src` config attribute, you can build your project using Nix:
 
 ```sh
 # Build all targets:
