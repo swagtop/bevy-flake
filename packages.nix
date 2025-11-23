@@ -113,9 +113,13 @@ in
       };
       validTargets =
         if (input-rust-toolchain ? bfDefaultToolchain) then
-          # Disable cross-compilation in 'targets' if using the default toolchain.
+          # Disable cross-compilation in 'targets' if using the default
+          # toolchain, as it doesn't have any of the stdlibs other than for the
+          # system it is built for.
           [ pkgs.stdenv.hostPlatform.config ]
         else
+          # Disable cross-compilation only for MacOS targets, if the SDK isn't
+          # configured.
           subtractLists (optionals (macos.sdk == null) [
             "aarch64-apple-darwin"
             "x86_64-apple-darwin"
@@ -177,9 +181,6 @@ in
 
               rmdir --ignore-fail-on-non-empty $out/{bin,lib}
             '';
-
-            # Wrapper script will not work without having a set $HOME.
-            HOME = ".";
 
             dontPatch = true;
             dontAutoPatchelf = true;
