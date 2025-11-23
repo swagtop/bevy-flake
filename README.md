@@ -98,8 +98,6 @@ by setting its environment up. More on that [here.][environments]
 - [Pitfalls](docs/pitfalls.md)
 - [MacOS](docs/macos.md)
 
---------------------------------------------------------------------------------
-
 ```
                                            $ executable
                                                  ▼
