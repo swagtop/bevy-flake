@@ -21,7 +21,7 @@
       ...
     }:
     let
-      bf = bevy-flake.override (
+      bf = bevy-flake.configure (
         { pkgs, ... }:
         {
           src = ./.;
