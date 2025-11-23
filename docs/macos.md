@@ -13,8 +13,7 @@ You will not find a link to one anywhere on this repo.
 
 [osxcross]: https://github.com/tpoechtrager/osxcross
 
-When acquired, you can add it to your `bevy-flake` configuration via. an
-override:
+When acquired, you can add it to your `bevy-flake` configuration:
 
 ```nix
 bf = bevy-flake.configure {
