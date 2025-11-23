@@ -77,10 +77,13 @@ If you find most of this Nix stuff confusing, you can browse the old version of
 
 <details> <summary><code>systems</code></summary>
 
-> **It is crucial that you never refer to the `pkgs` from `{ pkgs, ... }:` when**
-> **configuring the `systems` attribue. We have a chicken-and-the-egg problem**
-> **here, where the 'pkgs' passed into the rest of the config depends on the**
-> **'systems' passed in from the config.**
+> **You cannot refer to the `pkgs` from `{ pkgs, ... }:` when configuring the
+> `systems` attribue. We have a chicken-and-the-egg problem here, where the
+> 'pkgs' passed into the rest of the config depends on the 'systems' passed
+> in from the config.**
+>
+> **If you want to refer to somthing in `lib`, just access it through
+> `nixpkgs.lib`. This could be useful for `nixpkgs.lib.systems.flakeExposed`.**
 
 
 If you find that a system you want to use `bevy-flake` isn't included by

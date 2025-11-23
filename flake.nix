@@ -36,9 +36,9 @@
       mkBf =
         configList:
         let
-          # We don't have a 'pkgs' yet, so we pass an empty attribute set.
-          # This is why 'systems' is the only config attribute that cannot
-          # reference 'pkgs'.
+          # We don't have a 'pkgs' yet, so we pass an empty attribute set in its
+          # place. This is why 'systems' is the only config attribute that
+          # cannot reference 'pkgs'.
           inherit (assembleConfigs configList { }) systems;
 
           eachSystem = genAttrs systems;
