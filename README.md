@@ -65,9 +65,13 @@ cargo build --target aarch64-apple-darwin # <-- Please read docs/macos.md.
 BEVY_ASSET_ROOT="." dx serve --hot-patch --features bevy/hotpatching
 ```
 ```sh
-# With `bevy-cli`, use the alpha CLI tooling that is useful for web builds:
+# With `bevy-cli`, use the alpha CLI tooling:
+# For your Nix system you can run:
 bevy run
+
+# For web builds, you can run them, or bundle them like so:
 bevy run web --open
+bevy build web --bundle
 
 # Like cargo, build for other targets with '--target':
 bevy build --target aarch64-pc-windows-msvc
