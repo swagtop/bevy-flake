@@ -113,7 +113,7 @@ in
           ];
           RUSTFLAGS = concatStringsSep " " [
             "-C linker=${pkgs.clangStdenv.cc.cc}/bin/clang"
-            "-C link-arg=-fuse-ld=${pkgs.lld}/bin/ld64.lld"
+            "-C link-arg=-fuse-ld=lld"
             "-C link-arg=${
               concatStringsSep "," [
                 "-Wl"
