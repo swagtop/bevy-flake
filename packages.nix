@@ -112,7 +112,7 @@ in
         rustc = wrapped-rust-toolchain;
       };
       validTargets =
-        if (wrapped-rust-toolchain ? bfDefaultToolchain) then
+        if (input-rust-toolchain ? bfDefaultToolchain) then
           # Disable cross-compilation in 'targets' if using the default toolchain.
           [ pkgs.stdenv.hostPlatform.config ]
         else
