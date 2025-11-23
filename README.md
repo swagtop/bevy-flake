@@ -69,12 +69,12 @@ BEVY_ASSET_ROOT="." dx serve --hot-patch --features bevy/hotpatching
 # For your Nix system you can run:
 bevy run
 
-# For web builds, you can run them, or bundle them like so:
-bevy run web --open
-bevy build web --bundle
-
 # Like cargo, build for other targets with '--target':
 bevy build --target aarch64-pc-windows-msvc
+
+# For web builds, you can also run and bundle them like so:
+bevy run web --open
+bevy build web --bundle
 ```
 
 If you've set the `src` config attribute, you can build your project using Nix:
