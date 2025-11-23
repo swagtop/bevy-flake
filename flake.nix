@@ -37,12 +37,12 @@
         configList:
         let
           systems =
-            # Because the 'pkgs' produced by the config relies on the 'systems'
-            # config attribute, we have to get systems without passing in any
-            # 'pkgs' first. Due to lazy evaluation, this will not be a problem,
-            # unless the user refrences 'pkgs' in 'systems'.
-            # A nice little error message is thrown if this ever happens.
             (assembleConfigs configList (
+              # Because the 'pkgs' that can be used by the config relies on the
+              # 'systems' config attribute, we have to get systems without
+              # passing in any 'pkgs' first. Due to lazy evaluation, this will
+              # not be a problem, unless 'pkgs' is referenced in 'systems'.
+              # A nice little error message is thrown if this ever happens.
               throw (
                 "You cannot reference 'pkgs' in 'systems'.\nIf you're using a "
                 + "'pkgs.lib' function, get it through 'nixpkgs.lib' instead."
