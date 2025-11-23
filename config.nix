@@ -1,13 +1,5 @@
 { nixpkgs }:
 
-# Default configuration begins here.
-{
-  pkgs,
-  # previous,
-  # default,
-  ...
-}:
-
 let
   inherit (builtins)
     concatStringsSep
@@ -19,6 +11,13 @@ let
     ;
 in
 
+# Default configuration begins here.
+{
+  pkgs,
+  # previous,
+  # default,
+  ...
+}:
 {
   systems = [
     "aarch64-darwin"
