@@ -43,7 +43,7 @@
               # passing in any 'pkgs' first.
               # Because of lazy evaluation, this will not be a problem, unless
               # 'pkgs' is referenced in 'systems'.
-              # A nice little error message is thrown should this ever happen.
+              # A helpful error is thrown, should this ever happen.
               throw (
                 "You cannot reference 'pkgs' in 'systems'.\nIf you're using a "
                 + "'pkgs.lib' function, get it through 'nixpkgs.lib' instead."
