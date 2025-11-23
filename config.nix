@@ -11,7 +11,7 @@ let
   inherit (builtins)
     concatStringsSep
     ;
-  inherit (pkgs.lib)
+  inherit (nixpkgs.lib)
     makeSearchPath
     optionals
     optionalString
@@ -25,10 +25,8 @@ in
     "x86_64-linux"
   ];
 
-  linux = {
-    # Setting GLIBC version to the one Debian stable uses.
-    glibcVersion = "2.41";
-  };
+  # There are currently no things to configure for the Linux targets.
+  linux = { };
 
   windows = {
     # Setting the Windows SDK to the latest one in nixpkgs, both arches.
@@ -51,6 +49,7 @@ in
   # Base environment for every target to build on.
   sharedEnvironment = { };
 
+  # Environment variables for the dev build environment, as in no '--target'.
   devEnvironment = { };
 
   # Environment variables set for individual targets.
@@ -110,7 +109,7 @@ in
             "--sysroot=$BF_MACOS_SDK_PATH"
           ];
           RUSTFLAGS = concatStringsSep " " [
-            "-C linker=${pkgs.clangStdenv.cc.cc}/bin/clang"
+            "-C linker=${pkgs.clangStdenv.cc.cc}/bin/cc"
             "-C link-arg=-fuse-ld=lld"
             "-C link-arg=--target=$BF_TARGET"
             "-C link-arg=${
