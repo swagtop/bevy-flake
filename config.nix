@@ -116,6 +116,7 @@ in
             "-C link-arg=-fuse-ld=${pkgs.lld}/bin/ld64.lld"
             "-C link-arg=${
               concatStringsSep "," [
+                "-Wl"
                 "-platform_version"
                 "macos"
                 "$BF_MACOS_SDK_MINIMUM_VERSION"
