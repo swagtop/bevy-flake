@@ -40,9 +40,10 @@
             (assembleConfigs configList (
               # Because the 'pkgs' that can be used by the config relies on the
               # 'systems' config attribute, we have to get systems without
-              # passing in any 'pkgs' first. Due to lazy evaluation, this will
-              # not be a problem, unless 'pkgs' is referenced in 'systems'.
-              # A nice little error message is thrown if this ever happens.
+              # passing in any 'pkgs' first.
+              # Because of lazy evaluation, this will not be a problem, unless
+              # 'pkgs' is referenced in 'systems'.
+              # A nice little error message is thrown should this ever happen.
               throw (
                 "You cannot reference 'pkgs' in 'systems'.\nIf you're using a "
                 + "'pkgs.lib' function, get it through 'nixpkgs.lib' instead."
@@ -63,6 +64,8 @@
             in
             import ./packages.nix {
               inherit pkgs nixpkgs;
+              # Here we have a 'pkgs' to pass in, and this will be the config
+              # that is used from now on.
               config = assembleConfigs configList pkgs;
             }
           );
