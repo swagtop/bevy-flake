@@ -1,7 +1,7 @@
 {
   description = "A flake for painless development and distribution of Bevy projects.";
 
-  inputs.nixpkgs.url = "github:nixpkgs/nixos-unstable";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
   outputs =
     { nixpkgs, ... }:
