@@ -2,9 +2,9 @@
 
 ## Overview
 
-Configuring `bevy-flake` is done through overriding the flake input. The default
-configuration can be found inside of the `config` attribute set in the outermost
-let-in section of the `flake.nix` file.
+Configuring `bevy-flake` is done by calling `configure` from the the flake
+output. The default configuration can be found inside of the `config.nix` file
+in this repository.
 
 The convention used in the templates looks like this:
 
