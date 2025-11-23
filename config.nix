@@ -176,6 +176,7 @@ in
       ];
     })
     // {
+      # Used in 'packages.nix' to check if user is using the default toolchain.
       bfDefaultToolchain = true;
     };
 

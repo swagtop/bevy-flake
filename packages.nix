@@ -113,7 +113,7 @@ in
       };
       validTargets =
         if (wrapped-rust-toolchain ? bfDefaultToolchain) then
-          # Disable cross-compilation of 'targets' if using the nixpkgs toolchain.
+          # Disable cross-compilation in 'targets' if using the default toolchain.
           [ pkgs.stdenv.hostPlatform.config ]
         else
           subtractLists (optionals (macos.sdk == null) [
