@@ -12,7 +12,7 @@
   outputs =
     { nixpkgs, bevy-flake, ... }:
     let
-      bf = bevy-flake.override {
+      bf = bevy-flake.configure {
         src = ./.;
       };
     in
