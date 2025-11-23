@@ -12,20 +12,9 @@
   outputs =
     { nixpkgs, bevy-flake, ... }:
     let
-      bf = bevy-flake.override (default: {
+      bf = bevy-flake.override {
         src = ./.;
-
-        targetEnvironments =
-          pkgs:
-          let
-            # Only able to build the target corresponding to system.
-            # Get one of the other toolchains for cross-compilation.
-            systemTarget = pkgs.stdenv.hostPlatform.config;
-          in
-          {
-            ${systemTarget} = default.targetEnvironments.${systemTarget};
-          };
-      });
+      };
     in
     {
       inherit (bf) packages formatter;
