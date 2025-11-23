@@ -7,6 +7,7 @@
     { nixpkgs, ... }:
     let
       inherit (builtins)
+        foldl'
         isFunction
         warn
         ;
@@ -17,20 +18,18 @@
       defaultConfig = import ./config.nix { inherit nixpkgs; };
       assembleConfigs =
         configs: pkgs:
-        builtins.foldl' (
+        foldl' (
           accumulator: config:
-          (
-            accumulator
-            // (
-              if isFunction config then
-                config {
-                  inherit pkgs;
-                  previous = accumulator;
-                  default = defaultConfig { inherit pkgs; };
-                }
-              else
-                config
-            )
+          accumulator
+          // (
+            if isFunction config then
+              config {
+                inherit pkgs;
+                previous = accumulator;
+                default = defaultConfig { inherit pkgs; };
+              }
+            else
+              config
           )
         ) { } configs;
 
@@ -90,9 +89,7 @@
         in
         result
         // {
-          configure =
-            nextAddedConfig:
-            makeConfigurable f nextAddedConfig currentConfigs;
+          configure = nextAddedConfig: makeConfigurable f nextAddedConfig currentConfigs;
         };
 
     in
