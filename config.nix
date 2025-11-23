@@ -112,9 +112,10 @@ in
             "--sysroot=$BF_MACOS_SDK_PATH"
           ];
           RUSTFLAGS = concatStringsSep " " [
-            "-C linker=${pkgs.clangStdenv.cc.cc}/bin/clang"
-            "-C link-arg=-fuse-ld=lld"
-            "-C link-arg=--target=$BF_TARGET"
+            "-C linker=${pkgs.lld}/bin/ld64.lld"
+            # "-C linker=${pkgs.clangStdenv.cc.cc}/bin/clang"
+            # "-C link-arg=-fuse-ld=lld"
+            # "-C link-arg=--target=$BF_TARGET"
             "-C link-arg=${
               concatStringsSep "," [
                 "-Wl"
