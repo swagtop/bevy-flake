@@ -89,6 +89,7 @@ in
           );
           RUSTFLAGS = concatStringsSep " " flags.${crossSystem};
         };
+
       windowsEnvFor = arch: {
         RUSTFLAGS = concatStringsSep " " [
           "-C linker=${pkgs.lld}/bin/lld-link"
@@ -97,6 +98,7 @@ in
           "-L $BF_WINDOWS_SDK_PATH/sdk/lib/um/${arch}"
         ];
       };
+
       macosEnv =
         let
           frameworks = "$BF_MACOS_SDK_PATH/System/Library/Frameworks";
@@ -110,7 +112,7 @@ in
             "--sysroot=$BF_MACOS_SDK_PATH"
           ];
           RUSTFLAGS = concatStringsSep " " [
-            "-C linker=${pkgs.clangStdenv.cc.cc}/bin/cc"
+            "-C linker=${pkgs.clangStdenv.cc.cc}/bin/clang"
             "-C link-arg=-fuse-ld=lld"
             "-C link-arg=--target=$BF_TARGET"
             "-C link-arg=${
