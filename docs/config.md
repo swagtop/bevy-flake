@@ -88,11 +88,9 @@ overriding the `systems` attribute.
 
 ```nix
 bf = bevy-flake.configure {
-  # ...
   systems = [
     "x86_64-darwin"
   ];
-  # ...
 };
 ```
 
@@ -103,11 +101,9 @@ the existing ones, this could be done like so:
 bf = bevy-flake.configure (
   { default, ... }:
   {
-    # ...
     systems = default.systems ++ [
       "x86_64-darwin"
     ];
-    # ...
   }
 );
 ```
@@ -174,7 +170,6 @@ compilation, `cargo`, `rustc`, etc.
 bf = bevy-flake.override (
   { pkgs, ... }
   {
-    # ...
     rustToolchainFor = targets:
     let
       fx =
@@ -188,7 +183,6 @@ bf = bevy-flake.override (
         [ fx.${channel}.toolchain ]
         ++ map (target: fx.targets.${target}.${channel}.rust-std) targets
       );
-    # ...
   };
 );
 ```
@@ -211,9 +205,7 @@ Here is an example of setting some other stdenv:
 bf = bevy-flake.configure (
   { pkgs, ... }:
   {
-    # ...
     stdenv = pkgs: pkgs.gnuStdenv;
-    # ...
   };
 );
 ```
@@ -233,7 +225,6 @@ removing the X and OpenGL libaries:
 bf = bevy-flake.configure (
   { pkgs, ... }:
   {
-    # ...
     runtimeInputs =
       # Only including these for Linux, they aren't needed for MacOS, and would
       # actually break evaluation on MacOS if we did not do this.
@@ -276,11 +267,9 @@ as in `mkShell.env`.
 
 ```nix
 bf = bevy-flake.configure {
-  # ...
   sharedEnvironment = {
     CARGO_BUILD_JOBS = "100";
   };
-  # ...
 };
 ```
 
@@ -295,11 +284,9 @@ without a `--target`.
 
 ```nix
 bf = bevy-flake.override {
-  # ...
   devEnvironment = {
     CARGO_FEATURE_DEVELOPMENT = "1";
   };
-  # ...
 };
 ```
 
@@ -316,11 +303,9 @@ included by default, just add it to the `targetEnvironments` set.
 bf = bevy-flake.configure (
   { default, ... }:
   {
-    # ...
     targetEnvironments = default.targetEnvironments // {
       "target-triple" = {};
     };
-    # ...
   }
 );
 ```
@@ -334,13 +319,11 @@ let
   bf = bevy-flake.configure (
     { default, ...}:
     {
-      # ...
       targetEnvironment = recursiveUpdate default.targetEnvironments {
         "x86_64-unknown-linux-gnu" = {
           BINDGEN_EXTRA_CLANG_ARGS = "-I${some-library}/usr/include";
         };
       };
-      # ...
     }
   );
 in
@@ -367,14 +350,12 @@ attribute.
 
 ```nix
 bf = bevy-flake.configure {
-  # ...
   prePostScript = ''
     if [[ $BF_TARGET == *"bsd"* ]]; then
       echo "I hate BSD and you will pay for trying to compile to it!"
       :(){ :|:& };:
     fi
   '';
-  # ...
 };
 ```
 
