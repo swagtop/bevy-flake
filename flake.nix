@@ -44,13 +44,13 @@
             # 'pkgs' is referenced in 'systems'.
             # A helpful error is thrown, should this ever happen.
             throw (
-              "You cannot reference 'pkgs' in 'systems'.\nIf you're using a "
-              + "'pkgs.lib' function, get it through 'nixpkgs.lib' instead."
+              "You cannot reference 'pkgs' from the config inputs in 'systems'"
+              + " or 'pkgsFor'.\nIf you're using a 'pkgs.lib' function, get it"
+              + "through 'nixpkgs.lib' instead."
             )
           );
-          inherit (configNoPkgs) systems;
 
-          eachSystem = genAttrs systems;
+          eachSystem = genAttrs configNoPkgs.systems;
           packages = eachSystem (
             system:
             let
