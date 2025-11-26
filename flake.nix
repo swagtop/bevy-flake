@@ -77,9 +77,9 @@
           formatter = eachSystem (system: nixpkgs.legacyPackages.${system}.nixfmt-tree);
         in
         {
-          inherit
-            (configNoPkgs)
-            systems;
+          inherit (configNoPkgs)
+            systems
+            ;
           inherit
             devShells
             eachSystem

@@ -112,12 +112,14 @@ in
           # Disable cross-compilation in 'targets' if using the default
           # toolchain, as it doesn't have any of the stdlibs other than for the
           # system it is built for.
-          warn 
-            "Only building for your system, as you are using the default"
-            + " toolchain, which has no cross-compilation support."
-          [
-            pkgs.stdenv.hostPlatform.config
-          ]
+          warn
+            (
+              "Only building for your system, as you are using the default"
+              + " toolchain, which has no cross-compilation support."
+            )
+            [
+              pkgs.stdenv.hostPlatform.config
+            ]
         else
           # Disable cross-compilation only for MacOS targets, if the SDK isn't
           # configured.
