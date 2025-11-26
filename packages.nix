@@ -212,7 +212,7 @@ in
         {
           name = optionalWarn (packageNamePrefix + "all-targets");
 
-          linkBuilds = "1";
+          linkBuilds = true;
           buildInputs = map (build: build.value) buildList;
           installPhase = ''
             mkdir -p $out
