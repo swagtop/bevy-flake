@@ -32,8 +32,7 @@
               channel = "stable"; # For nightly, use "latest".
             in
             fx.combine (
-              [ (fx.${channel}.completeToolchain or fx.channel.toolchain) ]
-              ++ map (target: fx.targets.${target}.${channel}.rust-std) targets
+              [ fx.${channel}.toolchain ] ++ map (target: fx.targets.${target}.${channel}.rust-std) targets
             );
         }
       );

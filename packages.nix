@@ -218,9 +218,13 @@ in
             mkdir -p $out
 
             if [[ $linkBuilds == "1" ]]; then
-              ${concatStringsSep "\n" (map (build: "ln -s \"${build.value}\" $out/\"${build.name}\"") buildList)}
+              ${concatStringsSep "\n" (
+                map (build: "ln -s \"${build.value}\" $out/\"${build.name}\"") buildList
+              )}
             else
-              ${concatStringsSep "\n" (map (build: "cp -r \"${build.value}\" $out/\"${build.name}\"") buildList)}
+              ${concatStringsSep "\n" (
+                map (build: "cp -r \"${build.value}\" $out/\"${build.name}\"") buildList
+              )}
             fi
           '';
 
