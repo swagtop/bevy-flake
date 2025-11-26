@@ -10,11 +10,13 @@ let
     warn
     ;
   inherit (nixpkgs.lib)
+    attrsToList
     genAttrs
     importTOML
     makeOverridable
     optionalAttrs
     optionals
+    optional
     subtractLists
     ;
   inherit (config)
@@ -99,6 +101,10 @@ in
   targets = makeOverridable (
     overridedAttrs:
     let
+      usingDefaultToolchain = optional (
+        input-rust-toolchain ? bfDefaultToolchain
+      ) input-rust-toolchain.bfDefaultToolchain;
+
       manifest = (importTOML "${src}/Cargo.toml").package;
       packageNamePrefix =
         if (manifest ? version) then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
@@ -108,18 +114,13 @@ in
         rustc = wrapped-rust-toolchain;
       };
       validTargets =
-        if (input-rust-toolchain ? bfDefaultToolchain) then
+        if usingDefaultToolchain then
           # Disable cross-compilation in 'targets' if using the default
           # toolchain, as it doesn't have any of the stdlibs other than for the
           # system it is built for.
-          warn
-            (
-              "Only building for your system, as you are using the default"
-              + " toolchain, which has no cross-compilation support."
-            )
-            [
-              pkgs.stdenv.hostPlatform.config
-            ]
+          [
+            pkgs.stdenv.hostPlatform.config
+          ]
         else
           # Disable cross-compilation only for MacOS targets, if the SDK isn't
           # configured.
@@ -193,21 +194,33 @@ in
         )
       );
 
-      full-build = pkgs.stdenvNoCC.mkDerivation (
-        let
-          buildList = (nixpkgs.lib.attrsToList everyTarget);
-        in
-        {
-          name = packageNamePrefix + "all-targets";
+      # Only warn about default toolchain when building all targets.
+      optionalWarn =
+        i:
+        if usingDefaultToolchain then
+          warn (
+            "Only building for your system, as you are using the default"
+            + " toolchain, which does not support cross-compilation."
+          ) i
+        else
+          i;
+      full-build = optionalWarn (
+        pkgs.stdenvNoCC.mkDerivation (
+          let
+            buildList = (attrsToList everyTarget);
+          in
+          {
+            name = packageNamePrefix + "all-targets";
 
-          buildInputs = map (build: build.value) buildList;
-          installPhase = ''
-            mkdir -p $out
-            ${concatStringsSep "\n" (map (build: "ln -s \"${build.value}\" $out/\"${build.name}\"") buildList)}
-          '';
+            buildInputs = map (build: build.value) buildList;
+            installPhase = ''
+              mkdir -p $out
+              ${concatStringsSep "\n" (map (build: "ln -s \"${build.value}\" $out/\"${build.name}\"") buildList)}
+            '';
 
-          phases = [ "installPhase" ];
-        }
+            phases = [ "installPhase" ];
+          }
+        )
       );
     in
     full-build // everyTarget
