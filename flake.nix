@@ -46,7 +46,7 @@
             throw (
               "You cannot reference 'pkgs' from the config inputs in 'systems'"
               + " or 'pkgsFor'.\nIf you're using a 'pkgs.lib' function, get it"
-              + "through 'nixpkgs.lib' instead."
+              + " through 'nixpkgs.lib' instead."
             )
           );
 
