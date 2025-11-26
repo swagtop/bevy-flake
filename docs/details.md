@@ -35,7 +35,7 @@ or a package wrapped, that isn't included by default.
     dioxus-cli = <derivation>;
     bevy-cli = <derivation>;
 
-    # If you've set up the Nix builder with `src = ./.`
+    # If you've set the 'src' config attribute to your source code:
     targets = <derivation>; # All targets, symlinked to the same derivation.
     targets."<target>" = <derivation>; # The individual targets.
   };
@@ -44,7 +44,7 @@ or a package wrapped, that isn't included by default.
   templates."<name>" = <template>;
 
   # The function used for configuring bevy-flake. Read docs/config.md for info.
-  override = <function>;
+  config = <function>;
 }
 ```
 
