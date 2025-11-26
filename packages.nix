@@ -205,23 +205,21 @@ in
           ) i
         else
           i;
-      full-build = optionalWarn (
-        pkgs.stdenvNoCC.mkDerivation (
-          let
-            buildList = (attrsToList everyTarget);
-          in
-          {
-            name = packageNamePrefix + "all-targets";
+      full-build = pkgs.stdenvNoCC.mkDerivation (
+        let
+          buildList = (attrsToList everyTarget);
+        in
+        {
+          name = optionalWarn (packageNamePrefix + "all-targets");
 
-            buildInputs = map (build: build.value) buildList;
-            installPhase = ''
-              mkdir -p $out
-              ${concatStringsSep "\n" (map (build: "ln -s \"${build.value}\" $out/\"${build.name}\"") buildList)}
-            '';
+          buildInputs = map (build: build.value) buildList;
+          installPhase = ''
+            mkdir -p $out
+            ${concatStringsSep "\n" (map (build: "ln -s \"${build.value}\" $out/\"${build.name}\"") buildList)}
+          '';
 
-            phases = [ "installPhase" ];
-          }
-        )
+          phases = [ "installPhase" ];
+        }
       );
     in
     full-build // everyTarget
