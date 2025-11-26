@@ -89,18 +89,18 @@
         };
 
       makeConfigurable =
-        f: addedConfig: previousConfigs:
+        f: previousConfigs: addedConfig: 
         let
           currentConfigs = previousConfigs ++ [ addedConfig ];
           result = f currentConfigs;
         in
         result
         // {
-          configure = nextAddedConfig: makeConfigurable f nextAddedConfig currentConfigs;
+          configure = makeConfigurable f currentConfigs;
         };
 
     in
-    (makeConfigurable mkBf defaultConfig [ ])
+    (makeConfigurable mkBf [ ] defaultConfig )
     // {
       templates = {
         rust-overlay = {
