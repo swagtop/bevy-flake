@@ -17,7 +17,7 @@
 
       defaultConfig = import ./config.nix { inherit nixpkgs; };
       assembleConfigs =
-        configs: pkgs:
+        configList: pkgs:
         foldl' (
           accumulator: config:
           accumulator
@@ -31,17 +31,17 @@
             else
               config
           )
-        ) { } configs;
+        ) { } configList;
 
       mkBf =
         configList:
         let
           configNoPkgs = assembleConfigs configList (
-            # Because the 'pkgs' that can be used by the config relies on the
+            # Because the 'pkgs' that can be input into the configs rely on the
             # 'systems' config attribute, we have to get systems without
             # passing in any 'pkgs' first.
             # Because of lazy evaluation, this will not be a problem, unless
-            # 'pkgs' is referenced in 'systems'.
+            # 'pkgs' is referenced in 'systems' or 'pkgsFor'.
             # A helpful error is thrown, should this ever happen.
             throw (
               "You cannot reference 'pkgs' from the config inputs in 'systems'"
