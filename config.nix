@@ -25,6 +25,16 @@ in
     "x86_64-linux"
   ];
 
+  pkgsFor =
+    system:
+    import nixpkgs {
+      inherit system;
+      config = {
+        allowUnfree = true;
+        microsoftVisualStudioLicenseAccepted = true;
+      };
+    };
+
   # There are currently no things to configure for the Linux targets.
   linux = { };
 

@@ -36,31 +36,25 @@
       mkBf =
         configList:
         let
-          systems =
-            (assembleConfigs configList (
-              # Because the 'pkgs' that can be used by the config relies on the
-              # 'systems' config attribute, we have to get systems without
-              # passing in any 'pkgs' first.
-              # Because of lazy evaluation, this will not be a problem, unless
-              # 'pkgs' is referenced in 'systems'.
-              # A helpful error is thrown, should this ever happen.
-              throw (
-                "You cannot reference 'pkgs' in 'systems'.\nIf you're using a "
-                + "'pkgs.lib' function, get it through 'nixpkgs.lib' instead."
-              )
-            )).systems;
+          configNoPkgs = assembleConfigs configList (
+            # Because the 'pkgs' that can be used by the config relies on the
+            # 'systems' config attribute, we have to get systems without
+            # passing in any 'pkgs' first.
+            # Because of lazy evaluation, this will not be a problem, unless
+            # 'pkgs' is referenced in 'systems'.
+            # A helpful error is thrown, should this ever happen.
+            throw (
+              "You cannot reference 'pkgs' in 'systems'.\nIf you're using a "
+              + "'pkgs.lib' function, get it through 'nixpkgs.lib' instead."
+            )
+          );
+          inherit (configNoPkgs) systems;
 
           eachSystem = genAttrs systems;
           packages = eachSystem (
             system:
             let
-              pkgs = import nixpkgs {
-                inherit system;
-                config = {
-                  allowUnfree = true;
-                  microsoftVisualStudioLicenseAccepted = true;
-                };
-              };
+              pkgs = configNoPkgs.pkgsFor system;
             in
             import ./packages.nix {
               inherit pkgs nixpkgs;

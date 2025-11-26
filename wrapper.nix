@@ -1,5 +1,7 @@
 {
+  # These two are not used here, as they are used to set up pkgs earlier.
   systems,
+  pkgsFor,
 
   linux,
   windows,
@@ -65,6 +67,7 @@ let
     done
   '';
 in
+
 {
   name,
   executable,
@@ -97,31 +100,31 @@ let
         exec ${executable} "$@"
       fi
 
-      # Base environment for all targets.
+      # Set variables need to be set up before 'sharedEnvironment' runs.
       ${exportEnv (
-        (
-          {
-            PKG_CONFIG_ALLOW_CROSS = "1";
-            LIBCLANG_PATH = pkgs.libclang.lib + "/lib";
-            LIBRARY_PATH = pkgs.libiconv + "/lib";
+        {
+          PKG_CONFIG_ALLOW_CROSS = "1";
+          LIBCLANG_PATH = pkgs.libclang.lib + "/lib";
+          LIBRARY_PATH = pkgs.libiconv + "/lib";
 
-            # Set up Windows SDK.
-            BF_WINDOWS_SDK_PATH = windows.sdk;
+          # Set up Windows SDK.
+          BF_WINDOWS_SDK_PATH = windows.sdk;
+        }
+        // optionalAttrs (macos.sdk != null) (
+          # Set up MacOS SDK, if configured.
+          let
+            versions = (importJSON (macos.sdk + "/SDKSettings.json")).SupportedTargets.macosx;
+          in
+          {
+            BF_MACOS_SDK_PATH = macos.sdk;
+            BF_MACOS_SDK_MINIMUM_VERSION = versions.MinimumDeploymentTarget;
+            BF_MACOS_SDK_DEFAULT_VERSION = versions.DefaultDeploymentTarget;
           }
-          // optionalAttrs (macos.sdk != null) (
-            # Set up MacOS SDK, if configured.
-            let
-              versions = (importJSON (macos.sdk + "/SDKSettings.json")).SupportedTargets.macosx;
-            in
-            {
-              BF_MACOS_SDK_PATH = macos.sdk;
-              BF_MACOS_SDK_MINIMUM_VERSION = versions.MinimumDeploymentTarget;
-              BF_MACOS_SDK_DEFAULT_VERSION = versions.DefaultDeploymentTarget;
-            }
-          )
         )
-        // sharedEnvironment
       )}
+
+      # Base environment for all targets.
+      ${exportEnv sharedEnvironment}
 
       case $BF_TARGET in
         "")
