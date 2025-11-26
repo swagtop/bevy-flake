@@ -191,7 +191,6 @@ in
               rmdir --ignore-fail-on-non-empty $out/{bin,lib}
             '';
 
-            dontPatch = true;
             dontAutoPatchelf = true;
             doCheck = false;
           }
