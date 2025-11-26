@@ -78,11 +78,13 @@
         in
         {
           inherit
+            (configNoPkgs)
+            systems;
+          inherit
             devShells
             eachSystem
             formatter
             packages
-            systems
             ;
         };
 
