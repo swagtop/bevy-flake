@@ -104,7 +104,7 @@ in
         if (input-rust-toolchain ? bfDefaultToolchain) then
           input-rust-toolchain.bfDefaultToolchain
         else
-          input-rust-toolchain.bfDefaultToolchain;
+          false;
 
       manifest = (importTOML "${src}/Cargo.toml").package;
       packageNamePrefix =
