@@ -16,7 +16,6 @@ let
     makeOverridable
     optionalAttrs
     optionals
-    optional
     subtractLists
     ;
   inherit (config)
@@ -101,9 +100,11 @@ in
   targets = makeOverridable (
     overridedAttrs:
     let
-      usingDefaultToolchain = optional (
-        input-rust-toolchain ? bfDefaultToolchain
-      ) input-rust-toolchain.bfDefaultToolchain;
+      usingDefaultToolchain =
+        if (input-rust-toolchain ? bfDefaultToolchain) then
+          input-rust-toolchain.bfDefaultToolchain
+        else
+          input-rust-toolchain.bfDefaultToolchain;
 
       manifest = (importTOML "${src}/Cargo.toml").package;
       packageNamePrefix =
