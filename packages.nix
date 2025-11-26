@@ -212,10 +212,15 @@ in
         {
           name = optionalWarn (packageNamePrefix + "all-targets");
 
+          linkBuilds = "1";
           buildInputs = map (build: build.value) buildList;
           installPhase = ''
             mkdir -p $out
-            ${concatStringsSep "\n" (map (build: "ln -s \"${build.value}\" $out/\"${build.name}\"") buildList)}
+
+            if [[ $linkBuilds == "1" ]]; then
+              ${concatStringsSep "\n" (map (build: "ln -s \"${build.value}\" $out/\"${build.name}\"") buildList)}
+            else
+              ${concatStringsSep "\n" (map (build: "cp -r \"${build.value}\" $out/\"${build.name}\"") buildList)}
           '';
 
           phases = [ "installPhase" ];
