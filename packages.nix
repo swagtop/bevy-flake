@@ -115,20 +115,24 @@ in
         rustc = wrapped-rust-toolchain;
       };
       validTargets =
-        if usingDefaultToolchain then
-          # Disable cross-compilation in 'targets' if using the default
-          # toolchain, as it doesn't have any of the stdlibs other than for the
-          # system it is built for.
-          [
-            pkgs.stdenv.hostPlatform.config
-          ]
-        else
-          # Disable cross-compilation only for MacOS targets, if the SDK isn't
-          # configured.
-          subtractLists (optionals (macos.sdk == null) [
+        subtractLists
+          # Disable cross-compilation for MacOS targets, if the SDK is not
+          # present in the config.
+          (optionals (macos.sdk == null) [
             "aarch64-apple-darwin"
             "x86_64-apple-darwin"
-          ]) (attrNames targetEnvironments);
+          ])
+          (
+            if usingDefaultToolchain then
+              # Disable cross-compilation in 'targets' if using the default
+              # toolchain, as it doesn't have any of the stdlibs other than for the
+              # system it is built for.
+              [
+                pkgs.stdenv.hostPlatform.config
+              ]
+            else
+              (attrNames targetEnvironments)
+          );
 
       everyTarget = genAttrs validTargets (
         target:
