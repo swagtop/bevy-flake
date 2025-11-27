@@ -44,7 +44,7 @@ or a package wrapped, that isn't included by default.
   templates."<name>" = <template>;
 
   # The function used for configuring bevy-flake. Read docs/config.md for info.
-  config = <function>;
+  configure = <function>;
 }
 ```
 
