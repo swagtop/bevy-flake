@@ -15,7 +15,7 @@ let
     { pkgs, previous, default }:
     {
       # Config goes here.
-    };
+    }
   );
 in
 ```
