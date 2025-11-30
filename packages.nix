@@ -72,7 +72,7 @@ in
             pkgs.pkg-config
           ];
           PKG_CONFIG_PATH = pkgs.openssl.dev + "/lib/pkgconfig";
-          cargoLock.lockFile = "${src}/Cargo.lock";
+          cargoLock.lockFile = src + "/Cargo.lock";
           doCheck = false;
         }
       );
@@ -125,8 +125,8 @@ in
           (
             if usingDefaultToolchain then
               # Disable cross-compilation in 'targets' if using the default
-              # toolchain, as it doesn't have any of the stdlibs other than for the
-              # system it is built for.
+              # toolchain, as it doesn't have any of the stdlibs other than for
+              # the system it is built for.
               [
                 pkgs.stdenv.hostPlatform.config
               ]
@@ -138,7 +138,7 @@ in
         target:
         rustPlatform.buildRustPackage (
           {
-            inherit src;
+            inherit src target;
 
             name = packageNamePrefix + target;
 
@@ -154,7 +154,7 @@ in
               cargo build \
                 -j "$NIX_BUILD_CORES" \
                 --profile "$cargoProfile" \
-                --target "${target}" \
+                --target "$target" \
                 --offline \
                 ''${cargoBuildFlags[@]}
 
@@ -163,6 +163,8 @@ in
 
             # Copied and edited for multi-target purposes from nixpkgs Rust hooks.
             installPhase = ''
+              runHook preInstall
+
               if [[ $cargoProfile == "dev" ]]; then
                 # Set dev profile environment variable to match correct directory.
                 export cargoProfile="debug"
@@ -189,6 +191,8 @@ in
               done
 
               rmdir --ignore-fail-on-non-empty $out/{bin,lib}
+
+              runHook postInstall
             '';
 
             dontAutoPatchelf = true;
@@ -198,8 +202,7 @@ in
         )
       );
 
-      # Only warn about default toolchain when building all targets.
-      optionalWarn =
+      defaultToolchainWarn =
         i:
         if usingDefaultToolchain then
           warn (
@@ -208,12 +211,14 @@ in
           ) i
         else
           i;
+
       full-build = pkgs.stdenvNoCC.mkDerivation (
         let
           buildList = (attrsToList everyTarget);
         in
         {
-          name = optionalWarn (packageNamePrefix + "all-targets");
+          # Only warn about default toolchain when building all targets.
+          name = defaultToolchainWarn (packageNamePrefix + "all-targets");
 
           linkBuilds = true;
           buildInputs = map (build: build.value) buildList;
