@@ -54,7 +54,9 @@ in
     sdk = null;
   };
 
-  crossPlatformRustflags = [ ];
+  crossPlatformRustflags = [
+    "--remap-path-prefix=/nix/store=/build" 
+  ];
 
   # Base environment for every target to build on.
   sharedEnvironment = {
