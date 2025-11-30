@@ -380,7 +380,7 @@ let
     name = "cowsay";
 
     # The full path of the executable you're wrapping.
-    executable = "${pkgs.cowsay}/bin/cowsay";
+    executable = pkgs.cowsay + "/bin/cowsay";
 
     # The argParser section should be used for parsing the args of the program
     # for BF_TARGET and BF_NO_WRAPPER (if you want the NO_WRAPPER behaviour).
