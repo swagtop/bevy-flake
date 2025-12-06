@@ -35,8 +35,7 @@ Afterwards, all usage of `bevy-flake` should be done through this new `bf`
 variable. Anything using this will be using your customized configuration.
 
 You can reconfigure `bevy-flake` as many times as you want.
-This could be done like so (this example obviously wouldn't work, because there
-is no config named 'i'):
+This could be done like so:
 
 ```nix
 let
