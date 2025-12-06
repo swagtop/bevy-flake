@@ -170,7 +170,7 @@ bf = bevy-flake.configure (
 ```
 
 
-## `stdenv`
+### `stdenv`
 
 The `bevy-flake` uses the stdenv created by this functions output for its C
 compiler toolchain. By default this is set by `bevy-flake` to be clang.
