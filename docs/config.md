@@ -377,5 +377,5 @@ in
 
 ```
 
-Remember to use `bf` and not `bevy-flake` to get the `wrapExecutable` function
-if you've changed the config.
+Again, remember to use `bf` and not `bevy-flake` to get the `wrapExecutable`
+function if you've changed the config.
