@@ -99,6 +99,7 @@ bf = bevy-flake.configure (
 );
 ```
 
+
 ### `pkgsFor`
 
 You can replace the default `pkgs` used in config assembly with your own, be it
@@ -108,13 +109,13 @@ a pinned instance of `nixpkgs`, or if you want to use overlays.
 bf = bevy-flake.configure {
   pkgsFor =
     system:
-      builtins.fetchTarball {
-        name = "nixos-unstable-2018-09-12";
-        url = "https://github.com/nixos/nixpkgs/archive/ca2ba44cab47767c8127d1c8633e2b581644eb8f.tar.gz";
-        sha256 = "1jg7g6cfpw8qvma0y19kwyp549k1qyf11a5sg6hvn6awvmkny47v";
-      }) {
-        inherit system;
-      };
+    builtins.fetchTarball {
+      name = "nixos-unstable-2018-09-12";
+      url = "https://github.com/nixos/nixpkgs/archive/ca2ba44cab47767c8127d1c8633e2b581644eb8f.tar.gz";
+      sha256 = "1jg7g6cfpw8qvma0y19kwyp549k1qyf11a5sg6hvn6awvmkny47v";
+    }) {
+      inherit system;
+    };
 };
 ```
 
