@@ -57,7 +57,8 @@ in
   };
 
   crossPlatformRustflags = [
-    "--remap-path-prefix=/nix/store=/build" 
+    # Getting rid of some '/nix/store' path prefixes.
+    "--remap-path-prefix=/nix/store=/build"
   ];
 
   # Base environment for every target to build on.
