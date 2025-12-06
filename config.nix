@@ -25,6 +25,8 @@ in
     "x86_64-linux"
   ];
 
+  # Let users set the 'pkgs' used to assemble the configs, should they want to
+  # pin it to a specific nixpkgs rev, or perhaps to use some overlays.
   pkgsFor =
     system:
     import nixpkgs {
@@ -39,7 +41,7 @@ in
   linux = { };
 
   windows = {
-    # Setting the Windows SDK to the latest one in nixpkgs, both arches.
+    # Combining both x86_64 and aarch64 Windows SDK's into one.
     sdk = pkgs.symlinkJoin {
       name = "windows-sdk-both-arches";
       paths = [
