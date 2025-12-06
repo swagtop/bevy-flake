@@ -87,7 +87,7 @@ in
         default:
         default
         + ''
-          if [[ $* == *" web"* ]]; then
+          if [[ $2 == "web" ]]; then
             export BF_TARGET="wasm32-unknown-unknown"
           fi
         '';
