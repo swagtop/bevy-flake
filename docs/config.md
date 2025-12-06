@@ -5,7 +5,7 @@
 Configuring `bevy-flake` is done by calling `configure` from the the flake
 output. The default configuration can be found [here.][default-config]
 
-[default-config]: ../config.nix#L4
+[default-config]: ../config.nix#L14
 
 The convention used in the templates looks like this:
 
