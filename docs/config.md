@@ -344,6 +344,13 @@ let
     # The full path of the executable you're wrapping.
     executable = pkgs.cowsay + "/bin/cowsay";
 
+    # Often packages come with more than just the executable. This could be
+    # other executables, like 'rust-analyzer' and such. If you want to keep the
+    # rest of the derivation together with the wrapped executable, you can put
+    # the package here, and it will be symlinked, with the executable replaced
+    # by the wrapped version.
+    symlinkPackage = pkgs.cowsay;
+
     # The argParser section should be used for parsing the args of the program
     # for BF_TARGET and BF_NO_WRAPPER (if you want the NO_WRAPPER behaviour).
     # You can access the default parser by setting this to be a function.
