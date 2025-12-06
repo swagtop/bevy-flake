@@ -39,52 +39,40 @@ This could be done like so (this example obviously wouldn't work, because there
 is no config named 'i'):
 
 ```nix
-# NEED BETTER EXAMPLES HERE!
-
 let
   bf = bevy-flake.configure {
-    i = "need more string";
+    systems = [ "x86_64-darwin" ];
   };
-  # bf.i == "need more string"
+  # bf.systems == [ "x86_64-darwin" ]
   
   bf' = bf.configure (
     { previous, ... }:
     {
-      i = "don't " + previous.i;
+      systems = previous.systems ++ [ "arm7l-linux" ];
     }
   );
-  # bf'.i == "don't need more string"
+  # bf'.systems == [ "x86_64-darwin" "arm7l-linux" ]
   
   bf'' = bf'.configure (
     { default, ... }:
     {
-      i = default.i;
-      back = "to basics";
+      systems = default.systems;
     }
   );
-  # bf''.i == "need more string"
-  # bf''.back == "to basics"
+  # bf''.systems == [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ]
 in
 ```
 
 If you find most of this Nix stuff confusing, you can browse the old version of
-`bevy-flake` [here.][old-bevy-flake] You may find it easier to configure.
+`bevy-flake` [here.][old-bevy-flake] It is older and has less features, but you
+may find it easier to configure.
 
 [old-bevy-flake]: https://github.com/swagtop/bevy-flake/tree/old
 
 
 ## General configuration
 
-<details> <summary><code>systems</code></summary>
-
-> **You cannot refer to the `pkgs` from `{ pkgs, ... }:` when configuring the
-> `systems` attribue. We have a chicken-and-the-egg problem here, where the
-> `pkgs` passed into the rest of the config depends on the `systems` passed
-> in from the config.**
->
-> **If you want to refer to somthing in `lib`, just access it through
-> `nixpkgs.lib`. This could be useful for `nixpkgs.lib.systems.flakeExposed`.**
-
+### `systems`
 
 If you find that a system you want to use `bevy-flake` isn't included by
 default, or if you want to exclude a system, you can set this up yourself by
@@ -112,8 +100,6 @@ bf = bevy-flake.configure (
 );
 ```
 
-</details>
-
 
 ## The operating systems
 
@@ -126,14 +112,12 @@ machine, just compile them with `--target` and run those. On NixOS you will
 probably find the `steam-run` package to be useful here.
 
 
-<details> <summary><code>linux</code></summary>
+### `linux`
 
 Currently there is nothing to configure for the Linux targets.
 
-</details>
 
-
-<details> <summary><code>windows</code></summary>
+### `windows`
 
 By default this will be the latest Windows SDK provided by `nixpkgs`. You could
 set a specific version here yourself, but beware of platform specific issues
@@ -141,27 +125,23 @@ that `xwin`-made SDK's could create, when packaging them manually with tarballs.
 
 The SDK set here should contain the libs for both `x86_64` and `aarch64` arches.
 
-</details>
 
-
-<details> <summary><code>macos</code></summary>
+### `macos`
 
 You will not be able to cross-compile to MacOS targets without an SDK. Setting
-the `macos.sdk` to a prepackaged one will do the trick.
+the `macos.sdk` to a packaged one will enable this.
 
 Read how you can do this [here.](macos.md)
 
-</details>
 
-
-## The <something> functions
+## The functions
 
 The configuration of `bevy-flake` should be system-agnostic. Therefore all usage
-of packages need to be done through these <something> functions. These are functions
+of packages need to be done through these functions. These are functions
 that return either a package, or a list of packages, given an input 'pkgs'.
 
 
-<details> <summary><code>rustToolchainFor</code></summary>
+### `rustToolchainFor`
 
 This function takes in a `targets` argument, which is produced from the
 `targetEnvironments` attribute names.
@@ -181,20 +161,17 @@ bf = bevy-flake.configure (
           inherit (pkgs.stdenv.hostPlatform) system;
           overlays = [ (fenix.overlays.default ) ];
         }).fenix;
-      channel = "stable"; # For nightly, use "latest".
     in
       fx.combine (
-        [ fx.${channel}.toolchain ]
-        ++ map (target: fx.targets.${target}.${channel}.rust-std) targets
+        [ fx.stable.toolchain ]
+        ++ map (target: fx.targets.${target}.stable.rust-std) targets
       );
   };
 );
 ```
 
-</details>
 
-
-<details> <summary><code>stdenv</code></summary>
+## `stdenv`
 
 The `bevy-flake` uses the stdenv created by this functions output for its C
 compiler toolchain. By default this is set by `bevy-flake` to be clang.
@@ -214,10 +191,8 @@ bf = bevy-flake.configure (
 );
 ```
 
-</details>
 
-
-<details> <summary><code>runtimeInputs</code></summary>
+### `runtimeInputs`
 
 This should return a list of packages that are needed for the system you are on
 to actually run the program. This will mostly be graphics libraries and the
@@ -247,8 +222,6 @@ bf = bevy-flake.configure (
 );
 ```
 
-</details>
-
 
 ## The environments and additional scripting
 
@@ -256,15 +229,13 @@ For these attributes, should you want to refer to `pkgs`, you can optionally
 make the value a function that takes in a single argument. The main `pkgs`
 instance used by `bevy-flake` will then be passed into the function.
 
-<details> <summary><code>crossPlatformRustflags</code></summary>
+### `crossPlatformRustflags`
 
 This is a shortcut for adding rustflags to every target that is not the dev
 environment.
 
-</details>
 
-
-<details> <summary><code>sharedEnvironment</code></summary>
+### `sharedEnvironment`
 
 Set environment variables before the target specific ones. Uses the same syntax
 as in `mkShell.env`.
@@ -277,10 +248,8 @@ bf = bevy-flake.configure {
 };
 ```
 
-</details>
 
-
-<details> <summary><code>devEnvironment</code></summary>
+### `devEnvironment`
 
 Set environment variables when no `BF_TARGET` is set. This is your development
 environment that gets activated when running `cargo run` or `cargo build`
@@ -294,10 +263,8 @@ bf = bevy-flake.configure {
 };
 ```
 
-</details>
 
-
-<details> <summary><code>targetEnvironments</code></summary>
+### `targetEnvironments`
 
 Set environment variables for a specific target. Each attribute name will be fed
 into the creation of the Rust toolchain, so if you want a target that is not
@@ -333,15 +300,11 @@ let
 in
 ```
 
-</details>
-
-<details> <summary><code>prePostScript</code></summary>
+### `prePostScript`
 
 Here you can add some scripting to run before `postScript` but after the rest
 of the wrapper script. It could be used to extend `bevy-flake` functionality
 across all things it wraps.
-
-</details>
 
 
 ## Wrapper
