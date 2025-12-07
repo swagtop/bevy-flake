@@ -19,7 +19,7 @@
   stdenv,
 
   src,
-}:
+}@config:
 
 pkgs:
 
@@ -184,6 +184,7 @@ in
 )
 // {
   inherit runtimeInputs;
+  bfConfig = config;
   meta = {
     mainProgram = name;
     platforms = systems;
