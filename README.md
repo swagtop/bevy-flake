@@ -77,7 +77,8 @@ bevy run web --open
 bevy build web --bundle
 ```
 
-If you've set the `src` config attribute, you can build your project using Nix:
+If you've set the `src` config attribute to the path of your project, you can
+build it using Nix:
 
 ```sh
 # Build all targets:
