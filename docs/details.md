@@ -51,21 +51,22 @@ or a package wrapped, that isn't included by default.
 
 ## What does `bevy-flake` do?
 
-Normally, cross-compiling with Nix is done through `pkgsCross`, with a big focus
-on which `system` building for some other `system`. This flake takes a different
-approach, focusing on a few systems (`aarch64-darwin`, `aarch64-linux`,
-`x86_64-linux`) building all targets.
- 
-The flake provides a preconfigured environment for the Rust toolchain, and a
-couple of packages that are helpful for Bevy development. The environment for
-these packages can be overridden with ones own configuration.
+Normally, cross-compiling with Nix is done within the context of the Nix
+builder, through the nixpkgs cross-compilation system.
 
-The packages contain what you would expect, with the binaries wrapped in a shell
-script made by the `wrapExecutable` function. This wrapper goes through a couple
-of steps, that change the environment based on the configuration of
-`bevy-flake`.
+What this flake does instead is put all of the configuration for the
+cross-compilation into a single wrapper script, wrapping `cargo`, `dx`, and
+`bevy-flake`, such that cross- compilation can happen anywhere the wrapper is
+run, outside or inside of the Nix builder.
 
-These are the steps:
+This wrapper is built based on a single place of configuration. Configuring
+`bevy-flake` to your liking is very easy and flexible, more on this
+[here](config.md).
+
+When run, the wrapper changes the environment for the target specified,
+individually and separately for every target.
+
+To do this, it goes through a couple of different steps:
 
  1. Arg parsing
 
@@ -106,7 +107,6 @@ These are the steps:
 
   
  7. The executable wrapped is run.
-
 
 
 ## How does `bevy-flake` work?
@@ -192,12 +192,4 @@ request!
 
 ## What am I allowed to do with the `bevy-flake` repo?
 
-You can do whatever you want with it.
-
-If you find that you dislike the structure of it, or the opinonated design, you
-can just fork it or copy it or just take the bits you find useful for yourself.
-You don't have to provide any credit or include the license or anything like
-that.
-
-This flake is just the culmination of a lot of trial and error, with the goal of
-making working with Bevy on Nix more comfortable.
+Feel free to do anything you would like with it, it is licensed with MIT-0.
