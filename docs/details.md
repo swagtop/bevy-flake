@@ -56,7 +56,7 @@ builder, through the nixpkgs cross-compilation system.
 
 What this flake does instead is put all of the configuration for the
 cross-compilation into a single wrapper script, wrapping `cargo`, `dx`, and
-`bevy-flake`, such that cross- compilation can happen anywhere the wrapper is
+`bevy-cli`, such that cross- compilation can happen anywhere the wrapper is
 run, outside or inside of the Nix builder.
 
 This wrapper is built based on a single place of configuration. Configuring
