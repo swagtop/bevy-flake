@@ -131,12 +131,12 @@ BF_NO_WRAPPER
 
 # The environment wrapper sets up the MacOS environment variables based on the
 # path given by this environment variable. You should not set this yourself, but
-# set it through the `macos.sdk` attribute.
+# set it through the `macos.sdk` config attribute.
 BF_MACOS_SDK_PATH
 
 # This is the path to the Windows SDK used for the Windows targets. By default
-# it is set to the one from nixpkgs, but you can package override it with your
-# own in sharedEnvironment, if you'd like.
+# it is set to the one from nixpkgs, but you can set it to any other version
+# through the `windows.sdk` config attribute.
 BF_WINDOWS_SDK_PATH
 
 # The environment wrapper uses this variable to switch to the appropriate
