@@ -93,14 +93,14 @@ To do this, it goes through a couple of different steps:
     _development environhment._
 
 
- 5. The `prePostScript` section runs
+ 5. The `extraScript` section runs
 
     _If you want to add some functionality to the wrapper for all packages that_
     _is wrapped with it, you can add it here in through the configuration. By_
     _default this is configured to do nothing._
 
   
- 6. The `postScript` section runs
+ 6. The `postExtraScript` section runs
 
     _If you want to add some functionality to a singular package, you can_
     _add it here when wrapping a package with `wrapExecutable`._

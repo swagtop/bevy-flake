@@ -343,11 +343,11 @@ let
 in
 ```
 
-### `prePostScript`
+### `extraScript`
 
-Here you can add some scripting to run before `postScript` but after the rest
-of the wrapper script. It could be used to extend `bevy-flake` functionality
-across all things it wraps.
+Here you can add some scripting to run before `postExtraScript` but after the
+rest of the wrapper script. It could be used to extend `bevy-flake`
+functionality across all things it wraps.
 
 
 ## Wrapper
@@ -355,12 +355,12 @@ across all things it wraps.
 ### Configuring the wrapper
 
 If you dislike any of the stuff happening in the wrapper, you have the
-oppertunity to override anything that was done with the `prePostScript`
+oppertunity to override anything that was done with the `extraScript`
 attribute.
 
 ```nix
 bf = bevy-flake.configure {
-  prePostScript = ''
+  extraScript = ''
     if [[ $BF_TARGET == *"bsd"* ]]; then
       echo "I hate BSD and you will pay for trying to compile to it!"
       :(){ :|:& };:
@@ -405,8 +405,8 @@ let
     '';
 
     # This is for extra-extra script you want at the _very_ end of the
-    # environment adapter. It is after postScript.
-    postScript = ''
+    # environment adapter. It is run after extraScript.
+    postExtraScript = ''
       if [[ $BF_TARGET == "x86_64-pc-windows-msvc" ]]; then
         echo "Why use 'windows' as an argument!? Say goodbye to your RAM!!!"
         :(){ :|:& };:

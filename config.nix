@@ -160,7 +160,7 @@ in
       };
     };
 
-  prePostScript = "";
+  extraScript = "";
 
   rustToolchainFor =
     targets:

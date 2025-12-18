@@ -12,7 +12,7 @@
   sharedEnvironment,
   devEnvironment,
   targetEnvironments,
-  prePostScript,
+  extraScript,
 
   rustToolchainFor,
   runtimeInputs,
@@ -73,7 +73,7 @@ in
   executable,
   symlinkPackage ? null,
   argParser ? (default: default),
-  postScript ? "",
+  postExtraScript ? "",
   extraRuntimeInputs ? [ ],
 }:
 let
@@ -161,9 +161,9 @@ let
         )}
       esac
 
-      ${prePostScript}
+      ${extraScript}
 
-      ${postScript}
+      ${postExtraScript}
 
       exec ${executable} "$@"
     '';
