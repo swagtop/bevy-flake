@@ -129,13 +129,13 @@ If the place you are configuring `bevy-flake` already has a built 'pkgs' or a
 let
   system = "x86_64-linux";
   bf = bevy-flake.configure {
-    withPkgs = import <nixpkgs> { inherit system; };
+    withPkgs = import nixpkgs { inherit system; };
   };
 in
 ```
 ```nix
 let
-  pkgs = import <nixpkgs> { system = "x86_64-linux"; };
+  pkgs = import nixpkgs { system = "x86_64-linux"; };
   bf = bevy-flake.configure { withPkgs = pkgs; };
 in
 ```
