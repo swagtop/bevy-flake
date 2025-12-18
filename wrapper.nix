@@ -85,7 +85,7 @@ let
       input-rust-toolchain
       pkgs.pkg-config
     ];
-  argParser' = if (isFunction argParser) then argParser defaultArgParser else argParser;
+  argParser' = if isFunction argParser then argParser defaultArgParser else argParser;
   wrapped = pkgs.writeShellApplication {
     inherit name;
     runtimeInputs = totalRuntimeInputs;
