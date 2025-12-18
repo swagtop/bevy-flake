@@ -333,6 +333,8 @@ let
     {
       targetEnvironment = recursiveUpdate default.targetEnvironments {
         "x86_64-unknown-linux-gnu" = {
+          # This only sets the 'BINDGEN_EXTRA_CLANG_ARGS' environment variable,
+          # leaving every other environment variable untouched.
           BINDGEN_EXTRA_CLANG_ARGS = "-I${some-library}/usr/include";
         };
       };
