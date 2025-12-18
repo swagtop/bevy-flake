@@ -1,5 +1,5 @@
 # For compatibility with non-flake-enabled Nix versions.
 (import (fetchTarball {
-  url = "https://github.com/edolstra/flake-compat/archive/f387cd2afec9419c8ee37694406ca490c3f34ee5.tar.gz";
-  sha256 = "sha256:0bi4cpqmwpqkv2ikml4ryh14j5l9bl1f16wfixa97h6yvk7ik9aw";
+  url = "https://github.com/NixOS/flake-compat/archive/65f23138d8d09a92e30f1e5c87611b23ef451bf3.tar.gz";
+  sha256 = "sha256:1c5f7vfn205bj4bmkgzgyw9504xh5j7gcwi8jf7yh581bwzlwl71";
 }) { src = ./.; }).defaultNix

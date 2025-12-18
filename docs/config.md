@@ -105,6 +105,9 @@ bf = bevy-flake.configure (
 You can replace the default `pkgs` used in config assembly with your own, be it
 a pinned instance of `nixpkgs`, or if you want to use overlays.
 
+If you are doing this you should configure your own to allow unfree packages,
+and to accept the Microsoft MSVC license.
+
 ```nix
 bf = bevy-flake.configure {
   withPkgs =

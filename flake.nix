@@ -18,7 +18,7 @@
       ifFunctionThenInput =
         maybeFunction: input: if isFunction maybeFunction then maybeFunction input else maybeFunction;
 
-      defaultConfig = import ./config.nix { inherit nixpkgs; };
+      defaultConfig = import ./config.nix nixpkgs;
       assembleConfigs =
         configList: pkgs:
         foldl' (

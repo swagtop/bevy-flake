@@ -1,4 +1,4 @@
-{ nixpkgs }:
+nixpkgs:
 
 let
   inherit (builtins)
@@ -156,25 +156,7 @@ in
       "wasm32-unknown-unknown" = {
         RUSTFLAGS = ''--cfg getrandom_backend=\"wasm_js\"'';
         # Adding latest version of 'wasm-bindgen' to PATH.
-        PATH =
-          (pkgs.wasm-bindgen-cli_0_2_105 or pkgs.buildWasmBindgenCli (
-            let
-              pname = "wasm-bindgen-cli";
-              version = "0.2.105";
-              src = pkgs.fetchCrate {
-                inherit pname version;
-                hash = "sha256-zLPFFgnqAWq5R2KkaTGAYqVQswfBEYm9x3OPjx8DJRY=";
-              };
-            in
-            {
-              inherit src;
-              cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
-                inherit src pname version;
-                hash = "sha256-a2X9bzwnMWNt0fTf30qAiJ4noal/ET1jEtf5fBFj5OU=";
-              };
-            }
-          ))
-          + "/bin:$PATH";
+        PATH = pkgs.wasm-bindgen-cli_0_2_105 + "/bin:$PATH";
       };
     };
 
