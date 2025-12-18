@@ -321,8 +321,9 @@ bf = bevy-flake.configure (
 );
 ```
 
-If you are editing existing environments, the constant use of `old` will
-probably be annoying. It could be helpful here to use `lib.recursiveUpdate`:
+If you are editing existing environments, the constant use of `default` or
+`previous` will probably be annoying. It could be helpful here to use the
+`lib.recursiveUpdate` function here:
 
 ```nix
 let
