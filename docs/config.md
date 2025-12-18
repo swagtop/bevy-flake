@@ -119,6 +119,24 @@ bf = bevy-flake.configure {
 };
 ```
 
+If the place you are configuring `bevy-flake` already has a built 'pkgs' or a
+'system' available, you can just omit the `system:` part:
+
+```nix
+let
+  system = "x86_64-linux";
+  bf = bevy-flake.configure {
+    withPkgs = import <nixpkgs> { inherit system; };
+  };
+in
+```
+```nix
+let
+  pkgs = import <nixpkgs> { system = "x86_64-linux"; };
+  bf = bevy-flake.configure { withPkgs = pkgs; };
+in
+```
+
 
 ## The operating systems
 
