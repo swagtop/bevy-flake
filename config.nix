@@ -27,7 +27,7 @@ in
 
   # Let users set the 'pkgs' used to assemble the configs, should they want to
   # pin it to a specific nixpkgs rev, or perhaps to use some overlays.
-  pkgsFor =
+  withPkgs =
     system:
     import nixpkgs {
       inherit system;

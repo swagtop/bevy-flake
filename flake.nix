@@ -42,11 +42,11 @@
             # 'systems' config attribute. We can get this by assembling the
             # configs without any 'pkgs' first, and only use the 'systems'
             # output of this.
-            # This is why you cannot reference 'pkgs' in 'systems' or 'pkgsFor'.
-            # A helpful error is thrown, should this ever happen.
+            # This is why you cannot reference 'pkgs' in 'systems' or
+            # 'withPkgs'. A helpful error is thrown, should this ever happen.
             throw (
               "You cannot reference 'pkgs' from the config inputs in 'systems'"
-              + " or 'pkgsFor'.\nIf you're using a 'pkgs.lib' function, get it"
+              + " or 'withPkgs'.\nIf you're using a 'pkgs.lib' function, get it"
               + " through 'nixpkgs.lib' instead."
             )
           );
@@ -55,7 +55,11 @@
           packages = eachSystem (
             system:
             let
-              pkgs = configNoPkgs.pkgsFor system;
+              pkgs =
+                if isFunction configNoPkgs.withPkgs then
+                  configNoPkgs.withPkgs system
+                else
+                  configNoPkgs.withPkgs;
             in
             import ./packages.nix {
               inherit pkgs nixpkgs;

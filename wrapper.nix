@@ -1,7 +1,7 @@
 {
   # These two are not used here, as they are used to set up pkgs earlier.
   systems,
-  pkgsFor,
+  withPkgs,
 
   linux,
   windows,

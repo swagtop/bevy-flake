@@ -100,14 +100,14 @@ bf = bevy-flake.configure (
 ```
 
 
-### `pkgsFor`
+### `withPkgs`
 
 You can replace the default `pkgs` used in config assembly with your own, be it
 a pinned instance of `nixpkgs`, or if you want to use overlays.
 
 ```nix
 bf = bevy-flake.configure {
-  pkgsFor =
+  withPkgs =
     system:
     (builtins.fetchTarball {
       name = "nixos-unstable-2018-09-12";
