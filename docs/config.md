@@ -174,19 +174,20 @@ compilation, `cargo`, `rustc`, etc.
 bf = bevy-flake.configure (
   { pkgs, ... }
   {
-    rustToolchain = targets:
-    let
-      fx =
-        (import nixpkgs {
-          inherit (pkgs.stdenv.hostPlatform) system;
-          overlays = [ (fenix.overlays.default ) ];
-        }).fenix;
-    in
-      fx.combine (
-        [ fx.stable.toolchain ]
-        ++ map (target: fx.targets.${target}.stable.rust-std) targets
-      );
-  };
+    rustToolchain =
+      targets:
+      let
+        fx =
+          (import nixpkgs {
+            inherit (pkgs.stdenv.hostPlatform) system;
+            overlays = [ (fenix.overlays.default ) ];
+          }).fenix;
+      in
+        fx.combine (
+          [ fx.stable.toolchain ]
+          ++ map (target: fx.targets.${target}.stable.rust-std) targets
+        );
+  }
 );
 ```
 
@@ -207,7 +208,7 @@ bf = bevy-flake.configure (
   { pkgs, ... }:
   {
     stdenv = pkgs: pkgs.gnuStdenv;
-  };
+  }
 );
 ```
 
@@ -235,7 +236,7 @@ bf = bevy-flake.configure (
           wayland
         ]);
     #...
-  };
+  }
 );
 ```
 
