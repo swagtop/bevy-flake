@@ -225,8 +225,6 @@ bf = bevy-flake.configure (
   { pkgs, ... }:
   {
     runtimeInputs =
-      # Only including these for Linux, they aren't needed for MacOS, and would
-      # actually break evaluation on MacOS if we did not do this.
       optionals (pkgs.stdenv.isLinux) 
         (with pkgs; [
           alsa-lib-with-plugins
@@ -236,7 +234,6 @@ bf = bevy-flake.configure (
           vulkan-loader
           wayland
         ]);
-    };
     #...
   };
 );
@@ -257,7 +254,7 @@ as in `mkShell.env`.
 ```nix
 bf = bevy-flake.configure {
   sharedEnvironment = {
-    CARGO_BUILD_JOBS = "100";
+    CARGO_FEATURE_RELEASE = "1";
   };
 };
 ```
@@ -307,8 +304,9 @@ let
     {
       targetEnvironment = recursiveUpdate default.targetEnvironments {
         "x86_64-unknown-linux-gnu" = {
-          # This only sets the 'BINDGEN_EXTRA_CLANG_ARGS' environment variable,
-          # leaving every other environment variable untouched.
+          # This only sets the 'BINDGEN_EXTRA_CLANG_ARGS' environment variable
+          # for the "x86_64-unknown-linux-gnu" target, leaving every other
+          # environment variable and target untouched.
           BINDGEN_EXTRA_CLANG_ARGS = "-I${some-library}/usr/include";
         };
       };
