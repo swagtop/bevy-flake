@@ -3,9 +3,9 @@
 ## Overview
 
 Configuring `bevy-flake` is done by calling `configure` from the the flake
-output. The default configuration can be found [here.][default-config]
+output attribute set. The default configuration can be found [here.][default]
 
-[default-config]: ../config.nix#L14
+[default]: ../config.nix#L14
 
 The convention used in the templates looks like this:
 
@@ -68,8 +68,6 @@ may find it easier to configure.
 
 [old-bevy-flake]: https://github.com/swagtop/bevy-flake/tree/old
 
-
-## General configuration
 
 ### `systems`
 
@@ -141,17 +139,6 @@ in
 ```
 
 
-## The operating systems
-
-These define the cross-compiled builds of the targets. For example, setting the
-MacOS SDK will not change your local build created by `cargo build` on MacOS
-systems.
-
-If you want to test how these builds run with these settings on your Nix
-machine, just compile them with `--target` and run those. On NixOS you will
-probably find the `steam-run` package to be useful here.
-
-
 ### `linux`
 
 Currently there is nothing to configure for the Linux targets.
@@ -172,13 +159,6 @@ You will not be able to cross-compile to MacOS targets without an SDK. Setting
 the `macos.sdk` to a packaged one will enable this.
 
 Read how you can do this [here.](macos.md)
-
-
-## The functions
-
-The configuration of `bevy-flake` should be system-agnostic. Therefore all usage
-of packages need to be done through these functions. These are functions
-that return either a package, or a list of packages, given an input 'pkgs'.
 
 
 ### `rustToolchainFor`
@@ -262,12 +242,6 @@ bf = bevy-flake.configure (
 );
 ```
 
-
-## The environments and additional scripting
-
-For these attributes, should you want to refer to `pkgs`, you can optionally
-make the value a function that takes in a single argument. The main `pkgs`
-instance used by `bevy-flake` will then be passed into the function.
 
 ### `crossPlatformRustflags`
 
