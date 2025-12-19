@@ -161,7 +161,7 @@ the `macos.sdk` to a packaged one will enable this.
 Read how you can do this [here.](macos.md)
 
 
-### `rustToolchainFor`
+### `rustToolchain`
 
 This function takes in a `targets` argument, which is produced from the
 `targetEnvironments` attribute names.
@@ -174,7 +174,7 @@ compilation, `cargo`, `rustc`, etc.
 bf = bevy-flake.configure (
   { pkgs, ... }
   {
-    rustToolchainFor = targets:
+    rustToolchain = targets:
     let
       fx =
         (import nixpkgs {

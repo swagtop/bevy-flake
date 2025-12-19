@@ -14,7 +14,7 @@
   targetEnvironments,
   extraScript,
 
-  rustToolchainFor,
+  rustToolchain,
   runtimeInputs,
   stdenv,
 
@@ -23,9 +23,10 @@
 
 pkgs:
 
+input-rust-toolchain:
+
 let
   inherit (builtins)
-    attrNames
     concatStringsSep
     isFunction
     ;
@@ -39,9 +40,6 @@ let
 
   exportEnv =
     env: concatStringsSep "\n" (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env);
-
-  targets = (attrNames targetEnvironments);
-  input-rust-toolchain = rustToolchainFor targets;
 
   defaultArgParser = ''
     # Check if what the adapter is being run with.

@@ -25,7 +25,7 @@
         { pkgs, ... }:
         {
           src = ./.;
-          rustToolchainFor =
+          rustToolchain =
             targets:
             let
               fx = fenix.packages.${pkgs.stdenv.hostPlatform.system};

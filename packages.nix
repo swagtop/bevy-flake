@@ -7,6 +7,7 @@ let
   inherit (builtins)
     attrNames
     concatStringsSep
+    isFunction
     warn
     ;
   inherit (nixpkgs.lib)
@@ -21,15 +22,23 @@ let
   inherit (config)
     src
     systems
-    rustToolchainFor
+    rustToolchain
     macos
     targetEnvironments
     ;
 
-  wrapExecutable = (import ./wrapper.nix config) pkgs;
-
   targets = attrNames targetEnvironments;
-  input-rust-toolchain = rustToolchainFor targets;
+  input-rust-toolchain =
+    if isFunction rustToolchain then
+      rustToolchain targets
+    else
+      throw (
+        "The list of targets are input here, this should be a function that is "
+        + "using the input targets when building the Rust toolchain."
+      );
+
+  wrapExecutable = (import ./wrapper.nix config) pkgs input-rust-toolchain;
+
   wrapped-rust-toolchain =
     (wrapExecutable {
       name = "cargo";

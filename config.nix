@@ -162,7 +162,7 @@ in
 
   extraScript = "";
 
-  rustToolchainFor =
+  rustToolchain =
     targets:
     (pkgs.symlinkJoin {
       name = "nixpkgs-rust-toolchain";

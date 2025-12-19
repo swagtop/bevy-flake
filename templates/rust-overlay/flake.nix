@@ -25,7 +25,7 @@
         { pkgs, ... }:
         {
           src = ./.;
-          rustToolchainFor =
+          rustToolchain =
             targets:
             let
               pkgs-with-overlay = (
