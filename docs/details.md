@@ -20,18 +20,18 @@ or a package wrapped, that isn't included by default.
 ```nix
 {
   # Systems supported and the eachSystem helper function for this instance.
-  systems = [ <string> ];
+  systems = [ <system> ];
   eachSystem = <function>;
 
   # The default devShell, includes the packages that don't need to be built.
   devShells."<system>".default = <derivation>;
 
-  # All packages pre-wrapped by bevy-flake.
   packages."<system>" = {
     rust-toolchain = <derivation>; # The wrapped Rust toolchain.
     rust-toolchain.unwrapped = <derivation>; # The unwrapped Rust toolchain.
     rust-toolchain.wrapExecutable = <function>; # Use to wrap your own packages.
     
+    # Pre-wrapped packages.
     dioxus-cli = <derivation>;
     bevy-cli = <derivation>;
 

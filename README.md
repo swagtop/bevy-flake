@@ -39,7 +39,7 @@ other toolchain provider not listed here. More on this [here.][config-toolchain]
 
 This flake is equipped with `flake-compat`, should you be a non-flake user.
 
-[config-toolchain]: docs/config.md#the-mk-functions
+[config-toolchain]: docs/config.md#rusttoolchain
 
 
 ## How to use
@@ -96,7 +96,7 @@ If the target you want isn't in the default configuration, you can add yourself
 by setting its environment up. More on that [here.][environments]
 
 [entries]: flake.nix#L101
-[environments]: docs/config.md#environments
+[environments]: docs/config.md#targetenvironments
 
 - [Configuration](docs/config.md)
 - [Pitfalls](docs/pitfalls.md)
