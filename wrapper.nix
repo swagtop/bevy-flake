@@ -1,7 +1,8 @@
 {
-  # These two are not used here, as they are used to set up pkgs earlier.
+  # These three are not used here, but are used ealier sections.
   systems,
   withPkgs,
+  rustToolchain,
 
   linux,
   windows,
@@ -14,7 +15,6 @@
   targetEnvironments,
   extraScript,
 
-  rustToolchain,
   runtimeInputs,
   stdenv,
 

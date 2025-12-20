@@ -61,7 +61,7 @@ run, outside or inside of the Nix builder.
 
 This wrapper is built based on a single place of configuration. Configuring
 `bevy-flake` to your liking is very easy and flexible, more on this
-[here](config.md).
+[here.](config.md)
 
 When run, the wrapper changes the environment for the target specified,
 individually and separately for every target.

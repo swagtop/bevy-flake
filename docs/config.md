@@ -3,7 +3,8 @@
 ## Overview
 
 Configuring `bevy-flake` is done by calling `configure` from the the flake
-output attribute set. The default configuration can be found [here.][default]
+output attribute set. Your configuration overrides the default one, which can be
+found [here.][default]
 
 [default]: ../config.nix#L14
 
