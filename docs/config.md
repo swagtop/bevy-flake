@@ -104,7 +104,7 @@ You can replace the default `pkgs` used in config assembly with your own, be it
 a pinned instance of `nixpkgs`, or if you want to use overlays.
 
 If you are doing this you should configure your own to allow unfree packages,
-and to accept the Microsoft MSVC license.
+and to accept the Microsoft MSVC license (not done in following examples).
 
 ```nix
 bf = bevy-flake.configure {
@@ -151,9 +151,10 @@ sets the `BF_WINDOWS_SDK_PATH` environment variable to the path of the SDK.
 
 The SDK set here should contain the libs for both `x86_64` and `aarch64` arches.
 
-Beware of issues that can arise if you try to package it yourself by putting an
-existing one in a tarball, on case insensitive file systems, such as the one
-used by MacOS.
+Beware of issues that can arise on case insensitive file systems - such as the
+one used by MacOS - if you try to package it yourself by putting an existing one
+in a tarball. Unpacking this as a fixed-output derivation can result in a messed
+up, broken SDK.
 
 
 ### `macos`
@@ -290,14 +291,17 @@ bf = bevy-flake.configure (
   { default, ... }:
   {
     targetEnvironments = default.targetEnvironments // {
-      "target-triple" = {};
+      "target-triple" = {
+        SOME_VARIABLE = "1";
+        OTHER_VARIABLE = "0";
+      };
     };
   }
 );
 ```
 
 If you are editing existing environments, the constant use of `default` or
-`previous` will probably be annoying. It could be helpful here to use the
+`previous` will probably be annoying. It could be helpful to use the
 `recursiveUpdate` function here:
 
 ```nix
@@ -307,7 +311,7 @@ let
     { default, ...}:
     {
       targetEnvironments = recursiveUpdate default.targetEnvironments {
-        # Only the "x86_64-unknown-linux-gnu" target is modified.
+        # Every other target in 'default.targetEnvironments' are carried over.
         "x86_64-unknown-linux-gnu" = {
           # Only "BINDGEN_EXTRA_CLANG_ARGS" is set, every other previously set
           # environment variable are untouched.
@@ -326,15 +330,6 @@ Here you can add some scripting to run before `postExtraScript` but after the
 rest of the wrapper script. It could be used to extend `bevy-flake`
 functionality across all things it wraps.
 
-
-## Wrapper
-
-### Configuring the wrapper
-
-If you dislike any of the stuff happening in the wrapper, you have the
-oppertunity to override anything that was done with the `extraScript`
-attribute.
-
 ```nix
 bf = bevy-flake.configure {
   extraScript = ''
@@ -347,7 +342,7 @@ bf = bevy-flake.configure {
 ```
 
 
-### Using the wrapper
+## Wrapper
 
 If you have a program not included with the flake, that you'd like to use the
 same dev environment as the rest of the `bevy-flake` packages, you can wrap
