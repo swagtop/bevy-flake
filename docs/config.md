@@ -146,11 +146,14 @@ Currently there is nothing to configure for the Linux targets.
 
 ### `windows`
 
-By default this will be the latest Windows SDK provided by `nixpkgs`. You could
-set a specific version here yourself, but beware of platform specific issues
-that `xwin`-made SDK's could create, when packaging them manually with tarballs.
+By default this will be the latest Windows MSVC SDK provided by `nixpkgs`. This
+sets the `BF_WINDOWS_SDK_PATH` environment variable to the path of the SDK.
 
 The SDK set here should contain the libs for both `x86_64` and `aarch64` arches.
+
+Beware of issues that can arise if you try to package it yourself by putting an
+existing one in a tarball, on case insensitive file systems, such as the one
+used by MacOS.
 
 
 ### `macos`
@@ -295,7 +298,7 @@ bf = bevy-flake.configure (
 
 If you are editing existing environments, the constant use of `default` or
 `previous` will probably be annoying. It could be helpful here to use the
-`lib.recursiveUpdate` function here:
+`recursiveUpdate` function here:
 
 ```nix
 let
@@ -303,11 +306,11 @@ let
   bf = bevy-flake.configure (
     { default, ...}:
     {
-      targetEnvironment = recursiveUpdate default.targetEnvironments {
+      targetEnvironments = recursiveUpdate default.targetEnvironments {
+        # Only the "x86_64-unknown-linux-gnu" target is modified.
         "x86_64-unknown-linux-gnu" = {
-          # This only sets the 'BINDGEN_EXTRA_CLANG_ARGS' environment variable
-          # for the "x86_64-unknown-linux-gnu" target, leaving every other
-          # environment variable and target untouched.
+          # Only "BINDGEN_EXTRA_CLANG_ARGS" is set, every other previously set
+          # environment variable are untouched.
           BINDGEN_EXTRA_CLANG_ARGS = "-I${some-library}/usr/include";
         };
       };
@@ -315,6 +318,7 @@ let
   );
 in
 ```
+
 
 ### `extraScript`
 
