@@ -2,14 +2,14 @@
 
 ## Who is `bevy-flake` for?
 
-This flake is for Nix users, who want to work with Bevy. It is for the developer
+This flake is for Nix users that want to work with Bevy. It is for the developer
 who wants to use a Nix environment to compile portable binaries for the major
-desktop platforms on their own computer, instead of having to resort to using
-Docker, GitHub actions, or the like.
+desktop platforms on their own computer, instead of having to rely on  Docker,
+GitHub actions, or the like.
 
 Its goal is to be both easy to use for beginners, and powerfully ergonomic for
 experienced users. The flake provides a suite of packages useful for Bevy
-development, that all are configured from a single place.
+development, all are configured from a single place.
 
 The flake is easy to configure and extend, should you want support for a target,
 or a package wrapped, that isn't included by default.
@@ -133,6 +133,8 @@ BF_NO_WRAPPER
 # path given by this environment variable. You should not set this yourself, but
 # set it through the `macos.sdk` config attribute.
 BF_MACOS_SDK_PATH
+BF_MACOS_SDK_MINIMUM_VERSION
+BF_MACOS_SDK_DEFAULT_VERSION
 
 # This is the path to the Windows SDK used for the Windows targets. By default
 # it is set to the one from nixpkgs, but you can set it to any other version
@@ -173,18 +175,11 @@ Read more on the inner workings of the wrapper, and how to use it [here.][wrap]
 
 ## What is the future of `bevy-flake`?
 
-There are a couple of things that I would like to be added to `bevy-flake`.
+The following things should be added to `bevy-flake`.
 
 1. The flake should support the mobile targets, ie. Android and iOS. I've tried
    myself to set it up for a bit, but couldn't get iOS working and therefore put
    it on the backburner. I might look into it more later.
-
-2. The flake should include some utilities for doing stuff that Bevy itself
-   cannot do properly yet, such as setting up the Window icon, or easily making
-   a MacOS `.app` directory.
-
-   _Or maybe it shouldn't? I've been reading stuff about how there are plans_
-   _for `bevy-cli` having these capabilities. I will have to think on this._
 
 If you manage to configure any of this stuff yourself, please open a pull
 request!

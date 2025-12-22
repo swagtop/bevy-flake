@@ -37,7 +37,9 @@ let
         + "using the input targets when building the Rust toolchain."
       );
 
-  wrapExecutable = import ./wrapper.nix config pkgs input-rust-toolchain;
+  wrapExecutable = import ./wrapper.nix config {
+    inherit pkgs input-rust-toolchain;
+  };
 
   wrapped-rust-toolchain =
     (wrapExecutable {

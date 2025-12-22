@@ -21,9 +21,10 @@
   src,
 }@config:
 
-pkgs:
-
-input-rust-toolchain:
+{
+  pkgs,
+  input-rust-toolchain,
+}:
 
 let
   inherit (builtins)
