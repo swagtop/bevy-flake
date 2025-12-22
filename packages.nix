@@ -20,10 +20,10 @@ let
     subtractLists
     ;
   inherit (config)
+    macos
+    rustToolchain
     src
     systems
-    rustToolchain
-    macos
     targetEnvironments
     ;
 
@@ -37,7 +37,7 @@ let
         + "using the input targets when building the Rust toolchain."
       );
 
-  wrapExecutable = (import ./wrapper.nix config) pkgs input-rust-toolchain;
+  wrapExecutable = import ./wrapper.nix config pkgs input-rust-toolchain;
 
   wrapped-rust-toolchain =
     (wrapExecutable {
@@ -62,7 +62,7 @@ in
     executable = pkgs.dioxus-cli + "/bin/dx";
   };
 
-  # For now we package 'bevy-cli' ourselves, as it is not in nixpkgs yet.
+  # For now we build 'bevy-cli' from source, as it is not in nixpkgs yet.
   bevy-cli =
     let
       bevy-cli-package = pkgs.rustPlatform.buildRustPackage (
@@ -103,7 +103,7 @@ in
     };
 }
 # If 'src' is defined in config, add the 'targets' package, which builds
-# every target defined in targetEnvironments. Individual targets can be built
+# every target defined in 'targetEnvironments'. Individual targets can be built
 # with 'targets.target-triple', eg. 'targets.wasm32-unknown-unknown'.
 // optionalAttrs (src != null) {
   targets = makeOverridable (

@@ -15,8 +15,7 @@
         genAttrs
         ;
 
-      ifFunctionThenInput =
-        maybeFunction: input: if isFunction maybeFunction then maybeFunction input else maybeFunction;
+      ifFunctionThenInput = f: input: if isFunction f then f input else f;
 
       defaultConfig = import ./config.nix nixpkgs;
       assembleConfigs =
@@ -55,8 +54,8 @@
               pkgs = ifFunctionThenInput configNoPkgs.withPkgs system;
             in
             import ./packages.nix {
-              inherit pkgs nixpkgs;
               # Now we have a 'pkgs' to assemble the configs with.
+              inherit nixpkgs pkgs;
               config = assembleConfigs configList pkgs;
             }
           );
