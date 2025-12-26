@@ -15,7 +15,7 @@
         genAttrs
         ;
 
-      ifFunctionThenInput = f: input: if isFunction f then f input else f;
+      applyIfFunction = f: input: if isFunction f then f input else f;
 
       defaultConfig = import ./config.nix nixpkgs;
       assembleConfigs =
@@ -23,7 +23,7 @@
         foldl' (
           accumulator: config:
           accumulator
-          // ifFunctionThenInput config {
+          // applyIfFunction config {
             inherit pkgs;
             previous = accumulator;
             default = defaultConfig { inherit pkgs; };
@@ -51,7 +51,7 @@
           packages = eachSystem (
             system:
             let
-              pkgs = ifFunctionThenInput configNoPkgs.withPkgs system;
+              pkgs = applyIfFunction configNoPkgs.withPkgs system;
             in
             import ./packages.nix {
               # Now we have a 'pkgs' to assemble the configs with.

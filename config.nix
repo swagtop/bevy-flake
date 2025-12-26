@@ -25,8 +25,9 @@ in
     "x86_64-linux"
   ];
 
-  # Let users set the 'pkgs' used to assemble the configs, should they want to
-  # pin it to a specific nixpkgs rev, or perhaps to use some overlays.
+  # Specify the 'pkgs' used to assemble the configs. Everything using the 'pkgs'
+  # from '{ pkgs, ... }:', and all other uses of 'pkgs' in bevy-flake itself,
+  # will be using this.
   withPkgs =
     system:
     import nixpkgs {
