@@ -94,11 +94,11 @@ in
         in
         {
           PKG_CONFIG_PATH = makeSearchPath "lib/pkgconfig" (
-            # Getting these libraries through 'nixpkgs.legacyPackages.<system>'
-            # instead of 'pkgs.pkgsCross.<system>' lets us fetch them directly
+            # Getting these libraries through re-importing nixpkgs instead of
+            # doing 'pkgs.pkgsCross.<system>', lets us fetch them directly
             # without needing to build a ton of stuff through the nixpkgs cross-
             # compilation system.
-            with nixpkgs.legacyPackages.${crossSystem};
+            with (import pkgs.path { system = crossSystem; });
             [
               alsa-lib-with-plugins.dev
               libxkbcommon.dev
