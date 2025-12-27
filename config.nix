@@ -78,7 +78,7 @@ in
         crossSystem:
         let
           hostSystem = pkgs.stdenv.hostPlatform.system;
-          ifCross = str: optionalString (hostSystem != crossSystem) str;
+          ifCross = optionalString (hostSystem != crossSystem);
           flags = {
             aarch64-linux = [
               "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
