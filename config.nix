@@ -98,7 +98,10 @@ in
             # doing 'pkgs.pkgsCross.<system>', lets us fetch them directly
             # without needing to build a ton of stuff through the nixpkgs cross-
             # compilation system.
-            with (import pkgs.path { system = crossSystem; });
+            let
+              reimportedPkgs = import pkgs.path { system = crossSystem; };
+            in
+            with reimportedPkgs;
             [
               alsa-lib-with-plugins.dev
               libxkbcommon.dev
