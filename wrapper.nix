@@ -32,11 +32,11 @@ let
     isFunction
     ;
   inherit (pkgs.lib)
+    importJSON
     makeSearchPath
     mapAttrsToList
-    optionalString
     optionalAttrs
-    importJSON
+    optionalString
     ;
 
   exportEnv =

@@ -33,8 +33,9 @@ let
       rustToolchain targets
     else
       throw (
-        "The list of targets are input here, this should be a function that is "
-        + "using the input targets when building the Rust toolchain."
+        "The list of targets are applied to this config attribute. This should "
+        + "be a function that is using the input targets when building the "
+        + "Rust toolchain."
       );
 
   wrapExecutable = import ./wrapper.nix config {
@@ -106,7 +107,7 @@ in
 }
 # If 'src' is defined in config, add the 'targets' package, which builds
 # every target defined in 'targetEnvironments'. Individual targets can be built
-# with 'targets.target-triple', eg. 'targets.wasm32-unknown-unknown'.
+# from 'targets.<target>', eg. 'targets.wasm32-unknown-unknown'.
 // optionalAttrs (src != null) {
   targets = makeOverridable (
     overridedAttrs:
