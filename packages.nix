@@ -224,10 +224,9 @@ in
         else
           i;
 
+      buildList = (attrsToList everyTarget);
+
       full-build = pkgs.stdenvNoCC.mkDerivation (
-        let
-          buildList = (attrsToList everyTarget);
-        in
         {
           # Only warn about default toolchain when building all targets.
           name = defaultToolchainWarn (packageNamePrefix + "all-targets");
@@ -252,6 +251,6 @@ in
         }
       );
     in
-    full-build // everyTarget
+    full-build // everyTarget // { inherit buildList; }
   ) { };
 }
