@@ -30,10 +30,10 @@
             let
               fx = fenix.packages.${pkgs.stdenv.hostPlatform.system};
               channel = "stable"; # For nightly, use "latest".
+              targets-rust-std = 
+                map (target: fx.targets.${target}.${channel}.rust-std) targets;
             in
-            fx.combine (
-              [ fx.${channel}.toolchain ] ++ map (target: fx.targets.${target}.${channel}.rust-std) targets
-            );
+            fx.combine ([ fx.${channel}.toolchain ] ++ targets-rust-std);
         }
       );
     in
