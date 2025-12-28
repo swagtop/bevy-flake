@@ -47,8 +47,9 @@
             )
           );
 
-          eachSystem = genAttrs configNoPkgs.systems;
-          packages = eachSystem (
+          forSystems = genAttrs configNoPkgs.systems;
+
+          packages = forSystems (
             system:
             let
               pkgs = applyIfFunction configNoPkgs.withPkgs system;
@@ -59,8 +60,7 @@
               config = assembleConfigs configList pkgs;
             }
           );
-
-          devShells = eachSystem (system: {
+          devShells = forSystems (system: {
             default = nixpkgs.legacyPackages.${system}.mkShell {
               name = "bevy-flake";
               packages = [
@@ -70,8 +70,7 @@
               ];
             };
           });
-
-          formatter = eachSystem (system: nixpkgs.legacyPackages.${system}.nixfmt-tree);
+          formatter = forSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-tree);
         in
         {
           inherit (configNoPkgs)
@@ -79,8 +78,8 @@
             ;
           inherit
             devShells
-            eachSystem
             formatter
+            forSystems
             packages
             ;
         };

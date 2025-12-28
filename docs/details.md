@@ -19,9 +19,9 @@ or a package wrapped, that isn't included by default.
 
 ```nix
 {
-  # Systems supported and the eachSystem helper function for this instance.
+  # The list of systems supported, and the 'forSystems' helper function.
   systems = [ <system> ];
-  eachSystem = <function>;
+  forSystems = <function>; # Shorthand for 'nixpkgs.lib.genattrs systems'.
 
   # The default devShell, includes the packages that don't need to be built.
   devShells."<system>".default = <derivation>;
@@ -55,8 +55,8 @@ Normally, cross-compiling with Nix is done within the context of the Nix
 builder, through the nixpkgs cross-compilation system.
 
 What this flake does instead is put all of the configuration for the
-cross-compilation into a single wrapper script, wrapping `cargo`, `dx`, and
-`bevy-cli`, such that cross- compilation can happen anywhere the wrapper is
+cross-compilation into a single wrapper script, wrapping the `cargo`, `dx`, and
+`bevy` binaries, such that cross- compilation can happen anywhere the wrapper is
 run, outside or inside of the Nix builder.
 
 This wrapper is built based on a single place of configuration. Configuring

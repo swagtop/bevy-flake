@@ -17,7 +17,7 @@
     {
       inherit (bf) packages formatter;
 
-      devShells = bf.eachSystem (
+      devShells = bf.forSystems (
         system:
         let
           pkgs = import nixpkgs { inherit system; };
