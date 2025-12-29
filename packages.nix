@@ -251,6 +251,6 @@ in
         }
       );
     in
-    full-build // everyTarget // { inherit buildList; }
+    full-build // everyTarget // { list = buildList; }
   ) { };
 }

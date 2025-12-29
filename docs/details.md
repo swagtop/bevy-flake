@@ -38,6 +38,7 @@ or a package wrapped, that isn't included by default.
     # If you've set the 'src' config attribute to your source code:
     targets = <derivation>; # All targets, symlinked to the same derivation.
     targets."<target>" = <derivation>; # The individual targets.
+    targets.list = [ { name = <target>; value = <derivation>; } ];
   };
 
   # The general templates for the different toolchains.
