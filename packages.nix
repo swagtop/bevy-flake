@@ -93,6 +93,7 @@ in
       name = "bevy";
       extraRuntimeInputs = [
         pkgs.binaryen
+        pkgs.cargo-generate
       ];
       executable = bevy-cli-package + "/bin/bevy";
       argParser =

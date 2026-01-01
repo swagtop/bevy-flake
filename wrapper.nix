@@ -71,7 +71,7 @@ in
   name,
   executable,
   symlinkPackage ? null,
-  argParser ? (default: default),
+  argParser ? defaultArgParser,
   postExtraScript ? "",
   extraRuntimeInputs ? [ ],
 }:

@@ -78,9 +78,7 @@ overriding the `systems` attribute.
 
 ```nix
 bf = bevy-flake.configure {
-  systems = [
-    "x86_64-darwin"
-  ];
+  systems = [ "x86_64-darwin" ];
 };
 ```
 
@@ -91,9 +89,7 @@ the existing ones, this could be done like so:
 bf = bevy-flake.configure (
   { default, ... }:
   {
-    systems = default.systems ++ [
-      "x86_64-darwin"
-    ];
+    systems = default.systems ++ [ "x86_64-darwin" ];
   }
 );
 ```
@@ -111,7 +107,7 @@ and to accept the Microsoft MSVC license (not done in following examples).
 bf = bevy-flake.configure {
   withPkgs =
     system:
-    (builtins.fetchTarball {
+    import (fetchTarball {
       name = "nixos-unstable-2018-09-12";
       url = "https://github.com/nixos/nixpkgs/archive/ca2ba44cab47767c8127d1c8633e2b581644eb8f.tar.gz";
       sha256 = "1jg7g6cfpw8qvma0y19kwyp549k1qyf11a5sg6hvn6awvmkny47v";
@@ -212,7 +208,7 @@ Here is an example of setting some other stdenv:
 bf = bevy-flake.configure (
   { pkgs, ... }:
   {
-    stdenv = pkgs: pkgs.gnuStdenv;
+    stdenv = pkgs.gnuStdenv;
   }
 );
 ```

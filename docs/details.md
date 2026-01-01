@@ -7,7 +7,7 @@ who wants to use a Nix environment to compile portable binaries for the major
 desktop platforms on their own computer, instead of having to rely on  Docker,
 GitHub actions, or the like.
 
-Its goal is to be both easy to use for beginners, and powerfully ergonomic for
+Its goal is to be easy to use for beginners, and powerfully ergonomic for
 experienced users. The flake provides a suite of packages useful for Bevy
 development, all are configured from a single place.
 
@@ -40,9 +40,6 @@ or a package wrapped, that isn't included by default.
     targets."<target>" = <derivation>; # The individual targets.
     targets.list = [ { name = <target>; value = <derivation>; } ];
   };
-
-  # The general templates for the different toolchains.
-  templates."<name>" = <template>;
 
   # The function used for configuring bevy-flake. Read docs/config.md for info.
   configure = <function>;
