@@ -1,265 +1,257 @@
 {
   nixpkgs,
-  systems,
-
-  linux,
-  windows,
-  macos,
-
-  crossPlatformRustflags,
-
-  sharedEnvironment,
-  devEnvironment,
-  targetEnvironment,
-
-  defaultArgParser,
-  extraScript,
-
-  mkRustToolchain,
-  mkRuntimeInputs,
-  mkStdenv,
+  pkgs,
+  config,
 }:
 let
   inherit (builtins)
-    attrNames concatStringsSep warn throw;
+    attrNames
+    concatStringsSep
+    isFunction
+    warn
+    ;
   inherit (nixpkgs.lib)
-    optionalString genAttrs mapAttrsToList makeOverridable makeSearchPath;
-in
-  genAttrs systems (system:
-  let
-    pkgs = nixpkgs.legacyPackages.${system};
-    exportEnv = env: concatStringsSep "\n"
-      (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env);
+    attrsToList
+    genAttrs
+    importTOML
+    makeOverridable
+    optionalAttrs
+    optionals
+    subtractLists
+    ;
+  inherit (config)
+    macos
+    rustToolchain
+    src
+    systems
+    targetEnvironments
+    ;
 
-    targets = (attrNames targetEnvironment);
-    built-rust-toolchain = mkRustToolchain targets pkgs;
-    runtimeInputsBase = mkRuntimeInputs pkgs;
-    stdenv = mkStdenv pkgs;
+  targets = attrNames targetEnvironments;
+  input-rust-toolchain =
+    if isFunction rustToolchain then
+      rustToolchain targets
+    else
+      throw (
+        "The list of targets are applied to this config attribute. This should "
+        + "be a function that is using the input targets when building the "
+        + "Rust toolchain."
+      );
 
-    envWrap = {
-      name,
-      execPath,
-      argParser ? defaultArgParser,
-      postScript ? "",
-      extraRuntimeInputs ? []
-    }:
-      pkgs.writeShellApplication {
-        inherit name;
-        runtimeInputs = runtimeInputsBase ++ extraRuntimeInputs ++ [
-          stdenv.cc
-          built-rust-toolchain
-        ];
-        bashOptions = [ "errexit" "pipefail" ];
-        text = ''
-          ${argParser}
-        
-          if [[ $BF_NO_WRAPPER == "1" ]]; then
-            exec ${execPath} "$@"
-          fi
+  wrapExecutable = import ./wrapper.nix config {
+    inherit pkgs input-rust-toolchain;
+  };
 
-          # Set up MacOS SDK if configured.
-          export BF_MACOS_SDK_PATH="${macos.sdk}"
+  wrapped-rust-toolchain =
+    (wrapExecutable {
+      name = "cargo";
+      executable = input-rust-toolchain + "/bin/cargo";
+      symlinkPackage = input-rust-toolchain;
+    })
+    // {
+      inherit wrapExecutable;
+      unwrapped = input-rust-toolchain;
 
-          # Base environment for all targets.
-          export PKG_CONFIG_ALLOW_CROSS="1"
-          export LIBCLANG_PATH="${pkgs.libclang.lib}/lib";
-          export LIBRARY_PATH="${pkgs.libiconv}/lib";
-          ${exportEnv sharedEnvironment}
-
-          case $BF_TARGET in
-            "")
-              ${exportEnv (devEnvironment // {
-                PKG_CONFIG_PATH = (devEnvironment.PKG_CONFIG_PATH or "")
-                  + makeSearchPath "lib/pkgconfig"
-                    (map (p: p.dev or null)
-                      (runtimeInputsBase ++ extraRuntimeInputs));
-                RUSTFLAGS =
-                  (devEnvironment.RUSTFLAGS or "")
-                    + optionalString (pkgs.stdenv.isLinux)
-                      "-C link-args=-Wl,-rpath,${makeSearchPath "lib"
-                        (runtimeInputsBase ++ extraRuntimeInputs)}";
-              })}
-            ;;
-
-            ${concatStringsSep "\n"
-              (mapAttrsToList
-                (target: env: ''
-                  ${target}*)
-                  ${exportEnv (env // {
-                    RUSTFLAGS =
-                      (env.RUSTFLAGS or "") + " "
-                        + concatStringsSep " " crossPlatformRustflags;
-                  })}
-                  ;;
-                '')
-              targetEnvironment)}
-          esac
-
-          ${extraScript}
-
-          ${postScript}
-
-          exec ${execPath} "$@"
-        '';
+      # Attributes needed for 'makeRustPlatform' compatibility.
+      targetPlatforms = systems;
+      badTargetPlatforms = [ ];
     };
-  in {
-    rust-toolchain =
-    let
-      wrapArgs = {
-        name = "cargo";
-        extraRuntimeInputs = with pkgs; [
-          cargo-zigbuild
-          cargo-xwin
-        ];
-        execPath = "${built-rust-toolchain}/bin/cargo";
+in
+{
+  rust-toolchain = wrapped-rust-toolchain;
 
-        # Insert glibc version for Linux targets.
-        argParser = defaultArgParser + ''
-          if [[ $BF_NO_WRAPPER != "1"
-             && $BF_TARGET == *"-unknown-linux-gnu"* ]]; then
-            args=("$@")
-            args[TARGET_ARG_NO-1]="$BF_TARGET.${linux.glibcVersion}"
-            set -- "''${args[@]}"
-          elif [[ $BF_TARGET == *"-pc-windows-msvc" ]]; then ${
-            let
-              cacheDirBase = (if (pkgs.stdenv.isDarwin)
-                then "$HOME/Library/Caches/"
-                else "\${XDG_CACHE_HOME:-$HOME/.cache}/"
-              ) + "bevy-flake";
-            in
-              (exportEnv {
-                XWIN_CACHE_DIR = cacheDirBase + (
-                  if (windows ? sysroot)
-                    then windows.sysroot
-                    else "/xwin"
-                );
-              })
-            }
-          fi
-        '';
+  dioxus-cli = makeOverridable wrapExecutable {
+    name = "dx";
+    executable = pkgs.dioxus-cli + "/bin/dx";
+  };
 
-        postScript = ''
-          # Set linker for specific targets.
-          case $BF_TARGET in
-            *-apple-darwin)
-              ${optionalString (macos.sdk == "") ''
-                printf "%s%s\n" \
-                  "bevy-flake: Building to MacOS target without SDK, " \
-                  "compilation will most likely fail." 1>&2
-              ''}
-            ;&
-            *-unknown-linux-gnu*);&
-            "wasm32-unknown-unknown")
-              ${optionalString (pkgs.stdenv.isDarwin) ''
-                # Stops `cargo-zigbuild` from jamming with Zig on MacOS systems.
-                ulimit -n 4096
-              ''}
-              if [[ "$1" == "build" ]]; then
-                echo "bevy-flake: Switching to 'cargo-zigbuild'" 1>&2 
-                shift
-                exec ${pkgs.cargo-zigbuild}/bin/cargo-zigbuild zigbuild "$@"
-              fi
-            ;;
-            *-pc-windows-msvc)
-              # Set up links to /nix/store Windows SDK if configured.
-              ${optionalString (windows.sysroot != "") ''
-                mkdir -p "$XWIN_CACHE_DIR/windows-msvc-sysroot"
-                ln -sf ${windows.sysroot}/* "$XWIN_CACHE_DIR/windows-msvc-sysroot/"
-              ''}
-
-              if [[ "$1" == "build" || "$1" == "run" ]]; then
-                echo "bevy-flake: Switching to 'cargo-xwin'" 1>&2 
-                exec ${built-rust-toolchain}/bin/cargo xwin "$@"
-              fi
-            ;;
-          esac
-        '';
-      };
-    in 
-      (makeOverridable (wrapArgsInput:
-        if (wrapArgsInput.execPath != wrapArgs.execPath)
-          then throw
-            "Don't override the execPath of rust-toolchain."
-            + "Set it to use a different toolchain through the config."
-          else
-            pkgs.symlinkJoin {
-              name = "bf-wrapped-rust-toolchain";
-              ignoreCollisions = true;
-              paths = [
-                (envWrap wrapArgsInput)
-                built-rust-toolchain
-              ];
-            } // { inherit envWrap; }
-      ) wrapArgs);
-
-    # For now we have to override the package for hot-reloading.
-    dioxus-cli = 
-    let
-      version = "0.7.0-rc.1";
-      dioxus-cli-package = pkgs.dioxus-cli.override (old: {
-        rustPlatform = old.rustPlatform // {
-          buildRustPackage = args:
-            old.rustPlatform.buildRustPackage (
-              args // {
-                inherit version;
-                src = old.fetchCrate {
-                  inherit version;
-                  pname = "dioxus-cli";
-                  hash = "sha256-Gri7gJe9b1q0qP+m0fe4eh+xj3wqi2get4Rqz6xL8yA=";
-                };
-                cargoHash = "sha256-+HPWgiFc7pbosHWpRvHcSj7DZHD9sIPOE3S5LTrDb6I=";
-
-                cargoPatches = [ ];
-                buildFeatures = [ ];
-
-                postPatch = "";
-                checkFlags = [ "--skip" "test_harnesses::run_harness" ];
-              });
-        };
-      });
-    in
-      makeOverridable envWrap {
-        name = "dx";
-        extraRuntimeInputs = [ pkgs.lld ];
-        execPath = "${dioxus-cli-package}/bin/dx";
-      };
-
-    # For now we package 'bevy-cli' ourselves, as it is not in nixpkgs yet.
-    bevy-cli =
+  # For now we build 'bevy-cli' from source, as it is not in nixpkgs yet.
+  bevy-cli =
     let
       bevy-cli-package = pkgs.rustPlatform.buildRustPackage (
-      let
-        version = "0.1.0-alpha.2";
-        src = builtins.fetchTarball {
-          url = "https://github.com/TheBevyFlock/bevy_cli/archive/refs/tags/cli-v${version}.tar.gz";
-          sha256 = "sha256:02p2c3fzxi9cs5y2fn4dfcyca1z8l5d8i09jia9h5b50ym82cr8l";
-        };
-      in {
-        inherit version src;
-        name = "bevy-cli-${version}";
-        nativeBuildInputs = [
-          pkgs.openssl.dev
-          pkgs.pkg-config
-        ];
-        PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
-        cargoLock.lockFile = "${src}/Cargo.lock";
-        doCheck = false;
-      });
+        let
+          version = "0.1.0-alpha.2";
+          src = fetchTarball {
+            url = "https://github.com/TheBevyFlock/bevy_cli/archive/refs/tags/cli-v${version}.tar.gz";
+            sha256 = "sha256:02p2c3fzxi9cs5y2fn4dfcyca1z8l5d8i09jia9h5b50ym82cr8l";
+          };
+        in
+        {
+          inherit version src;
+          name = "bevy-cli-${version}";
+          nativeBuildInputs = [
+            pkgs.openssl.dev
+            pkgs.pkg-config
+          ];
+          PKG_CONFIG_PATH = pkgs.openssl.dev + "/lib/pkgconfig";
+          cargoLock.lockFile = src + "/Cargo.lock";
+          doCheck = false;
+        }
+      );
     in
-      makeOverridable envWrap {
-        name = "bevy";
-        extraRuntimeInputs = [
-          pkgs.lld
-          (pkgs.wasm-bindgen-cli_0_2_104
-            or (warn "Your nixpkgs is too old for bevy-cli web builds."
-              pkgs.emptyDirectory)
-          )
-        ];
-        execPath = "${bevy-cli-package}/bin/bevy";
-        argParser = defaultArgParser + ''
-          if [[ $* == *" web"* ]]; then
+    makeOverridable wrapExecutable {
+      name = "bevy";
+      extraRuntimeInputs = [
+        pkgs.binaryen
+        pkgs.cargo-generate
+      ];
+      executable = bevy-cli-package + "/bin/bevy";
+      argParser =
+        default:
+        default
+        + ''
+          if [[ $2 == "web" ]]; then
             export BF_TARGET="wasm32-unknown-unknown"
           fi
         '';
+    };
+}
+# If 'src' is defined in config, add the 'targets' package, which builds
+# every target defined in 'targetEnvironments'. Individual targets can be built
+# from 'targets.<target>', eg. 'targets.wasm32-unknown-unknown'.
+// optionalAttrs (src != null) {
+  targets = makeOverridable (
+    overridedAttrs:
+    let
+      usingDefaultToolchain =
+        if (input-rust-toolchain ? bfDefaultToolchain) then
+          input-rust-toolchain.bfDefaultToolchain
+        else
+          false;
+
+      manifest = (importTOML "${src}/Cargo.toml").package;
+      packageNamePrefix =
+        if (manifest ? version) then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
+
+      rustPlatform = pkgs.makeRustPlatform {
+        cargo = wrapped-rust-toolchain;
+        rustc = wrapped-rust-toolchain;
       };
-  })
+      validTargets =
+        subtractLists
+          # Disable cross-compilation for MacOS targets, if the SDK is not
+          # present in the config.
+          (optionals (macos.sdk == null) [
+            "aarch64-apple-darwin"
+            "x86_64-apple-darwin"
+          ])
+          (
+            if usingDefaultToolchain then
+              # Disable cross-compilation in 'targets' if using the default
+              # toolchain, as it doesn't have any of the stdlibs other than for
+              # the system it is built for.
+              [
+                pkgs.stdenv.hostPlatform.config
+              ]
+            else
+              (attrNames targetEnvironments)
+          );
+
+      everyTarget = genAttrs validTargets (
+        target:
+        rustPlatform.buildRustPackage (
+          {
+            inherit src target;
+
+            name = packageNamePrefix + target;
+
+            nativeBuildInputs = [ wrapped-rust-toolchain ];
+
+            cargoLock.lockFile = src + "/Cargo.lock";
+            cargoProfile = "release";
+            cargoBuildFlags = [ ];
+
+            buildPhase = ''
+              runHook preBuild
+
+              cargo build \
+                -j "$NIX_BUILD_CORES" \
+                --profile "$cargoProfile" \
+                --target "$target" \
+                --offline \
+                ''${cargoBuildFlags[@]}
+
+              runHook postBuild
+            '';
+
+            # Copied and edited for multi-target purposes from nixpkgs Rust hooks.
+            installPhase = ''
+              runHook preInstall
+
+              if [[ $cargoProfile == "dev" ]]; then
+                # Set dev profile environment variable to match correct directory.
+                export cargoProfile="debug"
+              fi
+
+              buildDir=target/"${target}"/"$cargoProfile"
+              bins=$(find $buildDir \
+                -maxdepth 1 \
+                -type f \
+                -executable ! \( -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)" \))
+              libs=$(find $buildDir \
+                -maxdepth 1 \
+                -type f \
+                -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)")
+
+              mkdir -p $out/{bin,lib}
+
+              for file in $bins; do
+                cp $file $out/bin/
+              done
+
+              for file in $libs; do
+                cp $file $out/lib/
+              done
+
+              rmdir --ignore-fail-on-non-empty $out/{bin,lib}
+
+              runHook postInstall
+            '';
+
+            dontAutoPatchelf = true;
+            doCheck = false;
+          }
+          // overridedAttrs
+        )
+      );
+
+      defaultToolchainWarn =
+        i:
+        if usingDefaultToolchain then
+          warn (
+            "Only building for your system, as you are using the default"
+            + " toolchain, which does not support cross-compilation."
+          ) i
+        else
+          i;
+
+      buildList = (attrsToList everyTarget);
+
+      full-build = pkgs.stdenvNoCC.mkDerivation (
+        {
+          # Only warn about default toolchain when building all targets.
+          name = defaultToolchainWarn (packageNamePrefix + "all-targets");
+
+          linkBuilds = true;
+          buildInputs = map (build: build.value) buildList;
+          installPhase = ''
+            mkdir -p $out
+
+            if [[ $linkBuilds == "1" ]]; then
+              ${concatStringsSep "\n" (
+                map (build: "ln -s \"${build.value}\" $out/\"${build.name}\"") buildList
+              )}
+            else
+              ${concatStringsSep "\n" (
+                map (build: "cp -r \"${build.value}\" $out/\"${build.name}\"") buildList
+              )}
+            fi
+          '';
+
+          phases = [ "installPhase" ];
+        }
+      );
+    in
+    full-build // everyTarget // { list = buildList; }
+  ) { };
+}

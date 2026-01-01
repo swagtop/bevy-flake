@@ -1,32 +1,37 @@
 {
-  description =
-    "A flake using the nixpkgs rust toolchain wrapped with bevy-flake.";
+  description = "A flake using the nixpkgs rust toolchain wrapped with bevy-flake.";
 
   inputs = {
-    nixpkgs.url = "nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     bevy-flake = {
       url = "github:swagtop/bevy-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { nixpkgs, bevy-flake, ... }: {
-    inherit (bevy-flake) packages;
-    
-    devShells = bevy-flake.eachSystem (system:
+  outputs =
+    { nixpkgs, bevy-flake, ... }:
     let
-      pkgs = import nixpkgs { inherit system; };
-    in {
-      inherit (bevy-flake) packages;
+      bf = bevy-flake.configure { src = ./.; };
+    in
+    {
+      inherit (bf) packages formatter;
 
-      default = pkgs.mkShell {
-        name = "bevy-flake-nixpkgs";
-        packages = [
-          bevy-flake.packages.${system}.rust-toolchain
-          # bevy-flake.packages.${system}.dioxus-cli
-          # bevy-flake.packages.${system}.bevy-cli
-        ];
-      };
-    });
-  };
+      devShells = bf.forSystems (
+        system:
+        let
+          pkgs = import nixpkgs { inherit system; };
+        in
+        {
+          default = pkgs.mkShell {
+            name = "bevy-flake-nixpkgs";
+            packages = [
+              bf.packages.${system}.rust-toolchain
+              bf.packages.${system}.dioxus-cli
+              # bf.packages.${system}.bevy-cli
+            ];
+          };
+        }
+      );
+    };
 }

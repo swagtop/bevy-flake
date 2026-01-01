@@ -13,17 +13,14 @@ You will not find a link to one anywhere on this repo.
 
 [osxcross]: https://github.com/tpoechtrager/osxcross
 
-When acquired, you can add it to your `bevy-flake` configuration via. an
-override:
+When acquired, you can add it to your `bevy-flake` configuration:
 
 ```nix
-bf = bevy-flake.override {
-  # ...
-  mac.sdk = builtins.fetchTarball {
+bf = bevy-flake.configure {
+  mac.sdk = fetchTarball {
     url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
     sha256 = "sha256:some-long-hash-string-goes-here";
   };
-  # ...
 };
 ```
 
@@ -33,12 +30,12 @@ bf = bevy-flake.override {
 The base directory of the SDK should look something like this:
 
 ```
-path-to-sdk/
-  ├─ Entitlements.plist
-  ├─ SDKSettings.json
-  ├─ SDKSettings.plist
-  ├─ System/
-  ╰─ usr/
+path/to/sdk/
+         ├─ Entitlements.plist
+         ├─ SDKSettings.json
+         ├─ SDKSettings.plist
+         ├─ System/
+         ╰─ usr/
 ```
 
 If the root directory of the tarball you've unpacked doesn't look like this, and
@@ -46,10 +43,10 @@ this structure is found inside of subpath of the SDK, you can scope in on it
 like so:
 
 ```nix
-macos.sdk = "${builtins.fetchTarball {
+macos.sdk = fetchTarball {
   url = "https://website.com/path/to/macos/sdk/MacOSX(Version).tar.xz";
   sha256 = "sha256:some-long-hash-string-goes-here";
-}}/sub-path";
+} + "/sub-path";
 ```
 
 
