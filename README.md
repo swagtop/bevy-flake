@@ -92,8 +92,8 @@ nix build github:username/repository/branch#targets -j 1
 ```
 
 You can compile to every target with a `targetEnvironments` [entry.][entries]
-If the target you want isn't in the default configuration, you can add yourself
-by setting its environment up. More on that [here.][environments]
+If the target you want isn't in the default configuration, you can add it
+yourself by setting its environment up. More on that [here.][environments]
 
 [entries]: config.nix#L155
 [environments]: docs/config.md#targetenvironments
