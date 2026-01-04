@@ -173,7 +173,7 @@ compilation, `cargo`, `rustc`, etc.
 
 ```nix
 bf = bevy-flake.configure (
-  { pkgs, ... }
+  { pkgs, ... }:
   {
     rustToolchain =
       targets:
