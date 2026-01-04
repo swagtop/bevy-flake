@@ -2,9 +2,9 @@
 
 ## Overview
 
-Configuring `bevy-flake` is done by calling `configure` from the its flake
-output. Your configuration attributes override the default ones, which can be
-found [here.][default]
+Configuring `bevy-flake` is done by calling the `configure` function from its
+flake output. Your configuration attributes override the default ones, which can
+be found [here.][default]
 
 [default]: ../config.nix#L14
 
