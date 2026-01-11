@@ -34,7 +34,7 @@
         configList:
         let
           configNoPkgs = assembleConfigs configList (
-            # To construct the 'eachSystem' that is used in generating the rest
+            # To construct the 'forSystems' that is used in generating the rest
             # of the flake, we need to get the 'systems' config attribute before
             # anything else, as the rest of the config attributes need the
             # 'system' they are being built for.
