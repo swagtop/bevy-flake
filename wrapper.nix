@@ -105,7 +105,8 @@ let
           PKG_CONFIG_ALLOW_CROSS = "1";
           LIBCLANG_PATH = pkgs.libclang.lib + "/lib";
           LIBRARY_PATH = pkgs.libiconv + "/lib";
-
+        }
+        // optionalAttrs (windows.sdk != null) {
           # Set up Windows SDK.
           BF_WINDOWS_SDK_PATH = windows.sdk;
         }
