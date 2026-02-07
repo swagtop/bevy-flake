@@ -16,7 +16,7 @@ jobs:
         run: nix flake update
         
       - name: clone bevy repo
-        run: nix run nixpkgs#git clone https://github.com/bevyengine/bevy.git bevy -- -b release-0.18.1
+        run: nix run nixpkgs#git clone https://github.com/bevyengine/bevy.git bevy -- -b release-0.18.0
 
       - name: test by building breakout
         working-directory: bevy
