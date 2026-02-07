@@ -21,28 +21,7 @@ jobs:
       - name: test by building breakout
         working-directory: bevy
         run: |
-          echo "Building for dev environment."
-          nix run ..#rust-toolchain build
-          nix run ..#rust-toolchain clean
-
-          echo "Building x86_64-unknown-linux-gnu."
-          nix run ..#rust-toolchain build -- --example breakout --target x86_64-unknown-linux-gnu
-          nix run ..#rust-toolchain clean
-
-          echo "Building aarch-unknown-linux-gnu."
-          nix run ..#rust-toolchain build -- --example breakout --target aarch64-unknown-linux-gnu
-          nix run ..#rust-toolchain clean
-
-          echo "Building x86_64-pc-windows-msvc."
-          nix run ..#rust-toolchain build -- --example breakout --target x86_64-pc-windows-msvc
-          nix run ..#rust-toolchain clean
-
-          echo "Building aarch64-pc-windows-msvc."
-          nix run ..#rust-toolchain build -- --example breakout --target aarch64-pc-windows-msvc
-          nix run ..#rust-toolchain clean
-
-          echo "Building wasm32-unknown-unknown."
-          nix run ..#rust-toolchain build -- --example breakout --target wasm32-unknown-unknown
+          nix run ..#rust-toolchain build -- --example breakout
           nix run ..#rust-toolchain clean
         
       - name: push
