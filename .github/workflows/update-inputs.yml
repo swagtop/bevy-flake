@@ -26,12 +26,29 @@ jobs:
       - name: test by building breakout
         working-directory: bevy
         run: |
+          echo "Building for dev environment."
           cargo build
+          cargo clean
+
+          echo "Building x86_64-unknown-linux-gnu."
           cargo build --example breakout --target x86_64-unknown-linux-gnu
+          cargo clean
+
+          echo "Building aarch-unknown-linux-gnu."
           cargo build --example breakout --target aarch64-unknown-linux-gnu
+          cargo clean
+
+          echo "Building x86_64-pc-windows-msvc."
           cargo build --example breakout --target x86_64-pc-windows-msvc
+          cargo clean
+
+          echo "Building aarch64-pc-windows-msvc."
           cargo build --example breakout --target aarch64-pc-windows-msvc
+          cargo clean
+
+          echo "Building wasm32-unknown-unknown."
           cargo build --example breakout --target wasm32-unknown-unknown
+          cargo clean
         
       - name: push
         run: |
