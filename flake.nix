@@ -20,14 +20,21 @@
       defaultConfig = import ./config.nix nixpkgs;
       assembleConfigs =
         configList: pkgs:
+        let
+          configInputs = {
+            inherit pkgs;
+            default = defaultConfig { inherit pkgs; };
+          };
+        in
         foldl' (
           accumulator: config:
           accumulator
-          // applyIfFunction config {
-            inherit pkgs;
-            previous = accumulator;
-            default = defaultConfig { inherit pkgs; };
-          }
+          // applyIfFunction config (
+            configInputs
+            // {
+              previous = accumulator;
+            }
+          )
         ) { } configList;
 
       mkBf =

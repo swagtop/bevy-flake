@@ -227,30 +227,28 @@ in
 
       buildList = (attrsToList everyTarget);
 
-      full-build = pkgs.stdenvNoCC.mkDerivation (
-        {
-          # Only warn about default toolchain when building all targets.
-          name = defaultToolchainWarn (packageNamePrefix + "all-targets");
+      full-build = pkgs.stdenvNoCC.mkDerivation ({
+        # Only warn about default toolchain when building all targets.
+        name = defaultToolchainWarn (packageNamePrefix + "all-targets");
 
-          linkBuilds = true;
-          buildInputs = map (build: build.value) buildList;
-          installPhase = ''
-            mkdir -p $out
+        linkBuilds = true;
+        buildInputs = map (build: build.value) buildList;
+        installPhase = ''
+          mkdir -p $out
 
-            if [[ $linkBuilds == "1" ]]; then
-              ${concatStringsSep "\n" (
-                map (build: "ln -s \"${build.value}\" $out/\"${build.name}\"") buildList
-              )}
-            else
-              ${concatStringsSep "\n" (
-                map (build: "cp -r \"${build.value}\" $out/\"${build.name}\"") buildList
-              )}
-            fi
-          '';
+          if [[ $linkBuilds == "1" ]]; then
+            ${concatStringsSep "\n" (
+              map (build: "ln -s \"${build.value}\" $out/\"${build.name}\"") buildList
+            )}
+          else
+            ${concatStringsSep "\n" (
+              map (build: "cp -r \"${build.value}\" $out/\"${build.name}\"") buildList
+            )}
+          fi
+        '';
 
-          phases = [ "installPhase" ];
-        }
-      );
+        phases = [ "installPhase" ];
+      });
     in
     full-build // everyTarget // { list = buildList; }
   ) { };
