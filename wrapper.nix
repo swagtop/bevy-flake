@@ -84,7 +84,6 @@ let
       stdenv.cc
       input-rust-toolchain
       pkgs.pkg-config
-      pkgs.lld
     ];
     bashOptions = [
       "errexit"

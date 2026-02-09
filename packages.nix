@@ -63,6 +63,10 @@ in
   dioxus-cli = makeOverridable wrapExecutable {
     name = "dx";
     executable = pkgs.dioxus-cli + "/bin/dx";
+    extraRuntimeInputs = [
+      # Needed for hot-reloading.
+      pkgs.lld
+    ];
   };
 
   # For now we build 'bevy-cli' from source, as it is not in nixpkgs yet.
