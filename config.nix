@@ -170,7 +170,7 @@ in
 
   rustToolchain =
     targets:
-    (pkgs.symlinkJoin {
+    pkgs.symlinkJoin {
       name = "nixpkgs-rust-toolchain";
       pname = "cargo";
       paths = with pkgs; [
@@ -180,10 +180,8 @@ in
         rustc
         rustfmt
       ];
-    })
-    // {
       # Used in 'packages.nix' to check if user is using the default toolchain.
-      bfDefaultToolchain = true;
+      passthru.bfDefaultToolchain = true;
     };
 
   runtimeInputs = optionals (pkgs.stdenv.isLinux) (
@@ -196,10 +194,12 @@ in
       udev
       vulkan-loader
       wayland
-      xorg.libX11
-      xorg.libXcursor
-      xorg.libXi
-      xorg.libXrandr
+      # The 'xorg' namespace will be removed. Adding the packages like this will
+      # mute the warning for now.
+      (pkgs.libX11 or xorg.libX11)
+      (pkgs.libXcursor or xorg.libXcursor)
+      (pkgs.libXi or xorg.libXi)
+      (pkgs.libXrandr or xorg.libXrandr)
     ]
   );
 
