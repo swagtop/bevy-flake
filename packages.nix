@@ -43,11 +43,11 @@ let
   };
 
   wrapped-rust-toolchain =
-    (wrapExecutable {
+    wrapExecutable {
       name = "cargo";
       executable = input-rust-toolchain + "/bin/cargo";
       symlinkPackage = input-rust-toolchain;
-    })
+    }
     // {
       inherit wrapExecutable;
       unwrapped = input-rust-toolchain;
@@ -148,7 +148,7 @@ in
                 pkgs.stdenv.hostPlatform.config
               ]
             else
-              (attrNames targetEnvironments)
+              attrNames targetEnvironments
           );
 
       everyTarget = genAttrs validTargets (
@@ -229,7 +229,7 @@ in
         else
           i;
 
-      buildList = (attrsToList everyTarget);
+      buildList = attrsToList everyTarget;
 
       full-build = pkgs.stdenvNoCC.mkDerivation ({
         # Only warn about default toolchain when building all targets.
