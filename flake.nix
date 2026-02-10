@@ -117,7 +117,7 @@
         };
         nixpkgs = {
           path = ./templates/nixpkgs;
-          description = "Get the Rust toolchain from nixpkgs.";
+          description = "Get the Rust toolchain from nixpkgs, no cross-compilation.";
         };
       };
     };
