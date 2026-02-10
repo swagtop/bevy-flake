@@ -1,5 +1,4 @@
 {
-  nixpkgs,
   pkgs,
   config,
 }:
@@ -8,9 +7,8 @@ let
     attrNames
     concatStringsSep
     isFunction
-    warn
     ;
-  inherit (nixpkgs.lib)
+  inherit (pkgs.lib)
     attrsToList
     genAttrs
     importTOML
@@ -219,21 +217,11 @@ in
         )
       );
 
-      defaultToolchainWarn =
-        i:
-        if usingDefaultToolchain then
-          warn (
-            "Only building for your system, as you are using the default"
-            + " toolchain, which does not support cross-compilation."
-          ) i
-        else
-          i;
-
       buildList = attrsToList everyTarget;
 
       full-build = pkgs.stdenvNoCC.mkDerivation ({
         # Only warn about default toolchain when building all targets.
-        name = defaultToolchainWarn (packageNamePrefix + "all-targets");
+        name = packageNamePrefix + "all-targets";
 
         linkBuilds = true;
         buildInputs = map (build: build.value) buildList;

@@ -9,7 +9,6 @@
       inherit (builtins)
         foldl'
         isFunction
-        warn
         ;
       inherit (nixpkgs.lib)
         genAttrs
@@ -63,7 +62,7 @@
             in
             import ./packages.nix {
               # Now we have a 'pkgs' to assemble the configs with.
-              inherit nixpkgs pkgs;
+              inherit pkgs;
               config = assembleConfigs configList pkgs;
             }
           );
@@ -116,7 +115,7 @@
           path = ./templates/fenix;
           description = "Get the Rust toolchain through nix-community's fenix.";
         };
-        nixpkgs = warn "This template does not support any cross-compilation." {
+        nixpkgs = {
           path = ./templates/nixpkgs;
           description = "Get the Rust toolchain from nixpkgs.";
         };
