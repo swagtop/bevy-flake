@@ -162,7 +162,7 @@ in
       "wasm32-unknown-unknown" = {
         RUSTFLAGS = ''--cfg getrandom_backend=\"wasm_js\"'';
         # Adding latest version of 'wasm-bindgen' to PATH.
-        PATH = pkgs.wasm-bindgen-cli_0_2_105 + "/bin:$PATH";
+        PATH = pkgs.wasm-bindgen-cli_0_2_108 + "/bin:$PATH";
       };
     };
 
