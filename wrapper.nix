@@ -53,6 +53,11 @@ let
           eval "BF_TARGET=\$$TARGET_ARG_NO"
           export BF_TARGET="$BF_TARGET"
         ;;
+        --target=*)
+          # Split arg if using '=' between '--target' and the target.
+          IFS='=' read -r -a SPLIT_ARG <<< "$arg"
+          export BF_TARGET=''${SPLIT_ARG[1]}
+        ;;
         "--no-wrapper")
           set -- "''${@:1:$((TARGET_ARG_NO - 1))}" \
                  "''${@:$((TARGET_ARG_NO + 1))}"
