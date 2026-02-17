@@ -13,7 +13,7 @@ The convention used in the templates looks like this:
 ```nix
 let
   bf = bevy-flake.configure (
-    { pkgs, previous, default }:
+    { pkgs, previous, default, ... }:
     {
       # Config goes here.
     }
