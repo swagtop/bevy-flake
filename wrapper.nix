@@ -7,6 +7,7 @@
   linux,
   windows,
   macos,
+  web,
 
   crossPlatformRustflags,
 
@@ -123,6 +124,9 @@ let
             BF_MACOS_SDK_DEFAULT_VERSION = versions.DefaultDeploymentTarget;
           }
         )
+        // optionalAttrs (web.wasm-bindgen != null) {
+          BF_WASM_BINDGEN = web.wasm-bindgen;
+        }
       )}
 
       # Base environment for all targets.

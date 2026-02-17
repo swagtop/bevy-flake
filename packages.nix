@@ -7,6 +7,7 @@ let
     attrNames
     concatStringsSep
     isFunction
+    elem
     ;
   inherit (pkgs.lib)
     attrsToList
@@ -19,6 +20,7 @@ let
     ;
   inherit (config)
     macos
+    windows
     rustToolchain
     src
     systems
@@ -54,21 +56,8 @@ let
       targetPlatforms = systems;
       badTargetPlatforms = [ ];
     };
-in
-{
-  rust-toolchain = wrapped-rust-toolchain;
 
-  dioxus-cli = makeOverridable wrapExecutable {
-    name = "dx";
-    executable = pkgs.dioxus-cli + "/bin/dx";
-    extraRuntimeInputs = [
-      # Needed for hot-reloading.
-      pkgs.lld
-    ];
-  };
-
-  # For now we build 'bevy-cli' from source, as it is not in nixpkgs yet.
-  bevy-cli =
+  wrapped-bevy-cli =
     let
       bevy-cli-package = pkgs.rustPlatform.buildRustPackage (
         let
@@ -107,119 +96,143 @@ in
           fi
         '';
     };
+in
+{
+  rust-toolchain = wrapped-rust-toolchain;
+
+  dioxus-cli = makeOverridable wrapExecutable {
+    name = "dx";
+    executable = pkgs.dioxus-cli + "/bin/dx";
+    extraRuntimeInputs = [
+      # Needed for hot-reloading.
+      pkgs.lld
+    ];
+  };
+
+  # For now we build 'bevy-cli' from source, as it is not in nixpkgs yet.
+  bevy-cli = wrapped-bevy-cli;
 }
 # If 'src' is defined in config, add the 'targets' package, which builds
 # every target defined in 'targetEnvironments'. Individual targets can be built
 # from 'targets.<target>', eg. 'targets.wasm32-unknown-unknown'.
-// optionalAttrs (src != null) {
-  targets = makeOverridable (
-    overridedAttrs:
-    let
-      usingDefaultToolchain =
-        if (input-rust-toolchain ? bfDefaultToolchain) then
-          input-rust-toolchain.bfDefaultToolchain
-        else
-          false;
+// optionalAttrs (src != null) (
+  let
+    usingDefaultToolchain =
+      if (input-rust-toolchain ? bfDefaultToolchain) then
+        input-rust-toolchain.bfDefaultToolchain
+      else
+        false;
 
-      manifest = (importTOML "${src}/Cargo.toml").package;
-      packageNamePrefix =
-        if (manifest ? version) then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
+    manifest = (importTOML "${src}/Cargo.toml").package;
+    packageNamePrefix =
+      if (manifest ? version) then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
 
-      rustPlatform = pkgs.makeRustPlatform {
-        cargo = wrapped-rust-toolchain;
-        rustc = wrapped-rust-toolchain;
-      };
-      validTargets =
-        subtractLists
-          # Disable cross-compilation for MacOS targets, if the SDK is not
-          # present in the config.
-          (optionals (macos.sdk == null) [
+    validTargets =
+      subtractLists
+        # Disable cross-compilation for MacOS targets, if the SDK is not
+        # present in the config.
+        (
+          optionals (macos.sdk == null) [
             "aarch64-apple-darwin"
             "x86_64-apple-darwin"
-          ])
-          (
-            if usingDefaultToolchain then
-              # Disable cross-compilation in 'targets' if using the default
-              # toolchain, as it doesn't have any of the stdlibs other than for
-              # the system it is built for.
-              [
-                pkgs.stdenv.hostPlatform.config
-              ]
-            else
-              attrNames targetEnvironments
-          );
-
-      everyTarget = genAttrs validTargets (
-        target:
-        rustPlatform.buildRustPackage (
-          {
-            inherit src target;
-
-            name = packageNamePrefix + target;
-
-            nativeBuildInputs = [ wrapped-rust-toolchain ];
-
-            cargoLock.lockFile = src + "/Cargo.lock";
-            cargoProfile = "release";
-            cargoBuildFlags = [ ];
-
-            buildPhase = ''
-              runHook preBuild
-
-              cargo build \
-                -j "$NIX_BUILD_CORES" \
-                --profile "$cargoProfile" \
-                --target "$target" \
-                --offline \
-                ''${cargoBuildFlags[@]}
-
-              runHook postBuild
-            '';
-
-            # Copied and edited for multi-target purposes from nixpkgs Rust hooks.
-            installPhase = ''
-              runHook preInstall
-
-              if [[ $cargoProfile == "dev" ]]; then
-                # Set dev profile environment variable to match correct directory.
-                export cargoProfile="debug"
-              fi
-
-              buildDir=target/"${target}"/"$cargoProfile"
-              bins=$(find $buildDir \
-                -maxdepth 1 \
-                -type f \
-                -executable ! \( -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)" \))
-              libs=$(find $buildDir \
-                -maxdepth 1 \
-                -type f \
-                -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)")
-
-              mkdir -p $out/{bin,lib}
-
-              for file in $bins; do
-                cp $file $out/bin/
-              done
-
-              for file in $libs; do
-                cp $file $out/lib/
-              done
-
-              rmdir --ignore-fail-on-non-empty $out/{bin,lib}
-
-              runHook postInstall
-            '';
-
-            dontAutoPatchelf = true;
-            doCheck = false;
-          }
-          // overridedAttrs
+          ]
+          ++ optionals (windows.sdk == null) [
+            "aarch64-pc-windows-mvsc"
+            "x86_64-pc-windows-mvsc"
+          ]
         )
-      );
+        (
+          if usingDefaultToolchain then
+            # Disable cross-compilation in 'targets' if using the default
+            # toolchain, as it doesn't have any of the stdlibs other than for
+            # the system it is built for.
+            [
+              pkgs.stdenv.hostPlatform.config
+            ]
+          else
+            attrNames targetEnvironments
+        );
 
-      buildList = attrsToList everyTarget;
+    rustPlatform = pkgs.makeRustPlatform {
+      cargo = wrapped-rust-toolchain;
+      rustc = wrapped-rust-toolchain;
+    };
+  in
+  {
+    targets = makeOverridable (
+      overridedAttrs:
+      let
+        everyTarget = genAttrs validTargets (
+          target:
+          rustPlatform.buildRustPackage (
+            {
+              inherit src target;
 
-      full-build = pkgs.stdenvNoCC.mkDerivation ({
+              name = packageNamePrefix + target;
+
+              nativeBuildInputs = [ wrapped-rust-toolchain ];
+
+              cargoLock.lockFile = src + "/Cargo.lock";
+              cargoProfile = "release";
+              cargoBuildFlags = [ ];
+
+              buildPhase = ''
+                runHook preBuild
+
+                cargo build \
+                  -j "$NIX_BUILD_CORES" \
+                  --profile "$cargoProfile" \
+                  --target "$target" \
+                  --offline \
+                  ''${cargoBuildFlags[@]}
+
+                runHook postBuild
+              '';
+
+              # Copied and edited for multi-target purposes from nixpkgs Rust hooks.
+              installPhase = ''
+                runHook preInstall
+
+                if [[ $cargoProfile == "dev" ]]; then
+                  # Set dev profile environment variable to match correct directory.
+                  export cargoProfile="debug"
+                fi
+
+                buildDir=target/"${target}"/"$cargoProfile"
+                bins=$(find $buildDir \
+                  -maxdepth 1 \
+                  -type f \
+                  -executable ! \( -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)" \))
+                libs=$(find $buildDir \
+                  -maxdepth 1 \
+                  -type f \
+                  -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)")
+
+                mkdir -p $out/{bin,lib}
+
+                for file in $bins; do
+                  cp $file $out/bin/
+                done
+
+                for file in $libs; do
+                  cp $file $out/lib/
+                done
+
+                rmdir --ignore-fail-on-non-empty $out/{bin,lib}
+
+                runHook postInstall
+              '';
+
+              dontAutoPatchelf = true;
+              doCheck = false;
+            }
+            // overridedAttrs
+          )
+        );
+
+        buildList = attrsToList everyTarget;
+      in
+      pkgs.stdenvNoCC.mkDerivation {
         # Only warn about default toolchain when building all targets.
         name = packageNamePrefix + "all-targets";
 
@@ -240,8 +253,49 @@ in
         '';
 
         phases = [ "installPhase" ];
-      });
-    in
-    full-build // everyTarget // { list = buildList; }
-  ) { };
-}
+        passthru = everyTarget // {
+          list = buildList;
+        };
+      }
+    ) { };
+  }
+  # Add a web build by 'bevy-cli', if "wasm32-unknown-unknown" is a valid target.
+  // optionalAttrs (elem "wasm32-unknown-unknown" validTargets) {
+    web = rustPlatform.buildRustPackage {
+      inherit src;
+
+      name = packageNamePrefix + "web";
+      nativeBuildInputs = [ wrapped-bevy-cli ];
+
+      cargoLock.lockFile = src + "/Cargo.lock";
+
+      dontFixup = true;
+      doCheck = false;
+
+      bevyBuildFlags = [
+        "--bundle"
+        "--wasm-opt"
+        "-Oz"
+        "--wasm-opt"
+        "-all"
+      ];
+
+      buildPhase = ''
+        runHook preBuild
+
+        bevy --version
+        bevy build web ''${bevyBuildFlags[@]}
+
+        runHook postBuild
+      '';
+
+      installPhase = ''
+        runHook preInstall
+
+        cp -r target/bevy_web/web/${manifest.name} $out
+
+        runHook postInstall
+      '';
+    };
+  }
+)

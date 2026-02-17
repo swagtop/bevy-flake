@@ -57,6 +57,10 @@ in
     sdk = null;
   };
 
+  web = {
+    wasm-bindgen = pkgs.wasm-bindgen-cli;
+  };
+
   crossPlatformRustflags = [
     # Getting rid of some '/nix/store' path prefixes.
     "--remap-path-prefix=/nix/store=/build"
@@ -161,8 +165,7 @@ in
       "aarch64-apple-darwin" = macosEnvironment;
       "wasm32-unknown-unknown" = {
         RUSTFLAGS = ''--cfg getrandom_backend=\"wasm_js\"'';
-        # Adding latest version of 'wasm-bindgen' to PATH.
-        PATH = pkgs.wasm-bindgen-cli_0_2_108 + "/bin:$PATH";
+        PATH = "$BF_WASM_BINDGEN/bin:$PATH";
       };
     };
 
