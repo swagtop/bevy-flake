@@ -1,6 +1,6 @@
 # Cross-compiling for MacOS
 
-## Adding the MacOS SDK to inputs
+## Adding the MacOS SDK to the config
 
 Regardless of if you are on MacOS or not, you need to add a MacOS SDK to your
 bevy-flake instance to compile a portable MacOS binary for non-Nix systems.
