@@ -24,7 +24,10 @@ You will not find a link to one anywhere on this repo.
 
 1. Acquire a URL to a packaged SDK. This can be done by packaging one yourself,
    or finding a pre-packaged one online. Regardless of where you find it, you
-   should host it yourself, in case the original source goes down.
+   should upload it yourself, so that you don't risk the one you are using
+   becoming unavailable.
+
+   The reproducability of your project is dependent on this SDK being available.
 
 2. Add it to your config like so:
    ```nix
@@ -44,15 +47,14 @@ You will not find a link to one anywhere on this repo.
 
 2. Run:
    ```sh
-   nix run github:swagtop/bevy-flake#rust-toolchain.package-macos-sdk <xcode.xip>`
+   nix run github:swagtop/bevy-flake#rust-toolchain.package-macos-sdk <xcode.xip>
    ```
    ... where `<xcode.xip>` is the path to the Xcode archive you have downloaded.
 
 3. Upload the resulting `MacOSX__.sdk.tar.xz` file somewhere Nix can fetch it
    from. This could be a fileserver, or the releases section of your repo
-   (provided it is public).
-
-   You could make an empty repo for the sole purpose of uploading these SDK's.
+   (provided it is public). You could make an empty repo for the sole purpose of
+   uploading these SDK's.
 
 
 ## Structure of the SDK
