@@ -42,8 +42,8 @@ You will not find a link to one anywhere on this repo.
 
 ## Packaging 
 
-1. Download Xcode from [here.](https://developer.apple.com/download/all/?q=xcode)
-   This is only supported for Xcode versions above 8.0.
+1. Download Xcode with a version above 8.0 from
+   [here.](https://developer.apple.com/download/all/?q=xcode)
 
 2. Run:
    ```sh
