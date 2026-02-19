@@ -13,6 +13,12 @@ You will not find a link to one anywhere on this repo.
 
 [osxcross]: https://github.com/tpoechtrager/osxcross
 
+> [!NOTE]
+> By packaging and using the MacOS SDK, you are agreeing with the
+> [Xcode and Apple SDKs Agreement.][license]
+
+[license]: https://www.apple.com/legal/sla/docs/xcode.pdf
+
 
 ## Using a packaged SDK
 
@@ -36,10 +42,17 @@ You will not find a link to one anywhere on this repo.
 1. Download Xcode from [here.](https://developer.apple.com/download/all/?q=xcode)
    This is only supported for Xcode versions above 8.0.
 
-2. Run `nix run github:swagtop/bevy-flake#rust-toolchain.package-macos-sdk <xcode.xip>`,
-   where `<xcode.xip>` is the path to the Xcode archive you have downloaded.
+2. Run:
+   ```sh
+   nix run github:swagtop/bevy-flake#rust-toolchain.package-macos-sdk <xcode.xip>`
+   ```
+   ... where `<xcode.xip>` is the path to the Xcode archive you have downloaded.
 
-3. Upload the resulting `MacOSX__.sdk.tar.xz` file somewhere.
+3. Upload the resulting `MacOSX__.sdk.tar.xz` file somewhere Nix can fetch it
+   from. This could be a fileserver, or the releases section of your repo
+   (provided it is public).
+
+   You could make an empty repo for the sole purpose of uploading these SDK's.
 
 
 ## Structure of the SDK
