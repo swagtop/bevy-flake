@@ -15,7 +15,7 @@ let
       openssl.dev
       libz.dev
     ];
-    preBuild = ''
+    configurePhase = ''
       mkdir $out
       cd xar
       ./configure --prefix="$out"
