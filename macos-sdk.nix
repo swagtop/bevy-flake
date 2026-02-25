@@ -47,18 +47,18 @@ pkgs.writeShellScriptBin "package-macos-sdk" ''
     exit 1
   fi
 
-  XCODE=$(realpath "$1")
+  XCODE="$(realpath "$1")"
   
-  TMP_DIR=$(mktemp -d)
+  TMP_DIR="$(mktemp -d)"
 
-  pushd $TMP_DIR
+  pushd "$TMP_DIR"
   
   ${xar}/bin/xar -xf "$XCODE" -C "$TMP_DIR"
   ${pbzx}/bin/pbzx -n Content | cpio -i
 
   popd
 
-  XCODEDIR=$TMP_DIR ${osxcross}/tools/gen_sdk_package.sh
+  XCODEDIR="$TMP_DIR" ${osxcross}/tools/gen_sdk_package.sh
 ''
 // {
   meta.mainProgram = "package-macos-sdk";
