@@ -32,7 +32,7 @@ You will not find a link to one anywhere on this repo.
 2. Add it to your config like so:
    ```nix
    bf = bevy-flake.configure {
-     mac.sdk = fetchTarball {
+     macos.sdk = fetchTarball {
        url = "https://website.com/path/to/macos/sdk/MacOSX__.tar.xz";
        sha256 = "sha256:some-long-hash-string-goes-here";
      };
