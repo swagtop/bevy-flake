@@ -5,6 +5,7 @@
   bzip2,
   clangStdenv,
   cpio,
+  fetchgit,
   lib,
   libxml2,
   libz,
@@ -58,9 +59,10 @@ let
       mainProgram = "pbzx";
     };
   };
-  osxcross = fetchGit {
+  osxcross = fetchgit {
     url = "https://github.com/tpoechtrager/osxcross";
     rev = "e6ab3fa7423f9235ce9ed6381d6d3af191b46b59";
+    sha256 = "sha256-MuOPFExFudprW/AZzcPoUXmSrGhEwQ20dFvwu6Q7OXc";
   };
 in
 writeShellApplication {
