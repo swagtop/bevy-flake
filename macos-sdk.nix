@@ -1,17 +1,21 @@
 {
   autoconf,
   bash,
-  busybox,
   bzip2,
   clangStdenv,
+  coreutils,
   cpio,
   fetchgit,
+  findutils,
+  gnugrep,
+  gnused,
+  gnutar,
   lib,
   libxml2,
-  libz,
   openssl,
   writeShellApplication,
   xz,
+  zlib,
   ...
 }:
 let
@@ -25,8 +29,8 @@ let
       autoconf
       libxml2.dev
       openssl.dev
-      libz.dev
       bzip2.dev
+      zlib
     ];
     configurePhase = ''
       mkdir $out
@@ -73,7 +77,11 @@ writeShellApplication {
     xar
     cpio
     xz
-    busybox
+    coreutils
+    findutils
+    gnugrep
+    gnused
+    gnutar
   ];
   text = ''
     XCODE=$(realpath "$1")
