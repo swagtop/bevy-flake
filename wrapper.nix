@@ -139,9 +139,11 @@ let
             // {
               PKG_CONFIG_PATH =
                 (devEnvironment.PKG_CONFIG_PATH or "")
+                + ":"
                 + makeSearchPath "lib/pkgconfig" (map (p: p.dev or null) runtimeInputs');
               RUSTFLAGS =
                 (devEnvironment.RUSTFLAGS or "")
+                + " "
                 + optionalString (pkgs.stdenv.isLinux) "-C link-args=-Wl,-rpath,${makeSearchPath "lib" runtimeInputs'}";
             }
           )}
