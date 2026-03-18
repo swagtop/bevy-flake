@@ -58,18 +58,9 @@ let
       mainProgram = "pbzx";
     };
   };
-  osxcross = clangStdenv.mkDerivation {
-    name = "osxcross-patched";
-    src = fetchGit {
-      url = "https://github.com/tpoechtrager/osxcross";
-      rev = "e6ab3fa7423f9235ce9ed6381d6d3af191b46b59";
-    };
-    phases = [ "installPhase" ];
-    installPhase = ''
-      mkdir $out
-      cp -r $src/* $out/
-      # patchShebangs $out/tools
-    '';
+  osxcross = fetchGit {
+    url = "https://github.com/tpoechtrager/osxcross";
+    rev = "e6ab3fa7423f9235ce9ed6381d6d3af191b46b59";
   };
 in
 writeShellApplication {
@@ -94,7 +85,7 @@ writeShellApplication {
     pbzx -n "$TMP_DIR/Content" | cpio -i --directory "$TMP_DIR"
 
     echo "Running packaging script from osxcross"
-    XCODEDIR="$TMP_DIR" bash ${osxcross}/tools/gen_sdk_package.sh
+    XCODEDIR="$TMP_DIR" ${osxcross}/tools/gen_sdk_package.sh
   '';
   passthru = {
     inherit xar pbzx osxcross;
