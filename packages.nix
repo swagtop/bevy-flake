@@ -52,7 +52,7 @@ let
       inherit wrapExecutable;
       unwrapped = input-rust-toolchain;
 
-      package-macos-sdk = import ./macos-sdk.nix { inherit pkgs; };
+      package-macos-sdk = pkgs.callPackage (import ./macos-sdk.nix) { };
 
       # Attributes needed for 'makeRustPlatform' compatibility.
       targetPlatforms = systems;

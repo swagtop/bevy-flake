@@ -1,27 +1,44 @@
 {
-  pkgs ? import <nixpkgs> { system = builtins.currentSystem; },
+  autoconf,
+  bash,
+  busybox,
+  bzip2,
+  clangStdenv,
+  cpio,
+  lib,
+  libxml2,
+  libz,
+  openssl,
+  writeShellApplication,
+  xz,
   ...
 }:
 let
-  xar = pkgs.clangStdenv.mkDerivation {
+  xar = clangStdenv.mkDerivation {
     name = "xar";
     src = fetchGit {
       url = "https://github.com/tpoechtrager/xar";
       rev = "5fa4675419cfec60ac19a9c7f7c2d0e7c831a497";
     };
-    nativeBuildInputs = with pkgs; [
+    nativeBuildInputs = [
       autoconf
       libxml2.dev
       openssl.dev
       libz.dev
+      bzip2.dev
     ];
     configurePhase = ''
       mkdir $out
       cd xar
       ./configure --prefix="$out"
     '';
+    passthru.meta = {
+      homepage = "https://github.com/tpoechtrager/xar";
+      license = lib.licenses.unfree;
+      mainProgram = "xar";
+    };
   };
-  pbzx = pkgs.clangStdenv.mkDerivation {
+  pbzx = clangStdenv.mkDerivation {
     name = "pbzx";
     src = fetchGit {
       url = "https://github.com/tpoechtrager/pbzx";
@@ -29,37 +46,65 @@ let
     };
     nativeBuildInputs = [
       xar
-      pkgs.xz.dev
+      xz.dev
     ];
     buildPhase = ''
       mkdir -p $out/bin
-      clang -llzma -lxar -I ${pkgs.xz.dev}/usr/include pbzx.c -o $out/bin/pbzx
+      clang -llzma -lxar pbzx.c -o $out/bin/pbzx
+    '';
+    passthru.meta = {
+      homepage = "https://github.com/tpoechtrager/pbzx";
+      license = lib.licenses.gpl3;
+      mainProgram = "pbzx";
+    };
+  };
+  osxcross = clangStdenv.mkDerivation {
+    name = "osxcross-patched";
+    src = fetchGit {
+      url = "https://github.com/tpoechtrager/osxcross";
+      rev = "e6ab3fa7423f9235ce9ed6381d6d3af191b46b59";
+    };
+    phases = [ "installPhase" ];
+    installPhase = ''
+      mkdir $out
+      cp -r $src/* $out/
+      # patchShebangs $out/tools
     '';
   };
-  osxcross = fetchGit {
-    url = "https://github.com/tpoechtrager/osxcross";
-    rev = "e6ab3fa7423f9235ce9ed6381d6d3af191b46b59";
-  };
 in
-pkgs.writeShellScriptBin "package-macos-sdk" ''
-  if [[ $1 == "" ]]; then
-    echo "Use the path to <xcode.xip> as the first argument."
-    exit 1
-  fi
-
-  XCODE="$(realpath "$1")"
+writeShellApplication {
+  name = "package-macos-sdk";
+  runtimeInputs = [
+    bash
+    pbzx
+    xar
+    cpio
+    xz
+    busybox
+  ];
+  text = ''
+    XCODE=$(realpath "$1")
   
-  TMP_DIR="$(mktemp -d)"
+    TMP_DIR=$(mktemp -d)
 
-  pushd "$TMP_DIR"
-  
-  ${xar}/bin/xar -xf "$XCODE" -C "$TMP_DIR"
-  ${pbzx}/bin/pbzx -n Content | cpio -i
+    echo "Extracting $1 to $TMP_DIR"
+    xar -xf "$XCODE" -C "$TMP_DIR"
 
-  popd
+    echo "Preparing for packaging"
+    pbzx -n "$TMP_DIR/Content" | cpio -i --directory "$TMP_DIR"
 
-  XCODEDIR="$TMP_DIR" ${osxcross}/tools/gen_sdk_package.sh
-''
-// {
-  meta.mainProgram = "package-macos-sdk";
+    echo "Running packaging script from osxcross"
+    XCODEDIR="$TMP_DIR" bash ${osxcross}/tools/gen_sdk_package.sh
+  '';
+  passthru = {
+    inherit xar pbzx osxcross;
+    meta = {
+      description = ''
+        MacOS SDK packaging script for Xcode versions >8.0, ported to Nix.
+      '';
+      homepage = "https://github.com/tpoechtrager/osxcross/";
+      license = lib.licenses.gpl2;
+      mainProgram = "package-macos-sdk";
+    };
+  };
 }
