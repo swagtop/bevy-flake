@@ -21,9 +21,10 @@
 let
   xar = clangStdenv.mkDerivation {
     name = "xar";
-    src = fetchGit {
+    src = fetchgit {
       url = "https://github.com/tpoechtrager/xar";
       rev = "5fa4675419cfec60ac19a9c7f7c2d0e7c831a497";
+      sha256 = "sha256-lAntWSslNu2NSSGo/vnnSuqJCaomRlYIt+6PQbkttCQ=";
     };
     nativeBuildInputs = [
       autoconf
@@ -45,9 +46,10 @@ let
   };
   pbzx = clangStdenv.mkDerivation {
     name = "pbzx";
-    src = fetchGit {
+    src = fetchgit {
       url = "https://github.com/tpoechtrager/pbzx";
       rev = "2a4d7c3300c826d918def713a24d25c237c8ed53";
+      sha256 = "sha256-NKHmyM7pnrLLQIT25PNxdypv3GZC6Ili4TpTIFp8XbA=";
     };
     nativeBuildInputs = [
       xar
