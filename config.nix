@@ -134,9 +134,9 @@ in
         in
         {
           SDKROOT = "$BF_MACOS_SDK_PATH";
-          COREAUDIO_SDK_PATH = "${frameworks}/System/Library/Frameworks/CoreAudio.framwork/Headers";
+          COREAUDIO_SDK_PATH = "${frameworks}/CoreAudio.framwork/Headers";
           BINDGEN_EXTRA_CLANG_ARGS = concatStringsSep " " [
-            "-F $BF_MACOS_SDK_PATH/System/Library/Frameworks"
+            "-F ${frameworks}"
             "-I$BF_MACOS_SDK_PATH/usr/include"
             "--sysroot=$BF_MACOS_SDK_PATH"
           ];
