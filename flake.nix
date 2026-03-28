@@ -9,6 +9,7 @@
       inherit (builtins)
         foldl'
         isFunction
+        warn
         ;
       inherit (nixpkgs.lib)
         genAttrs
@@ -115,7 +116,7 @@
           path = ./templates/fenix;
           description = "Get the Rust toolchain through nix-community's fenix.";
         };
-        nixpkgs = {
+        nixpkgs = warn "This template does not support any cross-compilation." {
           path = ./templates/nixpkgs;
           description = "Get the Rust toolchain from nixpkgs, no cross-compilation.";
         };

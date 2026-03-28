@@ -8,6 +8,7 @@ let
     concatStringsSep
     isFunction
     elem
+    warn
     ;
   inherit (pkgs.lib)
     attrsToList
@@ -236,7 +237,18 @@ in
       in
       pkgs.stdenvNoCC.mkDerivation {
         # Only warn about default toolchain when building all targets.
-        name = packageNamePrefix + "all-targets";
+        name =
+          (
+            if usingDefaultToolchain then
+              warn (
+                "Only building your current system, as the default toolchain "
+                + "doesn't support cross-compilation."
+              )
+            else
+              _: _
+          )
+            packageNamePrefix
+          + "all-targets";
 
         linkBuilds = true;
         buildInputs = map (build: build.value) buildList;
@@ -294,7 +306,7 @@ in
       installPhase = ''
         runHook preInstall
 
-        cp -r target/bevy_web/web/${manifest.name} $out
+        cp -r target/bevy_web/web/"${manifest.name}" $out
 
         runHook postInstall
       '';
