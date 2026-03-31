@@ -1,6 +1,8 @@
 {
   pkgs,
   config,
+  assembleConfigs,
+  applyIfFunction,
 }:
 let
   inherit (builtins)
@@ -16,8 +18,11 @@ let
     importTOML
     makeOverridable
     optionalAttrs
+    optionalString
     optionals
     subtractLists
+    mapAttrsToList
+    makeSearchPath
     ;
   inherit (config)
     macos
@@ -25,40 +30,93 @@ let
     rustToolchain
     src
     systems
+    devEnvironment
     targetEnvironments
     ;
 
-  targets = attrNames targetEnvironments;
-  input-rust-toolchain =
-    if isFunction rustToolchain then
-      rustToolchain targets
-    else
-      throw (
-        "The list of targets are applied to this config attribute. This should "
-        + "be a function that is using the input targets when building the "
-        + "Rust toolchain."
+  applyConfig =
+    config:
+    let
+      targets = attrNames config.targetEnvironments;
+      exportEnv =
+        env: concatStringsSep "\n" (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env);
+    in
+    config
+    // {
+      rustToolchain =
+        if isFunction rustToolchain then
+          rustToolchain targets
+        else
+          throw (
+            "The list of targets are applied to this config attribute. This should "
+            + "be a function that is using the input targets when building the "
+            + "Rust toolchain."
+          );
+      sharedEnvironment = pkgs.writeTextFile {
+        name = "bevy-flake-shared-environment.bash";
+        text = exportEnv config.sharedEnvironment;
+      };
+      devEnvironment = pkgs.writeTextFile {
+        name = "bevy-flake-dev-environment.bash";
+        text = exportEnv (
+          devEnvironment
+          // {
+            PKG_CONFIG_PATH =
+              "${devEnvironment.PKG_CONFIG_PATH or ""}:"
+              + makeSearchPath "lib/pkgconfig" (map (p: p.dev or null) config.runtimeInputs);
+            RUSTFLAGS =
+              "${devEnvironment.RUSTFLAGS or ""} "
+              + optionalString pkgs.stdenv.isLinux "-C link-args=-Wl,-rpath,${makeSearchPath "lib" config.runtimeInputs}";
+          }
+        );
+      };
+      targetEnvironments = genAttrs targets (
+        target:
+        pkgs.writeTextFile {
+          name = "bevy-flake-${target}-environment.bash";
+          text = exportEnv (
+            targetEnvironments.${target}
+            // {
+              RUSTFLAGS =
+                "${targetEnvironments.${target}.RUSTFLAGS or ""} "
+                + concatStringsSep " " config.crossPlatformRustflags;
+            }
+          );
+          passthru = {
+            variables = targetEnvironments.${target};
+          };
+        }
       );
+    };
 
-  wrapExecutable = import ./wrapper.nix config {
-    inherit pkgs input-rust-toolchain;
+  appliedConfig = applyConfig config;
+
+  wrapExecutable = import ./wrapper.nix {
+    inherit
+      pkgs
+      applyConfig
+      assembleConfigs
+      applyIfFunction
+      appliedConfig
+      ;
+    rawConfig = config;
   };
 
-  wrapped-rust-toolchain =
-    wrapExecutable {
-      name = "cargo";
-      executable = input-rust-toolchain + "/bin/cargo";
-      symlinkPackage = input-rust-toolchain;
-    }
-    // {
-      inherit wrapExecutable;
-      unwrapped = input-rust-toolchain;
+  package-macos-sdk = pkgs.callPackage (import ./macos-sdk.nix) { };
 
-      package-macos-sdk = pkgs.callPackage (import ./macos-sdk.nix) { };
+  wrapped-rust-toolchain = wrapExecutable {
+    name = "cargo";
+    executable = appliedConfig.rustToolchain + "/bin/cargo";
+    symlinkPackage = appliedConfig.rustToolchain;
+    passthru = {
+      inherit wrapExecutable package-macos-sdk;
+      unwrapped = appliedConfig.rustToolchain;
 
       # Attributes needed for 'makeRustPlatform' compatibility.
       targetPlatforms = systems;
       badTargetPlatforms = [ ];
     };
+  };
 
   wrapped-bevy-cli =
     let
@@ -114,6 +172,14 @@ in
 
   # For now we build 'bevy-cli' from source, as it is not in nixpkgs yet.
   bevy-cli = wrapped-bevy-cli;
+
+  # Useful tools can be reached through this package.
+  tools = pkgs.writeShellScriptBin "tools" ''
+    echo "bevy-flake: bla"
+  ''
+  // {
+    inherit wrapExecutable package-macos-sdk;
+  };
 }
 # If 'src' is defined in config, add the 'targets' package, which builds
 # every target defined in 'targetEnvironments'. Individual targets can be built
@@ -121,8 +187,8 @@ in
 // optionalAttrs (src != null) (
   let
     usingDefaultToolchain =
-      if (input-rust-toolchain ? bfDefaultToolchain) then
-        input-rust-toolchain.bfDefaultToolchain
+      if (appliedConfig.rustToolchain ? bfDefaultToolchain) then
+        appliedConfig.rustToolchain.bfDefaultToolchain
       else
         false;
 
@@ -156,10 +222,6 @@ in
             attrNames targetEnvironments
         );
 
-    rustPlatform = pkgs.makeRustPlatform {
-      cargo = wrapped-rust-toolchain;
-      rustc = wrapped-rust-toolchain;
-    };
   in
   {
     targets = makeOverridable (
@@ -167,7 +229,16 @@ in
       let
         everyTarget = genAttrs validTargets (
           target:
-          rustPlatform.buildRustPackage (
+          let
+            targetToolchain = wrapped-rust-toolchain.override {
+              targets = [ target ];
+            };
+            targetRustPlatform = pkgs.makeRustPlatform {
+              cargo = targetToolchain;
+              rustc = targetToolchain;
+            };
+          in
+          targetRustPlatform.buildRustPackage (
             {
               inherit src target;
 
@@ -275,41 +346,57 @@ in
   }
   # Add a web build by 'bevy-cli', if "wasm32-unknown-unknown" is a valid target.
   // optionalAttrs (elem "wasm32-unknown-unknown" validTargets) {
-    web = rustPlatform.buildRustPackage {
-      inherit src;
+    web =
+      let
+        targetToolchain = wrapped-rust-toolchain.override {
+          crossCompileOnly = true;
+          targets = [ "wasm32-unknown-unknown" ];
+        };
+        targetRustPlatform = pkgs.makeRustPlatform {
+          cargo = targetToolchain;
+          rustc = targetToolchain;
+        };
+      in
+      targetRustPlatform.buildRustPackage {
+        inherit src;
 
-      name = packageNamePrefix + "web";
-      nativeBuildInputs = [ wrapped-bevy-cli ];
+        name = packageNamePrefix + "web";
+        nativeBuildInputs = [
+          (wrapped-bevy-cli.override {
+            crossCompileOnly = true;
+            targets = [ "wasm32-unknown-unknown" ];
+          })
+        ];
 
-      cargoLock.lockFile = src + "/Cargo.lock";
+        cargoLock.lockFile = src + "/Cargo.lock";
 
-      dontFixup = true;
-      doCheck = false;
+        dontFixup = true;
+        doCheck = false;
 
-      bevyBuildFlags = [
-        "--bundle"
-        "--wasm-opt"
-        "-Oz"
-        "--wasm-opt"
-        "-all"
-      ];
+        bevyBuildFlags = [
+          "--bundle"
+          "--wasm-opt"
+          "-Oz"
+          "--wasm-opt"
+          "-all"
+        ];
 
-      buildPhase = ''
-        runHook preBuild
+        buildPhase = ''
+          runHook preBuild
 
-        bevy --version
-        bevy build web ''${bevyBuildFlags[@]}
+          bevy --version
+          bevy build web ''${bevyBuildFlags[@]}
 
-        runHook postBuild
-      '';
+          runHook postBuild
+        '';
 
-      installPhase = ''
-        runHook preInstall
+        installPhase = ''
+          runHook preInstall
 
-        cp -r target/bevy_web/web/"${manifest.name}" $out
+          cp -r target/bevy_web/web/"${manifest.name}" $out
 
-        runHook postInstall
-      '';
-    };
+          runHook postInstall
+        '';
+      };
   }
 )

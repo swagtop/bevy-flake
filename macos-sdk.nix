@@ -87,7 +87,7 @@ writeShellApplication {
   ];
   text = ''
     XCODE=$(realpath "$1")
-  
+
     TMP_DIR=$(mktemp -d)
 
     echo "Extracting $1 to $TMP_DIR"

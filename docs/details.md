@@ -23,26 +23,43 @@ or a package wrapped, that isn't included by default.
   systems = [ <system> ];
   forSystems = <function>; # Shorthand for 'nixpkgs.lib.genattrs systems'.
 
+  # The function used for configuring bevy-flake. Read docs/config.md for info.
+  configure = <function>;
+
   # The default devShell, includes the packages that don't need to be built.
   devShells."<system>".default = <derivation>;
 
   packages."<system>" = {
-    rust-toolchain = <derivation>; # The wrapped Rust toolchain.
-    rust-toolchain.unwrapped = <derivation>; # The unwrapped Rust toolchain.
-    rust-toolchain.wrapExecutable = <function>; # Use to wrap your own packages.
+    "<wrapped-package>" = <derivation>;
+
+    # The wrapped package with only the dependencies for developing fetched.
+    "<wrapped-package>".develop = <derivation>;
+
+    # Override 'wrapExecutable'.
+    "<wrapped-package>".override = <function>; 
+
+    # Configure on a package level.
+    "<wrapped-package>".configure = <function>; 
+
+    # The final configuration used.
+    "<wrapped-package>".appliedConfig = <config>;
     
-    # Pre-wrapped packages.
+    # Pre-wrapped packages, which have the above schema.
+    rust-toolchain = <derivation>;
+    rust-toolchain.unwrapped = <derivation>; # The unwrapped 'rustToolchain'.
     dioxus-cli = <derivation>;
     bevy-cli = <derivation>;
 
-    # If you've set the 'src' config attribute to your source code:
-    targets = <derivation>; # All targets, symlinked to the same derivation.
-    targets."<target>" = <derivation>; # The individual targets.
+    # Tools useful for using the flake.
+    tools = <derivation>; # A script that prints helpful information.
+    tools.package-macos-sdk = <derivation>; # A script that packages the MacOS SDK.
+    tools.wrapExecutable = <function>; # Wrap y
+
+    # If you've set the 'src' config attribute to your Bevy source code:
+    targets = <derivation>; # Build all targets, symlinked in one derivation.
+    targets."<target>" = <derivation>; # Build individual targets.
     targets.list = [ { name = <target>; value = <derivation>; } ];
   };
-
-  # The function used for configuring bevy-flake. Read docs/config.md for info.
-  configure = <function>;
 }
 ```
 
@@ -153,7 +170,7 @@ Lets say you are wrapping `cowsay`:
 
 ```nix
 let
-  inherit (bevy-flake.packages.${system}.rust-toolchain) wrapExecutable;
+  inherit (bevy-flake.packages.${system}.tools) wrapExecutable;
   wrapped-cowsay = wrapExecutable {
     name = "cowsay";
     executable = "${pkgs.cowsay}/bin/cowsay";

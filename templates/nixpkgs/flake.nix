@@ -26,9 +26,9 @@
           default = pkgs.mkShell {
             name = "bevy-flake-nixpkgs";
             packages = [
-              bf.packages.${system}.rust-toolchain
-              bf.packages.${system}.dioxus-cli
-              # bf.packages.${system}.bevy-cli
+              bf.packages.${system}.rust-toolchain.develop
+              bf.packages.${system}.dioxus-cli.develop
+              # bf.packages.${system}.bevy-cli.develop
             ];
           };
         }

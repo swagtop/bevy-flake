@@ -1,44 +1,56 @@
 {
-  # These three are not used here, but are used ealier sections.
-  systems,
-  withPkgs,
-  rustToolchain,
-
-  linux,
-  windows,
-  macos,
-  web,
-
-  crossPlatformRustflags,
-
-  sharedEnvironment,
-  devEnvironment,
-  targetEnvironments,
-  extraScript,
-
-  runtimeInputs,
-  stdenv,
-
-  src,
-}@config:
-
-{
   pkgs,
-  input-rust-toolchain,
+
+  assembleConfigs,
+  applyConfig,
+  applyIfFunction,
+
+  rawConfig,
+  appliedConfig,
 }:
 
 let
   inherit (builtins)
+    attrNames
     concatStringsSep
     isFunction
+    any
     ;
   inherit (pkgs.lib)
     importJSON
-    makeSearchPath
     mapAttrsToList
     optionalAttrs
-    optionalString
     ;
+
+  makeOverridable =
+    f: i:
+    let
+      result = f i;
+    in
+    result
+    // {
+      override = makeOverridable (o: if isFunction o then f (i // (o i)) else f (i // o));
+      develop = makeOverridable f (i // { developOnly = true; });
+      configure = makeOverridable (
+        c:
+        if (c ? systems) then
+          throw "You cannot configure 'systems' on a package level."
+        else if (c ? withPkgs) then
+          throw "You cannot configure 'withPkgs' on a package level, as "
+          + "not everything can be pinned from here. Configure bevy-flake "
+          + "and get the package from there for this type of behaviour."
+        else
+          f (
+            i
+            // {
+              config = applyConfig (assembleConfigs [
+                rawConfig
+                c
+              ] pkgs);
+            }
+          )
+      );
+    };
 
   exportEnv =
     env: concatStringsSep "\n" (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env);
@@ -71,128 +83,187 @@ let
       fi
     done
   '';
-in
 
-{
-  name,
-  executable,
-  symlinkPackage ? null,
-  argParser ? defaultArgParser,
-  postExtraScript ? "",
-  extraRuntimeInputs ? [ ],
-}:
-let
-  runtimeInputs' = runtimeInputs ++ extraRuntimeInputs;
-  argParser' = if isFunction argParser then argParser defaultArgParser else argParser;
-  wrapped = pkgs.writeShellApplication {
-    inherit name;
-    runtimeInputs = runtimeInputs' ++ [
-      stdenv.cc
-      input-rust-toolchain
-      pkgs.pkg-config
-    ];
-    bashOptions = [
-      "errexit"
-      "pipefail"
-    ];
-    text = ''
-      ${argParser'}
+  wrapExecutable =
+    {
+      name,
+      executable,
+      symlinkPackage ? null,
+      argParser ? defaultArgParser,
+      postExtraScript ? "",
+      extraRuntimeInputs ? [ ],
+      targets ? null,
+      developOnly ? false,
+      crossCompileOnly ? false,
+      config ? appliedConfig,
+      passthru ? { },
+    }:
+    let
+      inherit (config)
+        systems
+        withPkgs
+        rustToolchain
+        # linux
+        windows
+        macos
+        web
+        # crossPlatformRustflags
+        sharedEnvironment
+        devEnvironment
+        targetEnvironments
+        extraScript
+        runtimeInputs
+        stdenv
+        # src
+        ;
 
-      if [[ $BF_NO_WRAPPER == "1" ]]; then
-        exec ${executable} "$@"
-      fi
+      pkgs = applyIfFunction withPkgs stdenv.hostPlatform.system;
 
-      # Set variables need to be set up before 'sharedEnvironment' runs.
-      ${exportEnv (
-        {
-          PKG_CONFIG_ALLOW_CROSS = "1";
-          LIBCLANG_PATH = pkgs.libclang.lib + "/lib";
-          LIBRARY_PATH = pkgs.libiconv + "/lib";
-        }
-        // optionalAttrs (windows.sdk != null) {
-          # Set up Windows SDK.
-          BF_WINDOWS_SDK_PATH = windows.sdk;
-        }
-        // optionalAttrs (macos.sdk != null) (
-          # Set up MacOS SDK, if configured.
-          let
-            versions = (importJSON (macos.sdk + "/SDKSettings.json")).SupportedTargets.macosx;
-          in
-          {
-            BF_MACOS_SDK_PATH = macos.sdk;
-            BF_MACOS_SDK_MINIMUM_VERSION = versions.MinimumDeploymentTarget;
-            BF_MACOS_SDK_DEFAULT_VERSION = versions.DefaultDeploymentTarget;
-          }
-        )
-        // optionalAttrs (web.wasm-bindgen != null) {
-          BF_WASM_BINDGEN = web.wasm-bindgen;
-        }
-      )}
+      runtimeInputs' = runtimeInputs ++ extraRuntimeInputs;
+      argParser' = applyIfFunction argParser defaultArgParser;
+      targets' = if (targets != null) then targets else attrNames targetEnvironments;
+      rustToolchain' =
+        if (targets != null) then
+          rawConfig.rustToolchain targets'
+        else
+          rustToolchain;
 
-      # Base environment for all targets.
-      ${exportEnv sharedEnvironment}
+      wrapped = pkgs.writeShellApplication {
+        inherit name;
+        runtimeInputs = runtimeInputs' ++ [
+          stdenv.cc
+          rustToolchain'
+          pkgs.pkg-config
+        ];
+        bashOptions = [
+          "errexit"
+          "pipefail"
+        ];
+        text = ''
+          ${argParser'}
 
-      case $BF_TARGET in
-        "")
+          if [[ $BF_NO_WRAPPER == "1" ]]; then
+            exec ${executable} "$@"
+          fi
+
+          # Set variables need to be set up before 'sharedEnvironment' runs.
           ${exportEnv (
-            devEnvironment
-            // {
-              PKG_CONFIG_PATH =
-                (devEnvironment.PKG_CONFIG_PATH or "")
-                + ":"
-                + makeSearchPath "lib/pkgconfig" (map (p: p.dev or null) runtimeInputs');
-              RUSTFLAGS =
-                (devEnvironment.RUSTFLAGS or "")
-                + " "
-                + optionalString (pkgs.stdenv.isLinux) "-C link-args=-Wl,-rpath,${makeSearchPath "lib" runtimeInputs'}";
+            let
+              hasTargets = any (i: builtins.elem i targets');
+            in
+            {
+              LIBCLANG_PATH = pkgs.libclang.lib + "/lib";
+              LIBRARY_PATH = pkgs.libiconv + "/lib";
             }
-          )}
-        ;;
-
-        ${concatStringsSep "\n" (
-          mapAttrsToList (target: env: ''
-            ${target}*)
-            ${exportEnv (
-              env
-              // {
-                RUSTFLAGS =
-                  (env.RUSTFLAGS or "")
-                  + optionalString (crossPlatformRustflags != [ ]) (
-                    " " + (concatStringsSep " " crossPlatformRustflags)
-                  );
+            # Only add variables relevant to cross-compiliation when not in
+            # develop only mode.
+            // optionalAttrs (!developOnly) (
+              {
+                PKG_CONFIG_ALLOW_CROSS = "1";
               }
-            )}
+              // optionalAttrs ((windows.sdk != null) && (hasTargets windows.targets)) {
+                # Set up Windows SDK.
+                BF_WINDOWS_SDK_PATH = windows.sdk;
+              }
+              // optionalAttrs ((macos.sdk != null) && (hasTargets macos.targets)) (
+                # Set up MacOS SDK, if configured.
+                let
+                  versions = (importJSON (macos.sdk + "/SDKSettings.json")).SupportedTargets.macosx;
+                in
+                {
+                  BF_MACOS_SDK_PATH = macos.sdk;
+                  BF_MACOS_SDK_MINIMUM_VERSION = versions.MinimumDeploymentTarget;
+                  BF_MACOS_SDK_DEFAULT_VERSION = versions.DefaultDeploymentTarget;
+                }
+              )
+              // optionalAttrs ((web.wasm-bindgen != null) && (hasTargets web.targets)) {
+                BF_WASM_BINDGEN = web.wasm-bindgen;
+              }
+            )
+          )}
+
+          # Base environment for all targets.
+          # shellcheck source=/dev/null
+          source "${sharedEnvironment}"
+
+          case "$BF_TARGET" in
+            "")
+              ${
+                if (crossCompileOnly && developOnly) then
+                  throw "You cannot be in both cross-compilation and develop mode at the same time."
+                else if crossCompileOnly then
+                  ''
+                    echo "bevy-flake: You are using this package in cross-compilation mode."
+                    echo "You can therefore only cross-compile for your selected targets."
+                    exit 1
+                  ''
+                else
+                  ''
+                    # shellcheck source=/dev/null
+                    source "${devEnvironment}"
+                  ''
+              }
             ;;
-          '') targetEnvironments
-        )}
-      esac
 
-      ${extraScript}
+            ${
+              if developOnly then
+                ''
+                  *)
+                    echo "${
+                      "bevy-flake: You are using this package develop mode.\n"
+                      + "Therefore you cannot cross-compile to any specific "
+                      + "target.\n"
+                      + "This mode is useful for significantly reducing the "
+                      + "amount of dependencies downloaded for when you are "
+                      + "only developing.\n"
+                      + "Remove the '.develop' suffix of the package you are "
+                      + "using to enable cross-compilation, or build for your "
+                      + "targets with 'nix build .#targets.<target>'."
+                    }"
+                    exit 1
+                  ;;
+                ''
+              else
+                concatStringsSep "\n" (
+                  map (target: ''
+                    ${target}*)
+                      # shellcheck source=/dev/null
+                      source "${targetEnvironments.${target}}"
+                    ;;
+                  '') targets'
+                )
+            }
+          esac
 
-      ${postExtraScript}
+          ${extraScript}
 
-      exec ${executable} "$@"
-    '';
-  };
+          ${postExtraScript}
+
+          exec ${executable} "$@"
+        '';
+
+        passthru = passthru // {
+          inherit runtimeInputs targets;
+          appliedConfig = config;
+          meta = {
+            mainProgram = name;
+            platforms = systems;
+          };
+        };
+      };
+
+    in
+    if (symlinkPackage == null) then
+      wrapped
+    else
+      pkgs.symlinkJoin {
+        inherit name;
+        inherit (wrapped) passthru;
+        ignoreCollisions = true;
+        paths = [
+          wrapped
+          symlinkPackage
+        ];
+      };
 in
-(
-  if (symlinkPackage == null) then
-    wrapped
-  else
-    pkgs.symlinkJoin {
-      inherit name;
-      ignoreCollisions = true;
-      paths = [
-        wrapped
-        symlinkPackage
-      ];
-    }
-)
-// {
-  inherit runtimeInputs;
-  bfConfig = config;
-  meta = {
-    mainProgram = name;
-    platforms = systems;
-  };
-}
+makeOverridable wrapExecutable

@@ -25,18 +25,18 @@
         { pkgs, ... }:
         {
           src = ./.;
+          withPkgs =
+            system:
+            import nixpkgs {
+              inherit system;
+              overlays = [ (import rust-overlay) ];
+            };
           rustToolchain =
             targets:
             let
-              pkgs-with-overlay = (
-                import nixpkgs {
-                  inherit (pkgs.stdenv.hostPlatform) system;
-                  overlays = [ (import rust-overlay) ];
-                }
-              );
               channel = "stable"; # For nightly, use "nightly".
             in
-            pkgs-with-overlay.rust-bin.${channel}.latest.default.override {
+            pkgs.rust-bin.${channel}.latest.default.override {
               inherit targets;
               extensions = [
                 "rust-src"
@@ -58,9 +58,9 @@
           default = pkgs.mkShell {
             name = "bevy-flake-rust-overlay";
             packages = [
-              bf.packages.${system}.rust-toolchain
-              bf.packages.${system}.dioxus-cli
-              # bf.packages.${system}.bevy-cli
+              bf.packages.${system}.rust-toolchain.develop
+              bf.packages.${system}.dioxus-cli.develop
+              # bf.packages.${system}.bevy-cli.develop
             ];
           };
         }

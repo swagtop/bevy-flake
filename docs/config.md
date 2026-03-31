@@ -343,12 +343,12 @@ bf = bevy-flake.configure {
 
 If you have a program not included with the flake, that you'd like to use the
 same dev environment as the rest of the `bevy-flake` packages, you can wrap
-them yourself with the `wrapExecutable` function, included in the `rust-toolchain`
+them yourself with the `wrapExecutable` function, included in the `tools`
 derivation.
 
 ```nix
 let
-  inherit (bevy-flake.packages.${system}.rust-toolchain) wrapExecutable;
+  inherit (bevy-flake.packages.${system}.tools) wrapExecutable;
   
   wrapped-cowsay = wrapExecutable {
     # The name of the resulting script, what you will type in the terminal.

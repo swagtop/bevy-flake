@@ -38,8 +38,12 @@ in
       };
     };
 
-  # There are currently no things to configure for the Linux targets.
-  linux = { };
+  linux = {
+    targets = [
+      "x86_64-unknown-linux-gnu"
+      "aarch64-unknown-linux-gnu"
+    ];
+  };
 
   windows = {
     # Combining both x86_64 and aarch64 Windows SDK's into one.
@@ -50,15 +54,24 @@ in
         pkgs.pkgsCross.x86_64-windows.windows.sdk
       ];
     };
+    targets = [
+      "x86_64-pc-windows-msvc"
+      "aarch64-pc-windows-msvc"
+    ];
   };
 
   macos = {
     # You will not be able to cross-compile to MacOS targets without an SDK.
     sdk = null;
+    targets = [
+      "x86_64-apple-darwin"
+      "aarch64-apple-darwin"
+    ];
   };
 
   web = {
     wasm-bindgen = pkgs.wasm-bindgen-cli;
+    targets = [ "wasm32-unknown-unknown" ];
   };
 
   crossPlatformRustflags = [

@@ -29,11 +29,24 @@
         foldl' (
           accumulator: config:
           accumulator
-          // applyIfFunction config (
-            configInputs
-            // {
-              previous = accumulator;
-            }
+          // (
+            let
+              step = applyIfFunction config (
+                configInputs
+                // {
+                  previous = accumulator;
+                }
+              );
+            in
+            step
+            # Update some config attributes recursively.
+            // genAttrs [ "linux" "windows" "macos" "web" ] (
+              attribute:
+              if (step ? ${attribute}) then
+                pkgs.lib.recursiveUpdate (accumulator.${attribute} or { }) (step.${attribute})
+              else
+                { }
+            )
           )
         ) { } configList;
 
@@ -63,7 +76,7 @@
             in
             import ./packages.nix {
               # Now we have a 'pkgs' to assemble the configs with.
-              inherit pkgs;
+              inherit pkgs assembleConfigs applyIfFunction;
               config = assembleConfigs configList pkgs;
             }
           );
@@ -71,9 +84,9 @@
             default = nixpkgs.legacyPackages.${system}.mkShell {
               name = "bevy-flake";
               packages = [
-                packages.${system}.rust-toolchain
-                packages.${system}.dioxus-cli
-                # packages.${system}.bevy-cli
+                packages.${system}.rust-toolchain.develop
+                packages.${system}.dioxus-cli.develop
+                # packages.${system}.bevy-cli.develop
               ];
             };
           });
