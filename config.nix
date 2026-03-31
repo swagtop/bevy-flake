@@ -1,16 +1,5 @@
 nixpkgs:
 
-let
-  inherit (builtins)
-    concatStringsSep
-    ;
-  inherit (nixpkgs.lib)
-    makeSearchPath
-    optionals
-    optionalString
-    ;
-in
-
 # Default configuration begins here.
 {
   pkgs,
@@ -18,6 +7,16 @@ in
   # default,
   ...
 }:
+let
+  inherit (builtins)
+    concatStringsSep
+    ;
+  inherit (pkgs.lib)
+    makeSearchPath
+    optionals
+    optionalString
+    ;
+in
 {
   systems = [
     "aarch64-darwin"

@@ -13,7 +13,6 @@
         ;
       inherit (nixpkgs.lib)
         genAttrs
-        recursiveUpdate
         ;
 
       applyIfFunction = f: input: if isFunction f then f input else f;
@@ -40,13 +39,9 @@
               );
             in
             step
-            # Update some config attributes recursively.
+            # Update some config attributes one step up.
             // genAttrs [ "linux" "windows" "macos" "web" ] (
-              attribute:
-              if step ? ${attribute} then
-                recursiveUpdate (accumulator.${attribute} or { }) step.${attribute}
-              else
-                { }
+              attribute: accumulator.${attribute} or { } // step.${attribute} or { }
             )
           )
         ) { } configList;
@@ -62,47 +57,52 @@
             # This is why you cannot reference 'pkgs' in 'systems' or
             # 'withPkgs'. A helpful error is thrown, should this ever happen.
             throw (
-              "You cannot reference 'pkgs' from the config inputs in 'systems'"
-              + " or 'withPkgs'.\nIf you're using a 'pkgs.lib' function, get it"
-              + " through 'nixpkgs.lib' instead."
+              "You cannot reference 'pkgs' from the config inputs in 'systems' "
+              + "or 'withPkgs'.\nIf you're using a 'pkgs.lib' function, get it "
+              + "through 'nixpkgs.lib' instead."
             )
           );
 
           forSystems = genAttrs configNoPkgs.systems;
 
-          packages = forSystems (
-            system:
+          flakeAttrs = foldl' (
+            accumulator: system:
             let
               pkgs = applyIfFunction configNoPkgs.withPkgs system;
+              packages.${system} = import ./packages.nix {
+                # Now we have a 'pkgs' to assemble the configs with.
+                inherit pkgs assembleConfigs applyIfFunction;
+                config = assembleConfigs configList pkgs;
+              };
+              step = {
+                inherit packages;
+                devShells.${system}.default = pkgs.mkShell {
+                  name = "bevy-flake";
+                  packages = [
+                    packages.${system}.rust-toolchain.develop
+                    packages.${system}.dioxus-cli.develop
+                    # packages.${system}.bevy-cli.develop
+                  ];
+                };
+                formatter.${system} = pkgs.nixfmt-tree;
+              };
             in
-            import ./packages.nix {
-              # Now we have a 'pkgs' to assemble the configs with.
-              inherit pkgs assembleConfigs applyIfFunction;
-              config = assembleConfigs configList pkgs;
-            }
-          );
-          devShells = forSystems (system: {
-            default = nixpkgs.legacyPackages.${system}.mkShell {
-              name = "bevy-flake";
-              packages = [
-                packages.${system}.rust-toolchain.develop
-                packages.${system}.dioxus-cli.develop
-                # packages.${system}.bevy-cli.develop
-              ];
-            };
-          });
-          formatter = forSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-tree);
+            accumulator
+            // genAttrs [ "packages" "devShells" "formatter" ] (
+              attribute: accumulator.${attribute} or { } // step.${attribute}
+            )
+          ) { } configNoPkgs.systems;
         in
         {
           inherit (configNoPkgs)
             systems
             ;
-          inherit
+          inherit (flakeAttrs)
+            packages
             devShells
             formatter
-            forSystems
-            packages
             ;
+          inherit forSystems;
         };
 
       makeConfigurable =
@@ -119,7 +119,7 @@
     in
     (makeConfigurable mkBf [ ] defaultConfig)
     // {
-      withoutDefault = (makeConfigurable mkBf [ ] { });
+      # withoutDefault = (makeConfigurable mkBf [ ] { });
 
       templates = {
         rust-overlay = {

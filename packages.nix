@@ -174,23 +174,20 @@ in
   bevy-cli = wrapped-bevy-cli;
 
   # Useful tools can be reached through this package.
-  tools = pkgs.writeShellScriptBin "tools" ''
-    echo "bevy-flake: bla"
-  ''
-  // {
-    inherit wrapExecutable package-macos-sdk;
-  };
+  tools =
+    pkgs.writeShellScriptBin "tools" ''
+      echo "bevy-flake: bla"
+    ''
+    // {
+      inherit wrapExecutable package-macos-sdk;
+    };
 }
 # If 'src' is defined in config, add the 'targets' package, which builds
 # every target defined in 'targetEnvironments'. Individual targets can be built
 # from 'targets.<target>', eg. 'targets.wasm32-unknown-unknown'.
 // optionalAttrs (src != null) (
   let
-    usingDefaultToolchain =
-      if appliedConfig.rustToolchain ? bfDefaultToolchain then
-        appliedConfig.rustToolchain.bfDefaultToolchain
-      else
-        false;
+    usingDefaultToolchain = appliedConfig.rustToolchain.bfDefaultToolchain or false;
 
     manifest = (importTOML "${src}/Cargo.toml").package;
     packageNamePrefix =
@@ -348,16 +345,16 @@ in
   // optionalAttrs (elem "wasm32-unknown-unknown" validTargets) {
     web =
       let
-        targetToolchain = wrapped-rust-toolchain.override {
+        webToolchain = wrapped-rust-toolchain.override {
           crossCompileOnly = true;
           targets = [ "wasm32-unknown-unknown" ];
         };
-        targetRustPlatform = pkgs.makeRustPlatform {
-          cargo = targetToolchain;
-          rustc = targetToolchain;
+        webRustPlatform = pkgs.makeRustPlatform {
+          cargo = webToolchain;
+          rustc = webToolchain;
         };
       in
-      targetRustPlatform.buildRustPackage {
+      webRustPlatform.buildRustPackage {
         inherit src;
 
         name = packageNamePrefix + "web";
