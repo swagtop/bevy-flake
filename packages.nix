@@ -187,14 +187,14 @@ in
 // optionalAttrs (src != null) (
   let
     usingDefaultToolchain =
-      if (appliedConfig.rustToolchain ? bfDefaultToolchain) then
+      if appliedConfig.rustToolchain ? bfDefaultToolchain then
         appliedConfig.rustToolchain.bfDefaultToolchain
       else
         false;
 
     manifest = (importTOML "${src}/Cargo.toml").package;
     packageNamePrefix =
-      if (manifest ? version) then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
+      if manifest ? version then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
 
     validTargets =
       subtractLists

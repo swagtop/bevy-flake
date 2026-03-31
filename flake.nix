@@ -13,6 +13,7 @@
         ;
       inherit (nixpkgs.lib)
         genAttrs
+        recursiveUpdate
         ;
 
       applyIfFunction = f: input: if isFunction f then f input else f;
@@ -42,8 +43,8 @@
             # Update some config attributes recursively.
             // genAttrs [ "linux" "windows" "macos" "web" ] (
               attribute:
-              if (step ? ${attribute}) then
-                pkgs.lib.recursiveUpdate (accumulator.${attribute} or { }) (step.${attribute})
+              if step ? ${attribute} then
+                recursiveUpdate (accumulator.${attribute} or { }) step.${attribute}
               else
                 { }
             )
