@@ -52,7 +52,18 @@
           )
         ) { } configList;
 
-      mkBf =
+      makeConfigurable =
+        f: previousConfigs: addedConfig:
+        let
+          currentConfigs = previousConfigs ++ [ addedConfig ];
+          result = f currentConfigs;
+        in
+        result
+        // {
+          configure = makeConfigurable f currentConfigs;
+        };
+
+      mkBf = makeConfigurable (
         configList:
         let
           configNoPkgs = assembleConfigs configList (
@@ -75,7 +86,12 @@
             pkgs = applyIfFunction configNoPkgs.withPkgs system;
             packages.${system} = import ./packages.nix {
               # Now we have a 'pkgs' to assemble the configs with.
-              inherit pkgs assembleConfigs applyIfFunction;
+              inherit
+                pkgs
+                assembleConfigs
+                applyIfFunction
+                mkBf
+                ;
               config = assembleConfigs configList pkgs;
             };
             step = {
@@ -99,24 +115,11 @@
         // {
           inherit (configNoPkgs) systems;
           forSystems = genAttrs configNoPkgs.systems;
-        };
-
-      makeConfigurable =
-        f: previousConfigs: addedConfig:
-        let
-          currentConfigs = previousConfigs ++ [ addedConfig ];
-          result = f currentConfigs;
-        in
-        result
-        // {
-          configure = makeConfigurable f currentConfigs;
-        };
-
+        }
+      );
     in
-    (makeConfigurable mkBf [ ] defaultConfig)
+    mkBf [ ] defaultConfig
     // {
-      # withoutDefault = (makeConfigurable mkBf [ ] { });
-
       templates = {
         rust-overlay = {
           path = ./templates/rust-overlay;

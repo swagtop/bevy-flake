@@ -3,6 +3,7 @@
   config,
   assembleConfigs,
   applyIfFunction,
+  mkBf,
 }:
 let
   inherit (builtins)
@@ -33,6 +34,8 @@ let
     devEnvironment
     targetEnvironments
     ;
+
+  hostSystem = pkgs.stdenv.hostPlatform.system;
 
   applyConfig =
     config:
@@ -241,8 +244,6 @@ in
 
               name = packageNamePrefix + target;
 
-              nativeBuildInputs = [ wrapped-rust-toolchain ];
-
               cargoLock.lockFile = src + "/Cargo.lock";
               cargoProfile = "release";
               cargoBuildFlags = [ ];
@@ -337,6 +338,12 @@ in
         phases = [ "installPhase" ];
         passthru = everyTarget // {
           list = buildList;
+          configure =
+            addedConfig:
+            if addedConfig ? systems then
+              throw "You cannot configure systems on the packages level."
+            else
+              ((mkBf [ ] config).configure addedConfig).packages.${hostSystem}.targets;
         };
       }
     ) { };
@@ -396,6 +403,12 @@ in
 
           runHook postInstall
         '';
+        passthru.configure =
+          addedConfig:
+          if addedConfig ? systems then
+            throw "You cannot configure systems on the packages level."
+          else
+            ((mkBf [ ] config).configure addedConfig).packages.${hostSystem}.web;
       };
   }
 )
