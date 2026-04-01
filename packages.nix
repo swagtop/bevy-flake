@@ -378,6 +378,8 @@ in
           "-all"
         ];
 
+        env.BF_TARGET = "wasm32-unknown-unknown";
+
         buildPhase = ''
           runHook preBuild
 

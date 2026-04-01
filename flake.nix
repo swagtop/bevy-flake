@@ -11,11 +11,17 @@
         isFunction
         warn
         ;
-      inherit (nixpkgs.lib)
-        genAttrs
-        ;
 
       applyIfFunction = f: input: if isFunction f then f input else f;
+      genAttrs =
+        attrList: f:
+        foldl' (
+          accumulator: item:
+          accumulator
+          // {
+            ${item} = f item;
+          }
+        ) { } attrList;
 
       defaultConfig = import ./config.nix nixpkgs;
       assembleConfigs =
@@ -62,47 +68,37 @@
               + "through 'nixpkgs.lib' instead."
             )
           );
-
-          forSystems = genAttrs configNoPkgs.systems;
-
-          flakeAttrs = foldl' (
-            accumulator: system:
-            let
-              pkgs = applyIfFunction configNoPkgs.withPkgs system;
-              packages.${system} = import ./packages.nix {
-                # Now we have a 'pkgs' to assemble the configs with.
-                inherit pkgs assembleConfigs applyIfFunction;
-                config = assembleConfigs configList pkgs;
-              };
-              step = {
-                inherit packages;
-                devShells.${system}.default = pkgs.mkShell {
-                  name = "bevy-flake";
-                  packages = [
-                    packages.${system}.rust-toolchain.develop
-                    packages.${system}.dioxus-cli.develop
-                    # packages.${system}.bevy-cli.develop
-                  ];
-                };
-                formatter.${system} = pkgs.nixfmt-tree;
-              };
-            in
-            accumulator
-            // genAttrs [ "packages" "devShells" "formatter" ] (
-              attribute: accumulator.${attribute} or { } // step.${attribute}
-            )
-          ) { } configNoPkgs.systems;
         in
-        {
-          inherit (configNoPkgs)
-            systems
-            ;
-          inherit (flakeAttrs)
-            packages
-            devShells
-            formatter
-            ;
-          inherit forSystems;
+        foldl' (
+          accumulator: system:
+          let
+            pkgs = applyIfFunction configNoPkgs.withPkgs system;
+            packages.${system} = import ./packages.nix {
+              # Now we have a 'pkgs' to assemble the configs with.
+              inherit pkgs assembleConfigs applyIfFunction;
+              config = assembleConfigs configList pkgs;
+            };
+            step = {
+              inherit packages;
+              devShells.${system}.default = pkgs.mkShell {
+                name = "bevy-flake";
+                packages = [
+                  packages.${system}.rust-toolchain.develop
+                  packages.${system}.dioxus-cli.develop
+                  # packages.${system}.bevy-cli.develop
+                ];
+              };
+              formatter.${system} = pkgs.nixfmt-tree;
+            };
+          in
+          accumulator
+          // genAttrs [ "packages" "devShells" "formatter" ] (
+            attribute: accumulator.${attribute} or { } // step.${attribute}
+          )
+        ) { } configNoPkgs.systems
+        // {
+          inherit (configNoPkgs) systems;
+          forSystems = genAttrs configNoPkgs.systems;
         };
 
       makeConfigurable =
