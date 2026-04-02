@@ -120,7 +120,11 @@ let
       runtimeInputs' = runtimeInputs ++ extraRuntimeInputs;
       argParser' = applyIfFunction argParser defaultArgParser;
       targets' = if (targets != null) then targets else attrNames targetEnvironments;
-      rustToolchain' = if (targets != null) then rawConfig.rustToolchain targets' else rustToolchain;
+      rustToolchain' =
+        if (targets != null) then
+          rawConfig.rustToolchain targets'
+        else
+          rustToolchain;
 
       wrapped = pkgs.writeShellApplication {
         inherit name;

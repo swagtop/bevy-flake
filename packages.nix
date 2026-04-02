@@ -9,6 +9,7 @@ let
   inherit (builtins)
     attrNames
     concatStringsSep
+    isAttrs
     isFunction
     elem
     warn
@@ -40,24 +41,48 @@ let
   applyConfig =
     config:
     let
-      targets = attrNames config.targetEnvironments;
+      inherit (config)
+        macos
+        windows
+        ;
+        
+      validTargets =
+        subtractLists
+          # Disable cross-compilation for MacOS targets, if the SDK is not
+          # present in the config.
+          (
+            optionals (macos.sdk == null) macos.targets
+            ++ optionals (windows.sdk == null) windows.targets
+          )
+          (
+            let
+              usingDefaultToolchain =
+                if isAttrs config.rustToolchain then
+                  config.rustToolchain.bfDefaultToolchain or false
+                else
+                  false;
+            in
+            if usingDefaultToolchain then
+              # Disable cross-compilation in 'targets' if using the default
+              # toolchain, as it doesn't have any of the stdlibs other than for
+              # the system it is built for.
+              [
+                pkgs.stdenv.hostPlatform.rust.rustcTarget
+              ]
+            else
+              attrNames config.targetEnvironments
+          );
+
       exportEnv =
         env: concatStringsSep "\n" (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env);
     in
     config
     // {
-      rustToolchain =
-        if isFunction rustToolchain then
-          rustToolchain targets
-        else
-          throw (
-            "The list of targets are applied to this config attribute. This should "
-            + "be a function that is using the input targets when building the "
-            + "Rust toolchain."
-          );
+      rustToolchain = config.rustToolchain validTargets;
       sharedEnvironment = pkgs.writeTextFile {
         name = "bevy-flake-shared-environment.bash";
         text = exportEnv config.sharedEnvironment;
+        passthru.env = config.sharedEnvironment;
       };
       devEnvironment = pkgs.writeTextFile {
         name = "bevy-flake-dev-environment.bash";
@@ -72,22 +97,21 @@ let
               + optionalString pkgs.stdenv.isLinux "-C link-args=-Wl,-rpath,${makeSearchPath "lib" config.runtimeInputs}";
           }
         );
+        passthru.env = config.devEnvironment;
       };
-      targetEnvironments = genAttrs targets (
+      targetEnvironments = genAttrs validTargets (
         target:
         pkgs.writeTextFile {
           name = "bevy-flake-${target}-environment.bash";
           text = exportEnv (
-            targetEnvironments.${target}
+            config.targetEnvironments.${target}
             // {
               RUSTFLAGS =
-                "${targetEnvironments.${target}.RUSTFLAGS or ""} "
+                "${config.targetEnvironments.${target}.RUSTFLAGS or ""} "
                 + concatStringsSep " " config.crossPlatformRustflags;
             }
           );
-          passthru = {
-            variables = targetEnvironments.${target};
-          };
+          passthru.env = config.targetEnvironments.${target};
         }
       );
     };
@@ -168,8 +192,8 @@ in
     name = "dx";
     executable = pkgs.dioxus-cli + "/bin/dx";
     extraRuntimeInputs = [
-      # Needed for hot-reloading.
-      pkgs.lld
+      # Need 'lld' for hot-reloading.
+      pkgs.llvmPackages.bintools
     ];
   };
 
@@ -190,37 +214,11 @@ in
 # from 'targets.<target>', eg. 'targets.wasm32-unknown-unknown'.
 // optionalAttrs (src != null) (
   let
-    usingDefaultToolchain = appliedConfig.rustToolchain.bfDefaultToolchain or false;
 
     manifest = (importTOML "${src}/Cargo.toml").package;
     packageNamePrefix =
       if manifest ? version then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
-
-    validTargets =
-      subtractLists
-        # Disable cross-compilation for MacOS targets, if the SDK is not
-        # present in the config.
-        (
-          optionals (macos.sdk == null) [
-            "aarch64-apple-darwin"
-            "x86_64-apple-darwin"
-          ]
-          ++ optionals (windows.sdk == null) [
-            "aarch64-pc-windows-mvsc"
-            "x86_64-pc-windows-mvsc"
-          ]
-        )
-        (
-          if usingDefaultToolchain then
-            # Disable cross-compilation in 'targets' if using the default
-            # toolchain, as it doesn't have any of the stdlibs other than for
-            # the system it is built for.
-            [
-              pkgs.stdenv.hostPlatform.config
-            ]
-          else
-            attrNames targetEnvironments
-        );
+    validTargets = attrNames appliedConfig.targetEnvironments;
 
   in
   {
@@ -306,18 +304,7 @@ in
       in
       pkgs.stdenvNoCC.mkDerivation {
         # Only warn about default toolchain when building all targets.
-        name =
-          (
-            if usingDefaultToolchain then
-              warn (
-                "Only building your current system, as the default toolchain "
-                + "doesn't support cross-compilation."
-              )
-            else
-              _: _
-          )
-            packageNamePrefix
-          + "all-targets";
+        name = packageNamePrefix + "all-targets";
 
         linkBuilds = true;
         buildInputs = map (build: build.value) buildList;

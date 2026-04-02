@@ -183,21 +183,22 @@ in
 
   extraScript = "";
 
-  rustToolchain =
-    targets:
-    pkgs.symlinkJoin {
-      name = "nixpkgs-rust-toolchain";
-      pname = "cargo";
-      paths = with pkgs; [
-        cargo
-        clippy
-        rust-analyzer
-        rustc
-        rustfmt
-      ];
-      # Used in 'packages.nix' to check if user is using the default toolchain.
-      passthru.bfDefaultToolchain = true;
-    };
+  rustToolchain = {
+    __functor =
+      _: targets:
+      pkgs.symlinkJoin {
+        name = "nixpkgs-rust-toolchain";
+        pname = "cargo";
+        paths = with pkgs; [
+          cargo
+          clippy
+          rust-analyzer
+          rustc
+          rustfmt
+        ];
+      };
+    bfDefaultToolchain = true;
+  };
 
   runtimeInputs = optionals (pkgs.stdenv.isLinux) (
     with pkgs;
