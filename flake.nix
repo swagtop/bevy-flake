@@ -16,10 +16,10 @@
       genAttrs =
         attrList: f:
         foldl' (
-          accumulator: item:
+          accumulator: attribute:
           accumulator
           // {
-            ${item} = f item;
+            ${attribute} = f attribute;
           }
         ) { } attrList;
 

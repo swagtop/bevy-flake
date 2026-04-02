@@ -143,7 +143,7 @@ let
           # Set variables need to be set up before 'sharedEnvironment' runs.
           ${exportEnv (
             let
-              hasTargets = any (i: builtins.elem i targets');
+              hasTargets = p: any (i: builtins.elem i targets') p.targets;
             in
             {
               LIBCLANG_PATH = pkgs.libclang.lib + "/lib";
@@ -155,11 +155,11 @@ let
               {
                 PKG_CONFIG_ALLOW_CROSS = "1";
               }
-              // optionalAttrs ((windows.sdk != null) && (hasTargets windows.targets)) {
+              // optionalAttrs ((windows.sdk != null) && (hasTargets windows)) {
                 # Set up Windows SDK.
                 BF_WINDOWS_SDK_PATH = windows.sdk;
               }
-              // optionalAttrs ((macos.sdk != null) && (hasTargets macos.targets)) (
+              // optionalAttrs ((macos.sdk != null) && (hasTargets macos)) (
                 # Set up MacOS SDK, if configured.
                 let
                   versions = (importJSON (macos.sdk + "/SDKSettings.json")).SupportedTargets.macosx;
@@ -170,7 +170,7 @@ let
                   BF_MACOS_SDK_DEFAULT_VERSION = versions.DefaultDeploymentTarget;
                 }
               )
-              // optionalAttrs ((web.wasm-bindgen != null) && (hasTargets web.targets)) {
+              // optionalAttrs ((web.wasm-bindgen != null) && (hasTargets web)) {
                 BF_WASM_BINDGEN = web.wasm-bindgen;
               }
             )
