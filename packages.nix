@@ -130,6 +130,7 @@ let
   };
 
   package-macos-sdk = pkgs.callPackage (import ./macos-sdk.nix) { };
+  package-windows-sdk = pkgs.callPackage (import ./windows-sdk.nix) { };
 
   wrapped-rust-toolchain = wrapExecutable {
     name = "cargo";
@@ -206,7 +207,7 @@ in
       echo "bevy-flake: bla"
     ''
     // {
-      inherit wrapExecutable package-macos-sdk;
+      inherit wrapExecutable package-macos-sdk package-windows-sdk;
     };
 }
 # If 'src' is defined in config, add the 'targets' package, which builds

@@ -88,6 +88,14 @@ writeShellApplication {
     gnutar
   ];
   text = ''
+    echo "Do you accept the Xcode and Apple SDKs Agreement? [y/n]"
+    echo "https://www.apple.com/legal/sla/docs/xcode.pdf"
+    read -r
+    
+    if [[ $REPLY != "y" ]]; then
+      exit 0
+    fi
+
     XCODE=$(realpath "$1")
 
     TMP_DIR=$(mktemp -d)
