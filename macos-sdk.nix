@@ -14,6 +14,7 @@
   libxml2,
   openssl,
   writeShellApplication,
+  writeShellScriptBin,
   xz,
   zlib,
   ...
@@ -57,7 +58,7 @@ let
           sha256 = "sha256-NKHmyM7pnrLLQIT25PNxdypv3GZC6Ili4TpTIFp8XbA=";
         };
         nativeBuildInputs = [
-          xar
+          osxcross.xar
           xz.dev
         ];
         buildPhase = ''
@@ -85,7 +86,8 @@ writeShellApplication {
     findutils
     gnugrep
     gnused
-    gnutar
+    # Wrap 'tar' to make sure no user info makes its way into the final tarball.
+    (writeShellScriptBin "tar" "exec ${gnutar}/bin/tar \"$@\" --owner=0 --group=0")
   ];
   text = ''
     echo "Do you accept the Xcode and Apple SDKs Agreement? [y/n]"
