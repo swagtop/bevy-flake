@@ -41,9 +41,9 @@
                 configInputs
                 // {
                   previous = accumulator;
-                  helpers = configInputs // {
-                    previous = accumulator;
-                  };
+                  helpers = import ./helpers.nix (
+                    configInputs // { previous = accumulator; }
+                  );
                 }
               );
             in
