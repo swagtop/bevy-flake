@@ -102,7 +102,7 @@ let
             // {
               RUSTFLAGS =
                 "${config.targetEnvironments.${target}.RUSTFLAGS or ""} "
-                + concatStringsSep " " config.crossPlatformRustflags;
+                + concatStringsSep " " config.crossPlatformRustflags or [ ];
             }
           );
           passthru.env = config.targetEnvironments.${target};

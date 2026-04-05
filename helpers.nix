@@ -1,5 +1,13 @@
-{ pkgs, ... }:
+{
+  pkgs,
+  previous,
+  default,
+  ...
+}:
 let
+  inherit (builtins) foldl';
+  inherit (pkgs.lib) recursiveUpdate;
+
   unpackTarballSkipOldFiles =
     src:
     pkgs.stdenvNoCC.mkDerivation {
@@ -30,10 +38,25 @@ let
       '';
     };
 
+  editTargets =
+    origin: list: f:
+    foldl' (
+      accumulator: target:
+      let
+        targetEnv = origin.targetEnvironments.${target};
+      in
+      accumulator
+      // {
+        ${target} = recursiveUpdate targetEnv (f targetEnv);
+      }
+    ) origin.targetEnvironments list;
 in
 {
-  inherit unpackTarballSkipOldFiles;
+  inherit unpackTarballSkipOldFiles editTargets;
 
   fetchWindowsSDK =
     { url, sha256 }: unpackTarballSkipOldFiles (pkgs.fetchurl { inherit url sha256; });
+
+  editDefaultTargets = editTargets default;
+  editPreviousTargets = editTargets previous;
 }

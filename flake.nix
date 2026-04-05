@@ -29,7 +29,6 @@
         let
           configInputs = {
             inherit pkgs;
-            helpers = import ./helpers.nix { inherit pkgs; };
             default = defaultConfig { inherit pkgs; };
           };
         in
@@ -42,6 +41,9 @@
                 configInputs
                 // {
                   previous = accumulator;
+                  helpers = configInputs // {
+                    previous = accumulator;
+                  };
                 }
               );
             in
