@@ -30,7 +30,7 @@ let
             PASSED_LINKS="1"
           elif [[ ''${file:0:1} == "l" && $PASSED_LINKS == "1" ]]; then
             echo "Your tarball is packaged wrong, as not all symlinks are at the very end of the archive."
-            echo "Package it properly, with `nix run github:swagtop/bevy-flake#tools.package-windows-sdk`."
+            echo "Package it properly, with \`nix run github:swagtop/bevy-flake#tools.package-windows-sdk\`."
             exit 1
           fi
         done
