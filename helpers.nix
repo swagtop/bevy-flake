@@ -14,9 +14,9 @@ let
       inherit src;
       name = "unpacked-sdk";
       phases = [ "installPhase" ];
-      nativeBuildInputs = [
-        pkgs.gnutar
-        pkgs.coreutils
+      nativeBuildInputs = with pkgs; [
+        gnutar
+        coreutils
       ];
       installPhase = ''
         mkdir $out
@@ -26,9 +26,9 @@ let
         PASSED_LINKS=0
 
         tar -tvf "$src" | tac | while read -r file; do
-          if [[ ''${"file:0:1"} != "l" ]]; then
+          if [[ ''${file:0:1} != "l" ]]; then
             PASSED_LINKS="1"
-          elif [[ ''${"file:0:1"} == "l" && $PASSED_LINKS == "1" ]]; then
+          elif [[ ''${file:0:1} == "l" && $PASSED_LINKS == "1" ]]; then
             echo "Your tarball is packaged wrong, as not all symlinks are at the very end of the archive."
             echo "Package it properly, with `nix run github:swagtop/bevy-flake#tools.package-windows-sdk`."
             exit 1
