@@ -319,6 +319,8 @@ in
 
         phases = [ "installPhase" ];
         passthru = everyTarget // {
+          inherit appliedConfig;
+
           list = buildList;
           configure =
             addedConfig:
@@ -385,12 +387,16 @@ in
 
           runHook postInstall
         '';
-        passthru.configure =
-          addedConfig:
-          if addedConfig ? systems then
-            throw "You cannot configure systems on the packages level."
-          else
-            ((mkBf [ ] config).configure addedConfig).packages.${hostSystem}.web;
+        passthru = {
+          inherit appliedConfig;
+
+          configure =
+            addedConfig:
+            if addedConfig ? systems then
+              throw "You cannot configure systems on the packages level."
+            else
+              ((mkBf [ ] config).configure addedConfig).packages.${hostSystem}.web;
+        };
       };
   }
 )

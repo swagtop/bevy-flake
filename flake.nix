@@ -31,6 +31,7 @@
             inherit pkgs;
             default = defaultConfig { inherit pkgs; };
           };
+          helpersNoPrevious = import ./helpers.nix configInputs;
         in
         foldl' (
           accumulator: config:
@@ -41,9 +42,7 @@
                 configInputs
                 // {
                   previous = accumulator;
-                  helpers = import ./helpers.nix (
-                    configInputs // { previous = accumulator; }
-                  );
+                  helpers = helpersNoPrevious accumulator;
                 }
               );
             in
