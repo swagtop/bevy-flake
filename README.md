@@ -101,6 +101,7 @@ yourself by setting its environment up. More on that [here.][environments]
 - [Configuration](docs/config.md)
 - [Pitfalls](docs/pitfalls.md)
 - [MacOS](docs/macos.md)
+- [Windows](docs/windows.md)
 
 ```
                                            $ executable
