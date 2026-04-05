@@ -26,9 +26,9 @@ let
         PASSED_LINKS=0
 
         tar -tvf "$src" | tac | while read -r file; do
-          if [[ ${"file:0:1"} != "l" ]]; then
+          if [[ ''${"file:0:1"} != "l" ]]; then
             PASSED_LINKS="1"
-          elif [[ ${"file:0:1"} == "l" && $PASSED_LINKS == "1" ]]; then
+          elif [[ ''${"file:0:1"} == "l" && $PASSED_LINKS == "1" ]]; then
             echo "Your tarball is packaged wrong."
             exit 1
           fi
