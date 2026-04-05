@@ -45,22 +45,16 @@ let
         macos
         windows
         ;
-        
+
       validTargets =
         subtractLists
           # Disable cross-compilation for MacOS targets, if the SDK is not
           # present in the config.
-          (
-            optionals (macos.sdk == null) macos.targets
-            ++ optionals (windows.sdk == null) windows.targets
-          )
+          (optionals (macos.sdk == null) macos.targets ++ optionals (windows.sdk == null) windows.targets)
           (
             let
               usingDefaultToolchain =
-                if isAttrs config.rustToolchain then
-                  config.rustToolchain.bfDefaultToolchain or false
-                else
-                  false;
+                if isAttrs config.rustToolchain then config.rustToolchain.bfDefaultToolchain or false else false;
             in
             if usingDefaultToolchain then
               # Disable cross-compilation in 'targets' if using the default

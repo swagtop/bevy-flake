@@ -12,9 +12,9 @@ if stdenv.isDarwin then
   throw (
     "Packaging the Windows SDK is not supported on MacOS. "
     + "Because the MacOS filesystem is case-insensitive, the output of the "
-    + "'windows.sdk' package is missing critical symlinks needed for Linux.\n"
-    + "Use a Linux system to create this. After it has been created on Linux, "
-    + "it can be used on MacOS just fine."
+    + "'windows.sdk' package is missing critical symlinks needed on Linux.\n"
+    + "Run this on a Linux system instead. After it has been created on Linux, "
+    + "it can be unpacked and used on MacOS just fine."
   )
 else
   writeShellApplication {
@@ -29,7 +29,7 @@ else
       echo "Do you accept the Microsoft Software License Terms? [y/n]"
       echo "https://go.microsoft.com/fwlink/?LinkId=2086102"
       read -r
-    
+
       if [[ $REPLY != "y" ]]; then
         exit 0
       fi
@@ -53,6 +53,6 @@ else
       popd
 
       echo "Compressing archive"
-      xz -c "$TMP_FILE" > ./"Windows_MSVC_SDK_${pkgsCross.x86_64-windows.windows.sdk.version}.tar"
+      xz -c "$TMP_FILE" > ./"WindowsMSVC${pkgsCross.x86_64-windows.windows.sdk.version}.sdk.tar.xz"
     '';
   }
