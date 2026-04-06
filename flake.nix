@@ -76,7 +76,7 @@
         };
 
       mkFlake = (
-        previousConfigs: f:
+        configList: f:
         let
           fauxPkgs =
             # To construct the 'forSystems' that is used in generating the rest
@@ -105,7 +105,7 @@
             )
           );
 
-          finalConfig = assembleConfigs (previousConfigs ++ [ systemAttrsNoInput.config or { } ]);
+          finalConfig = assembleConfigs (configList ++ [ systemAttrsNoInput.config or { } ]);
           configNoPkgs = finalConfig fauxPkgs;
 
           systems = (configNoPkgs).systems;
@@ -160,9 +160,9 @@
           forSystems = warn "forSystems if being moved to lib.forSystems." genAttrs systems;
           lib = {
             forSystems = genAttrs systems;
-            mkFlake = mkFlake [ finalConfig ];
+            mkFlake = mkFlake [ defaultConfig finalConfig ];
           };
-          configure = c: mkFlake [ finalConfig c ] f;
+          configure = c: mkFlake [ defaultConfig finalConfig c ] f;
         } systems
       );
     in
