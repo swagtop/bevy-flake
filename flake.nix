@@ -71,7 +71,7 @@
       mkBf = makeConfigurable (
         configList:
         let
-          fauxPkgs = 
+          fauxPkgs =
             # To construct the 'forSystems' that is used in generating the rest
             # of the flake, we need to get the 'systems' config attribute before
             # anything else, as the rest of the config attributes need the
@@ -115,7 +115,7 @@
                       config = assembleConfigs (configList ++ [ (f stepInputs).config or { } ]) pkgs;
                     };
                   in
-                    f (stepInputs // { inherit packages; });
+                  f (stepInputs // { inherit packages; });
 
                 result =
                   accumulator
@@ -151,10 +151,11 @@
             pkgs,
             packages,
             system,
+            formatter,
             ...
           }:
           {
-            inherit packages;
+            inherit packages formatter;
             devShells.default = pkgs.mkShell {
               name = "bevy-flake";
               packages = [

@@ -20,50 +20,49 @@
       rust-overlay,
       ...
     }:
-    let
-      bf = bevy-flake.configure (
-        { pkgs, ... }:
-        {
-          src = ./.;
-          withPkgs =
-            system:
-            import nixpkgs {
-              inherit system;
-              overlays = [ (import rust-overlay) ];
-            };
-          rustToolchain =
-            targets:
-            let
-              channel = "stable"; # For nightly, use "nightly".
-            in
-            pkgs.rust-bin.${channel}.latest.default.override {
-              inherit targets;
-              extensions = [
-                "rust-src"
-                "rust-analyzer"
-              ];
-            };
-        }
-      );
-    in
-    {
-      inherit (bf) packages formatter;
+    bevy-flake.lib.mkFlake (
+      {
+        pkgs,
+        system,
+        packages,
+        formatter,
+        ...
+      }:
+      {
+        inherit packages formatter;
 
-      devShells = bf.forSystems (
-        system:
-        let
-          pkgs = import nixpkgs { inherit system; };
-        in
-        {
-          default = pkgs.mkShell {
-            name = "bevy-flake-rust-overlay";
-            packages = [
-              bf.packages.${system}.rust-toolchain.develop
-              bf.packages.${system}.dioxus-cli.develop
-              # bf.packages.${system}.bevy-cli.develop
-            ];
+        devShells.default = pkgs.mkShell {
+          name = "bevy-flake-rust-overlay";
+          packages = [
+            packages.rust-toolchain.develop
+            packages.dioxus-cli.develop
+            # packages.bevy-cli.develop
+          ];
+        };
+
+        config =
+          { pkgs, ... }:
+          {
+            src = ./.;
+            rustToolchain =
+              targets:
+              let
+                channel = "stable"; # For nightly, use "nightly".
+              in
+              pkgs.rust-bin.${channel}.latest.default.override {
+                inherit targets;
+                extensions = [
+                  "rust-src"
+                  "rust-analyzer"
+                ];
+              };
+            withPkgs =
+              system:
+              import nixpkgs {
+                inherit system;
+                overlays = [ (import rust-overlay) ];
+              };
           };
-        }
-      );
-    };
+      }
+    );
 }

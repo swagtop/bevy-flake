@@ -11,27 +11,26 @@
 
   outputs =
     { nixpkgs, bevy-flake, ... }:
-    let
-      bf = bevy-flake.configure { src = ./.; };
-    in
-    {
-      inherit (bf) packages formatter;
+    bevy-flake.lib.mkFlake (
+      {
+        pkgs,
+        packages,
+        formatter,
+        ...
+      }:
+      {
+        inherit packages formatter;
 
-      devShells = bf.forSystems (
-        system:
-        let
-          pkgs = import nixpkgs { inherit system; };
-        in
-        {
+        devShells = {
           default = pkgs.mkShell {
             name = "bevy-flake-nixpkgs";
             packages = [
-              bf.packages.${system}.rust-toolchain.develop
-              bf.packages.${system}.dioxus-cli.develop
-              # bf.packages.${system}.bevy-cli.develop
+              packages.rust-toolchain.develop
+              packages.dioxus-cli.develop
+              # packages.bevy-cli.develop
             ];
           };
-        }
-      );
-    };
+        };
+      }
+    );
 }
