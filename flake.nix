@@ -84,7 +84,7 @@
               + "through 'nixpkgs.lib' instead."
             );
           configNoPkgs = assembleConfigs configList fauxPkgs;
-          eachSystem =
+          mkFlake =
             systems: f:
             foldl' (
               accumulator: system:
@@ -145,7 +145,7 @@
               removeAttrs result (filter (attr: result.${attr} == { }) (attrNames result))
             ) { } systems;
         in
-        eachSystem configNoPkgs.systems (
+        mkFlake configNoPkgs.systems (
           {
             pkgs,
             packages,
@@ -169,7 +169,7 @@
           forSystems = warn "forSystems if being moved to lib.forSystems." genAttrs configNoPkgs.systems;
           lib = {
             forSystems = genAttrs configNoPkgs.systems;
-            eachConfigSystem = eachSystem configNoPkgs.systems;
+            eachConfigSystem = mkFlake configNoPkgs.systems;
           };
         }
       );
