@@ -89,23 +89,33 @@
             foldl' (
               accumulator: system:
               let
-                stepConfig = (f (genAttrs [ "system" "lib" "pkgs" "packages" ] (_: null))).config or { };
-                pkgs = applyIfFunction (assembleConfigs [ configNoPkgs stepConfig ] fauxPkgs).withPkgs system;
-                step = f {
-                  inherit (pkgs.stdenv.hostPlatform) system;
-                  inherit (pkgs) lib;
-                  inherit pkgs;
-                  packages = import ./packages.nix {
-                    # Now we have a 'pkgs' to assemble the configs with.
-                    inherit
-                      pkgs
-                      assembleConfigs
-                      applyIfFunction
-                      mkBf
-                      ;
-                    config = assembleConfigs configList pkgs;
-                  };
-                };
+                stepNoInput = f (genAttrs [ "system" "lib" "pkgs" "packages" ] (_: null));
+                configNoPkgsWithStep = assembleConfigs [
+                  configNoPkgs
+                  stepNoInput.config or { }
+                ];
+                pkgs = applyIfFunction (configNoPkgsWithStep fauxPkgs).withPkgs system;
+                step =
+                  let
+                    stepInputs = {
+                      inherit (pkgs.stdenv.hostPlatform) system;
+                      inherit (pkgs) lib;
+                      inherit pkgs;
+                      packages = throw "bleh";
+                    };
+                    packages = import ./packages.nix {
+                      # Now we have a 'pkgs' to assemble the configs with.
+                      inherit
+                        pkgs
+                        assembleConfigs
+                        applyIfFunction
+                        mkBf
+                        ;
+                      config = assembleConfigs (configList ++ [ (f stepInputs).config or { } ]) pkgs;
+                    };
+                  in
+                    f (stepInputs // { inherit packages; });
+
                 result =
                   accumulator
                   //
