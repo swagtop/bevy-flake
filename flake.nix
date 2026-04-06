@@ -116,34 +116,25 @@
                     };
                   in
                   f (stepInputs // { inherit packages; });
-
-                result =
-                  accumulator
-                  // step
-                  //
-                    genAttrs
-                      [
-                        "apps"
-                        "checks"
-                        "devShells"
-                        "formatter"
-                        "legacyPackages"
-                        "packages"
-                      ]
-                      (
-                        attribute:
-                        accumulator.${attribute} or { }
-                        // (
-                          if step ? ${attribute} then
-                            {
-                              ${system} = step.${attribute} or { };
-                            }
-                          else
-                            { }
-                        )
-                      );
               in
-              removeAttrs result (filter (attr: result.${attr} == { }) (attrNames result))
+              accumulator
+              //
+                genAttrs
+                  (filter (attr: step ? ${attr}) [
+                    "apps"
+                    "checks"
+                    "devShells"
+                    "formatter"
+                    "legacyPackages"
+                    "packages"
+                  ])
+                  (
+                    attribute:
+                    accumulator.${attribute} or { }
+                    // {
+                      ${system} = step.${attribute} or { };
+                    }
+                  )
             ) { } systems;
         in
         mkFlake configNoPkgs.systems (
