@@ -119,8 +119,8 @@ let
 
       runtimeInputs' = runtimeInputs ++ extraRuntimeInputs;
       argParser' = applyIfFunction argParser defaultArgParser;
-      targets' = if (targets != null) then targets else attrNames targetEnvironments;
-      rustToolchain' = if (targets != null) then rawConfig.rustToolchain targets' else rustToolchain;
+      targets' = if targets != null then targets else attrNames targetEnvironments;
+      rustToolchain' = if targets != null then rawConfig.rustToolchain targets' else rustToolchain;
 
       wrapped = pkgs.writeShellApplication {
         inherit name;
@@ -155,10 +155,15 @@ let
               {
                 PKG_CONFIG_ALLOW_CROSS = "1";
               }
-              // optionalAttrs ((windows.sdk != null) && (hasTargets windows)) {
-                # Set up Windows SDK.
-                BF_WINDOWS_SDK_PATH = windows.sdk;
-              }
+              // optionalAttrs ((windows.sdk != null) && (hasTargets windows)) (
+                {
+                  # Set up Windows SDK.
+                  BF_WINDOWS_SDK_PATH = windows.sdk;
+                }
+                // optionalAttrs (windows.static) {
+                  BF_WINDOWS_STATIC_FLAG = "-C target-feature=+crt-static";
+                }
+              )
               // optionalAttrs ((macos.sdk != null) && (hasTargets macos)) (
                 # Set up MacOS SDK, if configured.
                 let

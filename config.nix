@@ -54,6 +54,7 @@ in
         pkgs.pkgsCross.x86_64-windows.windows.sdk
       ];
     };
+    static = true;
     targets = [
       "x86_64-pc-windows-msvc"
       "aarch64-pc-windows-msvc"
@@ -138,6 +139,7 @@ in
           "-L $BF_WINDOWS_SDK_PATH/crt/lib/${arch}"
           "-L $BF_WINDOWS_SDK_PATH/sdk/lib/ucrt/${arch}"
           "-L $BF_WINDOWS_SDK_PATH/sdk/lib/um/${arch}"
+          "$BF_WINDOWS_STATIC_FLAG"
         ];
       };
 

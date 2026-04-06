@@ -44,17 +44,17 @@ let
     };
 
   editTargets =
-    origin: list: f:
+    environments: list: f:
     foldl' (
       accumulator: target:
       let
-        targetEnv = origin.targetEnvironments.${target};
+        targetEnv = environments.${target};
       in
       accumulator
       // {
         ${target} = recursiveUpdate targetEnv (f targetEnv);
       }
-    ) origin.targetEnvironments list;
+    ) environments list;
 in
 {
   inherit unpackTarballSkipOldFiles editTargets;
@@ -62,6 +62,6 @@ in
   fetchWindowsSDK =
     { url, sha256 }: unpackTarballSkipOldFiles (pkgs.fetchurl { inherit url sha256; });
 
-  editDefaultTargets = editTargets default;
-  editPreviousTargets = editTargets previous;
+  editDefaultTargets = editTargets default.targetEnvironments;
+  editPreviousTargets = editTargets previous.targetEnvironments;
 }

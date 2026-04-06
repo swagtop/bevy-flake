@@ -10,6 +10,9 @@
         foldl'
         isFunction
         warn
+        removeAttrs
+        attrNames
+        filter
         ;
 
       applyIfFunction = f: input: if isFunction f then f input else f;
@@ -68,7 +71,7 @@
       mkBf = makeConfigurable (
         configList:
         let
-          configNoPkgs = assembleConfigs configList (
+          fauxPkgs = 
             # To construct the 'forSystems' that is used in generating the rest
             # of the flake, we need to get the 'systems' config attribute before
             # anything else, as the rest of the config attributes need the
@@ -79,44 +82,85 @@
               "You cannot reference 'pkgs' from the config inputs in 'systems' "
               + "or 'withPkgs'.\nIf you're using a 'pkgs.lib' function, get it "
               + "through 'nixpkgs.lib' instead."
-            )
-          );
+            );
+          configNoPkgs = assembleConfigs configList fauxPkgs;
+          eachSystem =
+            systems: f:
+            foldl' (
+              accumulator: system:
+              let
+                stepConfig = (f (genAttrs [ "system" "lib" "pkgs" "packages" ] (_: null))).config or { };
+                pkgs = applyIfFunction (assembleConfigs [ configNoPkgs stepConfig ] fauxPkgs).withPkgs system;
+                step = f {
+                  inherit (pkgs.stdenv.hostPlatform) system;
+                  inherit (pkgs) lib;
+                  inherit pkgs;
+                  packages = import ./packages.nix {
+                    # Now we have a 'pkgs' to assemble the configs with.
+                    inherit
+                      pkgs
+                      assembleConfigs
+                      applyIfFunction
+                      mkBf
+                      ;
+                    config = assembleConfigs configList pkgs;
+                  };
+                };
+                result =
+                  accumulator
+                  //
+                    genAttrs
+                      [
+                        "apps"
+                        "checks"
+                        "devShells"
+                        "formatter"
+                        "legacyPackages"
+                        "packages"
+                      ]
+                      (
+                        attribute:
+                        accumulator.${attribute} or { }
+                        // (
+                          if step ? ${attribute} then
+                            {
+                              ${system} = step.${attribute} or { };
+                            }
+                          else
+                            { }
+                        )
+                      );
+              in
+              removeAttrs result (filter (attr: result.${attr} == { }) (attrNames result))
+            ) { } systems;
         in
-        foldl' (
-          accumulator: system:
-          let
-            pkgs = applyIfFunction configNoPkgs.withPkgs system;
-            packages.${system} = import ./packages.nix {
-              # Now we have a 'pkgs' to assemble the configs with.
-              inherit
-                pkgs
-                assembleConfigs
-                applyIfFunction
-                mkBf
-                ;
-              config = assembleConfigs configList pkgs;
+        eachSystem configNoPkgs.systems (
+          {
+            pkgs,
+            packages,
+            system,
+            ...
+          }:
+          {
+            inherit packages;
+            devShells.default = pkgs.mkShell {
+              name = "bevy-flake";
+              packages = [
+                packages.rust-toolchain.develop
+                packages.dioxus-cli.develop
+                # packages.bevy-cli.develop
+              ];
             };
-            step = {
-              inherit packages;
-              devShells.${system}.default = pkgs.mkShell {
-                name = "bevy-flake";
-                packages = [
-                  packages.${system}.rust-toolchain.develop
-                  packages.${system}.dioxus-cli.develop
-                  # packages.${system}.bevy-cli.develop
-                ];
-              };
-              formatter.${system} = pkgs.nixfmt-tree;
-            };
-          in
-          accumulator
-          // genAttrs [ "packages" "devShells" "formatter" ] (
-            attribute: accumulator.${attribute} or { } // step.${attribute}
-          )
-        ) { } configNoPkgs.systems
+            formatter = pkgs.nixfmt-tree;
+          }
+        )
         // {
           inherit (configNoPkgs) systems;
-          forSystems = genAttrs configNoPkgs.systems;
+          forSystems = warn "forSystems if being moved to lib.forSystems." genAttrs configNoPkgs.systems;
+          lib = {
+            forSystems = genAttrs configNoPkgs.systems;
+            eachConfigSystem = eachSystem configNoPkgs.systems;
+          };
         }
       );
     in
@@ -131,7 +175,7 @@
           path = ./templates/fenix;
           description = "Get the Rust toolchain through nix-community's fenix.";
         };
-        nixpkgs = warn "This template does not support any cross-compilation." {
+        nixpkgs = warn "The nixpkgs template does not support any cross-compilation." {
           path = ./templates/nixpkgs;
           description = "Get the Rust toolchain from nixpkgs, no cross-compilation.";
         };
