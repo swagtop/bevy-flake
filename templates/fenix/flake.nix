@@ -23,9 +23,9 @@
     bevy-flake.lib.mkFlake (
       {
         pkgs,
-        system,
-        packages,
         formatter,
+        packages,
+        system,
         ...
       }:
       {
@@ -49,10 +49,9 @@
               let
                 fx = fenix.packages.${system};
                 channel = "stable"; # For nightly, use "latest".
+                stds = map (target: fx.targets.${target}.${channel}.rust-std) targets;
               in
-              fx.combine (
-                [ fx.${channel}.toolchain ] ++ map (target: fx.targets.${target}.${channel}.rust-std) targets
-              );
+              fx.combine ([ fx.${channel}.toolchain ] ++ stds);
           };
       }
     );

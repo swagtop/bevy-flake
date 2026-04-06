@@ -23,9 +23,9 @@
     bevy-flake.lib.mkFlake (
       {
         pkgs,
-        system,
-        packages,
         formatter,
+        packages,
+        system,
         ...
       }:
       {

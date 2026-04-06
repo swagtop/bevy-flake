@@ -14,22 +14,20 @@
     bevy-flake.lib.mkFlake (
       {
         pkgs,
-        packages,
         formatter,
+        packages,
         ...
       }:
       {
         inherit packages formatter;
 
-        devShells = {
-          default = pkgs.mkShell {
-            name = "bevy-flake-nixpkgs";
-            packages = [
-              packages.rust-toolchain.develop
-              packages.dioxus-cli.develop
-              # packages.bevy-cli.develop
-            ];
-          };
+        devShells.default = pkgs.mkShell {
+          name = "bevy-flake-nixpkgs";
+          packages = [
+            packages.rust-toolchain.develop
+            packages.dioxus-cli.develop
+            # packages.bevy-cli.develop
+          ];
         };
       }
     );
