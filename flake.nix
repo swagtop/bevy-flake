@@ -113,7 +113,6 @@
         foldl' (
           accumulator: system:
           let
-
             pkgs = applyIfFunction configNoPkgs.withPkgs system;
 
             systemAttrs =
@@ -133,7 +132,7 @@
                     mkFlake
                     defaultFlake
                     ;
-                  config = assembleConfigs (configList ++ [ (f systemAttrsInputs).config or { } ]) pkgs;
+                  config = finalConfig pkgs;
                 };
               in
               f (systemAttrsInputs // { inherit packages; });
