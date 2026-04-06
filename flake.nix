@@ -55,17 +55,6 @@
           )
         ) { } configList;
 
-      makeConfigurable =
-        f: previousConfigs: addedConfig: f':
-        let
-          currentConfigs = previousConfigs ++ [ addedConfig ];
-          result = f currentConfigs;
-        in
-        result
-        // {
-          configure = makeConfigurable f currentConfigs;
-        };
-
       defaultFlake = 
         {
           pkgs,
@@ -173,6 +162,7 @@
             forSystems = genAttrs systems;
             mkFlake = mkFlake [ defaultConfig ];
           };
+          configure = c: mkFlake [ defaultConfig c ] f;
         } systems
       );
     in
