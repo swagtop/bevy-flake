@@ -89,7 +89,7 @@
             foldl' (
               accumulator: system:
               let
-                stepNoInput = f (genAttrs [ "system" "lib" "pkgs" "packages" ] (_: null));
+                stepNoInput = f (genAttrs [ "system" "lib" "pkgs" "packages" "formatter" ] (_: null));
                 configNoPkgsWithStep = assembleConfigs [
                   configNoPkgs
                   stepNoInput.config or { }
@@ -102,6 +102,7 @@
                       inherit (pkgs) lib;
                       inherit pkgs;
                       packages = throw "bleh";
+                      formatter = pkgs.nixfmt-tree;
                     };
                     packages = import ./packages.nix {
                       # Now we have a 'pkgs' to assemble the configs with.
@@ -161,7 +162,6 @@
                 # packages.bevy-cli.develop
               ];
             };
-            formatter = pkgs.nixfmt-tree;
           }
         )
         // {
