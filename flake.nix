@@ -121,7 +121,7 @@
               systemAttrs =
                 let
                   systemAttrsInputs = {
-                    inherit (pkgs.stdenv.hostPlatform) system;
+                    inherit system;
                     inherit pkgs;
                     formatter = pkgs.nixfmt-tree;
                     packages = import ./packages.nix {
