@@ -76,7 +76,7 @@
         };
 
       mkFlake = (
-        configList: f:
+        previousConfigs: config: f:
         let
           fauxPkgs =
             # To construct the 'forSystems' that is used in generating the rest
@@ -105,7 +105,7 @@
             )
           );
 
-          finalConfig = assembleConfigs (configList ++ [ systemAttrsNoInput.config or { } ]);
+          finalConfig = assembleConfigs (previousConfigs ++ [ config systemAttrsNoInput.config or { } ]);
           configNoPkgs = finalConfig fauxPkgs;
 
           systems = (configNoPkgs).systems;
@@ -120,22 +120,21 @@
                 systemAttrsInputs = {
                   inherit (pkgs.stdenv.hostPlatform) system;
                   inherit pkgs;
-                  packages = throw "bleh";
                   formatter = pkgs.nixfmt-tree;
-                };
-                packages = import ./packages.nix {
-                  # Now we have a 'pkgs' to assemble the configs with.
-                  inherit
-                    pkgs
-                    assembleConfigs
-                    applyIfFunction
-                    mkFlake
-                    defaultFlake
-                    ;
-                  config = finalConfig pkgs;
+                  packages = import ./packages.nix {
+                    # Now we have a 'pkgs' to assemble the configs with.
+                    inherit
+                      pkgs
+                      assembleConfigs
+                      applyIfFunction
+                      defaultFlake
+                      ;
+                    reconfigureFlake = c: mkFlake previousConfigs c f;
+                    config = finalConfig pkgs;
+                  };
                 };
               in
-              f (systemAttrsInputs // { inherit packages; });
+              f systemAttrsInputs;
           in
           accumulator
           // systemAttrs
@@ -161,13 +160,13 @@
           forSystems = warn "forSystems if being moved to lib.forSystems." genAttrs systems;
           lib = {
             forSystems = genAttrs systems;
-            mkFlake = mkFlake [ finalConfig ];
+            mkFlake = mkFlake previousConfigs config;
           };
-          configure = c: mkFlake [ finalConfig c ] f;
+          configure = c: mkFlake previousConfigs c f;
         } systems
       );
     in
-    mkFlake [ defaultConfig ] defaultFlake
+    mkFlake [ ] defaultConfig defaultFlake
     // {
       templates = {
         rust-overlay = {

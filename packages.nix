@@ -3,7 +3,7 @@
   config,
   assembleConfigs,
   applyIfFunction,
-  mkFlake,
+  reconfigureFlake,
   defaultFlake,
 }:
 let
@@ -328,7 +328,7 @@ in
             if addedConfig ? systems then
               throw "You cannot configure systems on the packages level."
             else
-              ((mkFlake [ config ] defaultFlake).configure addedConfig).packages.${hostSystem}.targets;
+              (reconfigureFlake addedConfig).packages.${hostSystem}.targets;
         };
       }
     ) { };
@@ -396,7 +396,7 @@ in
             if addedConfig ? systems then
               throw "You cannot configure systems on the packages level."
             else
-              ((mkFlake [ config ] defaultFlake).configure addedConfig).packages.${hostSystem}.web;
+              (reconfigureFlake addedConfig).packages.${hostSystem}.web;
         };
       };
   }
