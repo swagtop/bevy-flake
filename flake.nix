@@ -83,28 +83,36 @@
               + "or 'withPkgs'.\nIf you're using a 'pkgs.lib' function, get it "
               + "through 'nixpkgs.lib' instead."
             );
-          configNoPkgs = assembleConfigs configList fauxPkgs;
+          configNoPkgs = assembleConfigs configList;
           mkFlake =
             systems: f:
             foldl' (
               accumulator: system:
               let
-                stepNoInput = f (genAttrs [ "system" "lib" "pkgs" "packages" "formatter" ] (_: null));
+                systemAttrsNoInput =
+                  f (genAttrs [ "system" "pkgs" "packages" "formatter" ] (
+                    attr:
+                    throw (
+                      "You are referencing ${attr} in your 'config' attribute "
+                      + "of the 'mkFlake' input. These inputs are based on the "
+                      + "'config', which is evaluated before everything else.\n"
+                      + "Make sure you do not reference these in the 'config' "
+                      + "section. Read more on how to configure properly in "
+                      + "the documentation."
+                    )
+                  ));
 
-                configNoPkgs' =
-                  if stepNoInput ? config then
-                    assembleConfigs [
-                      configNoPkgs
-                      stepNoInput.config or { }
-                    ] fauxPkgs
-                  else
-                    configNoPkgs;
-                pkgs = applyIfFunction configNoPkgs'.withPkgs system;
+                pkgs = applyIfFunction (
+                  assembleConfigs [
+                    configNoPkgs
+                    systemAttrsNoInput.config or { }
+                  ] fauxPkgs
+                ).withPkgs system;
+
                 systemAttrs =
                   let
                     systemAttrsInputs = {
                       inherit (pkgs.stdenv.hostPlatform) system;
-                      inherit (pkgs) lib;
                       inherit pkgs;
                       packages = throw "bleh";
                       formatter = pkgs.nixfmt-tree;
@@ -141,8 +149,10 @@
                     }
                   )
             ) { } systems;
+
+          systems = (assembleConfigs configList fauxPkgs).systems;
         in
-        mkFlake configNoPkgs.systems (
+        mkFlake systems (
           {
             pkgs,
             packages,
@@ -163,11 +173,11 @@
           }
         )
         // {
-          inherit (configNoPkgs) systems;
-          forSystems = warn "forSystems if being moved to lib.forSystems." genAttrs configNoPkgs.systems;
+          inherit systems;
+          forSystems = warn "forSystems if being moved to lib.forSystems." genAttrs systems;
           lib = {
-            forSystems = genAttrs configNoPkgs.systems;
-            mkFlake = mkFlake configNoPkgs.systems;
+            forSystems = genAttrs systems;
+            mkFlake = mkFlake systems;
           };
         }
       );
