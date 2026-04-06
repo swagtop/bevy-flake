@@ -163,7 +163,8 @@
                 {
                   hydraJobs = genAttrs (attrNames systemAttrs.hydraJobs) (
                     attribute:
-                    accumulator.${attribute} or { } {
+                    (accumulator.hydraJobs or { }).${attribute} or { }
+                    // {
                       ${system} = systemAttrs.hydraJobs.${attribute};
                     }
                   );
