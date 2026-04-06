@@ -129,7 +129,7 @@
                       applyIfFunction
                       defaultFlake
                       ;
-                    reconfigureFlake = c: mkFlake previousConfigs c f;
+                    reconfigureFlake = c: mkFlake [ finalConfig ] c f;
                     config = finalConfig pkgs;
                   };
                 };
