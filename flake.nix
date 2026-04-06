@@ -160,9 +160,9 @@
           forSystems = warn "forSystems if being moved to lib.forSystems." genAttrs systems;
           lib = {
             forSystems = genAttrs systems;
-            mkFlake = mkFlake previousConfigs config;
+            mkFlake = mkFlake [ finalConfig ] config;
           };
-          configure = c: mkFlake previousConfigs c f;
+          configure = c: mkFlake [ finalConfig ] c f;
         } systems
       );
     in
