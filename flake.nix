@@ -148,6 +148,7 @@
               f (systemAttrsInputs // { inherit packages; });
           in
           accumulator
+          // systemAttrs
           //
             genAttrs
               (filter (attr: systemAttrs ? ${attr}) [
