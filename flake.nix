@@ -141,7 +141,7 @@
             in
             accumulator
             // systemAttrs
-            //
+            // # Poperly merge flake schema attributes.
               genAttrs
                 (filter (attr: systemAttrs ? ${attr}) [
                   "apps"
