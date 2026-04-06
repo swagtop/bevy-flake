@@ -3,7 +3,8 @@
   config,
   assembleConfigs,
   applyIfFunction,
-  mkBf,
+  mkFlake,
+  defaultFlake,
 }:
 let
   inherit (builtins)
@@ -327,7 +328,7 @@ in
             if addedConfig ? systems then
               throw "You cannot configure systems on the packages level."
             else
-              ((mkBf [ ] config).configure addedConfig).packages.${hostSystem}.targets;
+              ((mkFlake [ config ] defaultFlake).configure addedConfig).packages.${hostSystem}.targets;
         };
       }
     ) { };
@@ -395,7 +396,7 @@ in
             if addedConfig ? systems then
               throw "You cannot configure systems on the packages level."
             else
-              ((mkBf [ ] config).configure addedConfig).packages.${hostSystem}.web;
+              ((mkFlake [ config ] defaultFlake).configure addedConfig).packages.${hostSystem}.web;
         };
       };
   }

@@ -10,8 +10,6 @@
         foldl'
         isFunction
         warn
-        removeAttrs
-        attrNames
         filter
         ;
 
@@ -68,8 +66,28 @@
           configure = makeConfigurable f currentConfigs;
         };
 
-      mkBf = makeConfigurable (
-        configList:
+      defaultFlake = 
+        {
+          pkgs,
+          packages,
+          system,
+          formatter,
+          ...
+        }:
+        {
+          inherit packages formatter;
+          devShells.default = pkgs.mkShell {
+            name = "bevy-flake";
+            packages = [
+              packages.rust-toolchain.develop
+              packages.dioxus-cli.develop
+              # packages.bevy-cli.develop
+            ];
+          };
+        };
+
+      mkFlake = (
+        configList: f:
         let
           fauxPkgs =
             # To construct the 'forSystems' that is used in generating the rest
@@ -84,107 +102,84 @@
               + "through 'nixpkgs.lib' instead."
             );
           configNoPkgs = assembleConfigs configList;
-          mkFlake =
-            systems: f:
-            foldl' (
-              accumulator: system:
-              let
-                systemAttrsNoInput = f (
-                  genAttrs [ "system" "pkgs" "packages" "formatter" ] (
-                    attr:
-                    throw (
-                      "You are referencing ${attr} in your 'config' attribute "
-                      + "of the 'mkFlake' input. These inputs are based on the "
-                      + "'config', which is evaluated before everything else.\n"
-                      + "Make sure you do not reference these in the 'config' "
-                      + "section. Read more on how to configure properly in "
-                      + "the documentation."
-                    )
-                  )
-                );
-
-                pkgs =
-                  applyIfFunction
-                    (assembleConfigs [
-                      configNoPkgs
-                      systemAttrsNoInput.config or { }
-                    ] fauxPkgs).withPkgs
-                    system;
-
-                systemAttrs =
-                  let
-                    systemAttrsInputs = {
-                      inherit (pkgs.stdenv.hostPlatform) system;
-                      inherit pkgs;
-                      packages = throw "bleh";
-                      formatter = pkgs.nixfmt-tree;
-                    };
-                    packages = import ./packages.nix {
-                      # Now we have a 'pkgs' to assemble the configs with.
-                      inherit
-                        pkgs
-                        assembleConfigs
-                        applyIfFunction
-                        mkBf
-                        ;
-                      config = assembleConfigs (configList ++ [ (f systemAttrsInputs).config or { } ]) pkgs;
-                    };
-                  in
-                  f (systemAttrsInputs // { inherit packages; });
-              in
-              accumulator
-              //
-                genAttrs
-                  (filter (attr: systemAttrs ? ${attr}) [
-                    "apps"
-                    "checks"
-                    "devShells"
-                    "formatter"
-                    "legacyPackages"
-                    "packages"
-                  ])
-                  (
-                    attribute:
-                    accumulator.${attribute} or { }
-                    // {
-                      ${system} = systemAttrs.${attribute} or { };
-                    }
-                  )
-            ) { } systems;
-
           systems = (assembleConfigs configList fauxPkgs).systems;
         in
-        {
+        foldl' (
+          accumulator: system:
+          let
+            systemAttrsNoInput = f (
+              genAttrs [ "system" "pkgs" "packages" "formatter" ] (
+                attr:
+                throw (
+                  "You are referencing ${attr} in your 'config' attribute "
+                  + "of the 'mkFlake' input. These inputs are based on the "
+                  + "'config', which is evaluated before everything else.\n"
+                  + "Make sure you do not reference these in the 'config' "
+                  + "section. Read more on how to configure properly in "
+                  + "the documentation."
+                )
+              )
+            );
+
+            pkgs =
+              applyIfFunction
+                (assembleConfigs [
+                  configNoPkgs
+                  systemAttrsNoInput.config or { }
+                ] fauxPkgs).withPkgs
+                system;
+
+            systemAttrs =
+              let
+                systemAttrsInputs = {
+                  inherit (pkgs.stdenv.hostPlatform) system;
+                  inherit pkgs;
+                  packages = throw "bleh";
+                  formatter = pkgs.nixfmt-tree;
+                };
+                packages = import ./packages.nix {
+                  # Now we have a 'pkgs' to assemble the configs with.
+                  inherit
+                    pkgs
+                    assembleConfigs
+                    applyIfFunction
+                    mkFlake
+                    defaultFlake
+                    ;
+                  config = assembleConfigs (configList ++ [ (f systemAttrsInputs).config or { } ]) pkgs;
+                };
+              in
+              f (systemAttrsInputs // { inherit packages; });
+          in
+          accumulator
+          //
+            genAttrs
+              (filter (attr: systemAttrs ? ${attr}) [
+                "apps"
+                "checks"
+                "devShells"
+                "formatter"
+                "legacyPackages"
+                "packages"
+              ])
+              (
+                attribute:
+                accumulator.${attribute} or { }
+                // {
+                  ${system} = systemAttrs.${attribute} or { };
+                }
+              )
+        ) {
           inherit systems;
           forSystems = warn "forSystems if being moved to lib.forSystems." genAttrs systems;
           lib = {
             forSystems = genAttrs systems;
-            mkFlake = mkFlake systems;
+            mkFlake = mkFlake [ defaultConfig ];
           };
-        }
-        // mkFlake systems (
-          {
-            pkgs,
-            packages,
-            system,
-            formatter,
-            ...
-          }:
-          {
-            inherit packages formatter;
-            devShells.default = pkgs.mkShell {
-              name = "bevy-flake";
-              packages = [
-                packages.rust-toolchain.develop
-                packages.dioxus-cli.develop
-                # packages.bevy-cli.develop
-              ];
-            };
-          }
-        )
+        } systems
       );
     in
-    mkBf [ ] defaultConfig
+    mkFlake [ defaultConfig ] defaultFlake
     // {
       templates = {
         rust-overlay = {
