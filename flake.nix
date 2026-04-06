@@ -169,7 +169,7 @@
           forSystems = warn "forSystems if being moved to lib.forSystems." genAttrs configNoPkgs.systems;
           lib = {
             forSystems = genAttrs configNoPkgs.systems;
-            eachConfigSystem = mkFlake configNoPkgs.systems;
+            mkFlake = mkFlake configNoPkgs.systems;
           };
         }
       );
