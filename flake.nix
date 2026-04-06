@@ -119,6 +119,7 @@
 
                 result =
                   accumulator
+                  // step
                   //
                     genAttrs
                       [
