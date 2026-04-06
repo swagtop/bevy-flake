@@ -89,8 +89,8 @@
             foldl' (
               accumulator: system:
               let
-                systemAttrsNoInput =
-                  f (genAttrs [ "system" "pkgs" "packages" "formatter" ] (
+                systemAttrsNoInput = f (
+                  genAttrs [ "system" "pkgs" "packages" "formatter" ] (
                     attr:
                     throw (
                       "You are referencing ${attr} in your 'config' attribute "
@@ -100,14 +100,16 @@
                       + "section. Read more on how to configure properly in "
                       + "the documentation."
                     )
-                  ));
+                  )
+                );
 
-                pkgs = applyIfFunction (
-                  assembleConfigs [
-                    configNoPkgs
-                    systemAttrsNoInput.config or { }
-                  ] fauxPkgs
-                ).withPkgs system;
+                pkgs =
+                  applyIfFunction
+                    (assembleConfigs [
+                      configNoPkgs
+                      systemAttrsNoInput.config or { }
+                    ] fauxPkgs).withPkgs
+                    system;
 
                 systemAttrs =
                   let
@@ -152,7 +154,15 @@
 
           systems = (assembleConfigs configList fauxPkgs).systems;
         in
-        mkFlake systems (
+        {
+          inherit systems;
+          forSystems = warn "forSystems if being moved to lib.forSystems." genAttrs systems;
+          lib = {
+            forSystems = genAttrs systems;
+            mkFlake = mkFlake systems;
+          };
+        }
+        // mkFlake systems (
           {
             pkgs,
             packages,
@@ -172,14 +182,6 @@
             };
           }
         )
-        // {
-          inherit systems;
-          forSystems = warn "forSystems if being moved to lib.forSystems." genAttrs systems;
-          lib = {
-            forSystems = genAttrs systems;
-            mkFlake = mkFlake systems;
-          };
-        }
       );
     in
     mkBf [ ] defaultConfig
