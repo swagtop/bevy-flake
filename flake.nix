@@ -90,14 +90,19 @@
               accumulator: system:
               let
                 stepNoInput = f (genAttrs [ "system" "lib" "pkgs" "packages" "formatter" ] (_: null));
-                configNoPkgsWithStep = assembleConfigs [
-                  configNoPkgs
-                  stepNoInput.config or { }
-                ];
-                pkgs = applyIfFunction (configNoPkgsWithStep fauxPkgs).withPkgs system;
-                step =
+
+                configNoPkgs' =
+                  if stepNoInput ? config then
+                    assembleConfigs [
+                      configNoPkgs
+                      stepNoInput.config or { }
+                    ] fauxPkgs
+                  else
+                    configNoPkgs;
+                pkgs = applyIfFunction configNoPkgs'.withPkgs system;
+                systemAttrs =
                   let
-                    stepInputs = {
+                    systemAttrsInputs = {
                       inherit (pkgs.stdenv.hostPlatform) system;
                       inherit (pkgs) lib;
                       inherit pkgs;
@@ -112,15 +117,15 @@
                         applyIfFunction
                         mkBf
                         ;
-                      config = assembleConfigs (configList ++ [ (f stepInputs).config or { } ]) pkgs;
+                      config = assembleConfigs (configList ++ [ (f systemAttrsInputs).config or { } ]) pkgs;
                     };
                   in
-                  f (stepInputs // { inherit packages; });
+                  f (systemAttrsInputs // { inherit packages; });
               in
               accumulator
               //
                 genAttrs
-                  (filter (attr: step ? ${attr}) [
+                  (filter (attr: systemAttrs ? ${attr}) [
                     "apps"
                     "checks"
                     "devShells"
@@ -132,7 +137,7 @@
                     attribute:
                     accumulator.${attribute} or { }
                     // {
-                      ${system} = step.${attribute} or { };
+                      ${system} = systemAttrs.${attribute} or { };
                     }
                   )
             ) { } systems;
