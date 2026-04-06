@@ -31,6 +31,7 @@
         let
           configInputs = {
             inherit pkgs;
+            inherit (pkgs.stdenv.hostPlatform) system;
             default = defaultConfig { inherit pkgs; };
           };
           helpersNoPrevious = import ./helpers.nix configInputs;
@@ -96,7 +97,7 @@
             genAttrs [ "system" "pkgs" "packages" "formatter" ] (
               attr:
               throw (
-                "You are referencing ${attr} in your 'config' attribute "
+                "You are referencing '${attr}' in your 'config' attribute "
                 + "from the 'mkFlake' input. These inputs are based on your "
                 + "'config', which is evaluated before anything else.\n"
                 + "Make sure you do not reference these in the 'config' "
@@ -121,8 +122,7 @@
               systemAttrs =
                 let
                   systemAttrsInputs = {
-                    inherit system;
-                    inherit pkgs;
+                    inherit pkgs system;
                     formatter = pkgs.nixfmt-tree;
                     packages = import ./packages.nix {
                       # Now we have a 'pkgs' to assemble the configs with.
