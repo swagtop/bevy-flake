@@ -27,15 +27,6 @@ let
     mapAttrsToList
     makeSearchPath
     ;
-  inherit (config)
-    macos
-    windows
-    rustToolchain
-    src
-    systems
-    devEnvironment
-    targetEnvironments
-    ;
 
   hostSystem = pkgs.stdenv.hostPlatform.system;
 
@@ -82,13 +73,13 @@ let
       devEnvironment = pkgs.writeTextFile {
         name = "bevy-flake-dev-environment.bash";
         text = exportEnv (
-          devEnvironment
+          config.devEnvironment
           // {
             PKG_CONFIG_PATH =
-              "${devEnvironment.PKG_CONFIG_PATH or ""}:"
+              "${config.devEnvironment.PKG_CONFIG_PATH or ""}:"
               + makeSearchPath "lib/pkgconfig" (map (p: p.dev or null) config.runtimeInputs);
             RUSTFLAGS =
-              "${devEnvironment.RUSTFLAGS or ""} "
+              "${config.devEnvironment.RUSTFLAGS or ""} "
               + optionalString pkgs.stdenv.isLinux "-C link-args=-Wl,-rpath,${makeSearchPath "lib" config.runtimeInputs}";
           }
         );
@@ -112,6 +103,11 @@ let
     };
 
   appliedConfig = applyConfig config;
+  inherit (appliedConfig)
+    src
+    systems
+    targetEnvironments
+    ;
 
   wrapExecutable = import ./wrapper.nix {
     inherit
@@ -210,12 +206,10 @@ in
 # from 'targets.<target>', eg. 'targets.wasm32-unknown-unknown'.
 // optionalAttrs (src != null) (
   let
-
     manifest = (importTOML "${src}/Cargo.toml").package;
     packageNamePrefix =
       if manifest ? version then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
-    validTargets = attrNames appliedConfig.targetEnvironments;
-
+    validTargets = attrNames targetEnvironments;
   in
   {
     targets = makeOverridable (
