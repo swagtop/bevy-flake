@@ -161,9 +161,12 @@
             // (
               if systemAttrs ? hydraJobs then
                 {
-                  hydraJobs = genAttrs (attrNames systemAttrs.hydraJobs) (attr: {
-                    ${system} = systemAttrs.hydraJobs.${attr};
-                  });
+                  hydraJobs = genAttrs (attrNames systemAttrs.hydraJobs) (
+                    attribute:
+                    accumulator.${attribute} or { } {
+                      ${system} = systemAttrs.hydraJobs.${attribute};
+                    }
+                  );
                 }
               else
                 { }
