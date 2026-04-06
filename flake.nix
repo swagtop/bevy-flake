@@ -105,7 +105,8 @@
             )
           );
 
-          finalConfig = assembleConfigs (configList ++ [ systemAttrsNoInput.config or { } ]);
+          finalConfigList = (configList ++ [ systemAttrsNoInput.config or { } ]);
+          finalConfig = assembleConfigs finalConfigList;
           configNoPkgs = finalConfig fauxPkgs;
 
           systems = (configNoPkgs).systems;
@@ -129,7 +130,7 @@
                       applyIfFunction
                       defaultFlake
                       ;
-                    reconfigure = (mkFlake [ finalConfig ] defaultFlake).configure;
+                    reconfigure = (mkFlake finalConfigList defaultFlake).configure;
                     config = finalConfig pkgs;
                   };
                 };
@@ -160,9 +161,9 @@
           forSystems = warn "forSystems if being moved to lib.forSystems." genAttrs systems;
           lib = {
             forSystems = genAttrs systems;
-            mkFlake = mkFlake [ defaultConfig finalConfig ];
+            mkFlake = mkFlake finalConfigList;
           };
-          configure = c: mkFlake [ defaultConfig finalConfig c ] f;
+          configure = c: mkFlake (finalConfigList ++ [ c ]) f;
         } systems
       );
     in
