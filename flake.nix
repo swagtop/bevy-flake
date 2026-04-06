@@ -76,7 +76,7 @@
         };
 
       mkFlake = (
-        previousConfigs: config: f:
+        previousConfigs: f:
         let
           fauxPkgs =
             # To construct the 'forSystems' that is used in generating the rest
@@ -105,7 +105,7 @@
             )
           );
 
-          finalConfig = assembleConfigs (previousConfigs ++ [ config systemAttrsNoInput.config or { } ]);
+          finalConfig = assembleConfigs (previousConfigs ++ [ systemAttrsNoInput.config or { } ]);
           configNoPkgs = finalConfig fauxPkgs;
 
           systems = (configNoPkgs).systems;
@@ -129,7 +129,7 @@
                       applyIfFunction
                       defaultFlake
                       ;
-                    reconfigure = (mkFlake [ ] finalConfig defaultFlake).configure;
+                    reconfigure = (mkFlake [ finalConfig ] defaultFlake).configure;
                     config = finalConfig pkgs;
                   };
                 };
@@ -160,13 +160,13 @@
           forSystems = warn "forSystems if being moved to lib.forSystems." genAttrs systems;
           lib = {
             forSystems = genAttrs systems;
-            mkFlake = mkFlake [ finalConfig ] config;
+            mkFlake = mkFlake [ finalConfig ];
           };
-          configure = c: mkFlake [ finalConfig ] c f;
+          configure = c: mkFlake [ finalConfig c ] f;
         } systems
       );
     in
-    mkFlake [ ] defaultConfig defaultFlake
+    mkFlake [ defaultConfig ] defaultFlake
     // {
       templates = {
         rust-overlay = {
