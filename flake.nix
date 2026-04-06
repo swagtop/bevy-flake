@@ -55,7 +55,7 @@
           )
         ) { } configList;
 
-      defaultFlake = 
+      defaultFlake =
         {
           pkgs,
           packages,
@@ -96,11 +96,11 @@
               attr:
               throw (
                 "You are referencing ${attr} in your 'config' attribute "
-                + "of the 'mkFlake' input. These inputs are based on the "
-                + "'config', which is evaluated before everything else.\n"
+                + "from the 'mkFlake' input. These inputs are based on your "
+                + "'config', which is evaluated before anything else.\n"
                 + "Make sure you do not reference these in the 'config' "
-                + "section. Read more on how to configure properly in "
-                + "the documentation."
+                + "section. Read more on how to configure bevy-flake properly "
+                + "in the documentation."
               )
             )
           );
@@ -111,60 +111,63 @@
 
           systems = (configNoPkgs).systems;
         in
-        foldl' (
-          accumulator: system:
-          let
-            pkgs = applyIfFunction configNoPkgs.withPkgs system;
+        foldl'
+          (
+            accumulator: system:
+            let
+              pkgs = applyIfFunction configNoPkgs.withPkgs system;
 
-            systemAttrs =
-              let
-                systemAttrsInputs = {
-                  inherit (pkgs.stdenv.hostPlatform) system;
-                  inherit pkgs;
-                  formatter = pkgs.nixfmt-tree;
-                  packages = import ./packages.nix {
-                    # Now we have a 'pkgs' to assemble the configs with.
-                    inherit
-                      pkgs
-                      assembleConfigs
-                      applyIfFunction
-                      defaultFlake
-                      ;
-                    reconfigure = (mkFlake finalConfigList defaultFlake).configure;
-                    config = finalConfig pkgs;
+              systemAttrs =
+                let
+                  systemAttrsInputs = {
+                    inherit (pkgs.stdenv.hostPlatform) system;
+                    inherit pkgs;
+                    formatter = pkgs.nixfmt-tree;
+                    packages = import ./packages.nix {
+                      # Now we have a 'pkgs' to assemble the configs with.
+                      inherit
+                        pkgs
+                        assembleConfigs
+                        applyIfFunction
+                        defaultFlake
+                        ;
+                      reconfigure = (mkFlake finalConfigList defaultFlake).configure;
+                      config = finalConfig pkgs;
+                    };
                   };
-                };
-              in
-              f systemAttrsInputs;
-          in
-          accumulator
-          // systemAttrs
-          //
-            genAttrs
-              (filter (attr: systemAttrs ? ${attr}) [
-                "apps"
-                "checks"
-                "devShells"
-                "formatter"
-                "legacyPackages"
-                "packages"
-              ])
-              (
-                attribute:
-                accumulator.${attribute} or { }
-                // {
-                  ${system} = systemAttrs.${attribute} or { };
-                }
-              )
-        ) {
-          inherit systems;
-          forSystems = warn "forSystems if being moved to lib.forSystems." genAttrs systems;
-          lib = {
-            forSystems = genAttrs systems;
-            mkFlake = mkFlake finalConfigList;
-          };
-          configure = c: mkFlake (finalConfigList ++ [ c ]) f;
-        } systems
+                in
+                f systemAttrsInputs;
+            in
+            accumulator
+            // systemAttrs
+            //
+              genAttrs
+                (filter (attr: systemAttrs ? ${attr}) [
+                  "apps"
+                  "checks"
+                  "devShells"
+                  "formatter"
+                  "legacyPackages"
+                  "packages"
+                ])
+                (
+                  attribute:
+                  accumulator.${attribute} or { }
+                  // {
+                    ${system} = systemAttrs.${attribute} or { };
+                  }
+                )
+          )
+          {
+            inherit systems;
+            forSystems = warn "forSystems if being moved to lib.forSystems." (genAttrs systems);
+            lib = {
+              forSystems = genAttrs systems;
+              mkFlake = mkFlake finalConfigList;
+            };
+            configure = c: mkFlake (finalConfigList ++ [ c ]) f;
+          }
+          systems
       );
     in
     mkFlake [ defaultConfig ] defaultFlake

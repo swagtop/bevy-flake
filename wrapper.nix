@@ -209,15 +209,15 @@ let
                 ''
                   *)
                     echo "${
-                      "bevy-flake: You are using this package develop mode.\n"
+                      "bevy-flake:\nYou are using this package develop mode.\n"
                       + "Therefore you cannot cross-compile to any specific "
                       + "target.\n"
                       + "This mode is useful for significantly reducing the "
                       + "amount of dependencies downloaded for when you are "
-                      + "only developing.\n"
-                      + "Remove the '.develop' suffix of the package you are "
-                      + "using to enable cross-compilation, or build for your "
-                      + "targets with 'nix build .#targets.<target>'."
+                      + "only developing. Remove the '.develop' suffix of the "
+                      + "package you are using to enable cross-compilation, or "
+                      + "build for your targets with "
+                      + "'nix build .#targets.<target>'."
                     }"
                     exit 1
                   ;;
