@@ -11,6 +11,7 @@
         isFunction
         warn
         filter
+        attrNames
         ;
 
       applyIfFunction = f: input: if isFunction f then f input else f;
@@ -157,6 +158,16 @@
                     ${system} = systemAttrs.${attribute} or { };
                   }
                 )
+            // (
+              if systemAttrs ? hydraJobs then
+                {
+                  hydraJobs = genAttrs (attrNames systemAttrs.hydraJobs) (attr: {
+                    ${system} = systemAttrs.hydraJobs.${attr};
+                  });
+                }
+              else
+                { }
+            )
           )
           {
             inherit systems;
