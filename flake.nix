@@ -56,7 +56,7 @@
         ) { } configList;
 
       makeConfigurable =
-        f: previousConfigs: addedConfig:
+        f: previousConfigs: addedConfig: f':
         let
           currentConfigs = previousConfigs ++ [ addedConfig ];
           result = f currentConfigs;
@@ -101,33 +101,29 @@
               + "or 'withPkgs'.\nIf you're using a 'pkgs.lib' function, get it "
               + "through 'nixpkgs.lib' instead."
             );
-          configNoPkgs = assembleConfigs configList;
-          systems = (assembleConfigs configList fauxPkgs).systems;
+
+          systemAttrsNoInput = f (
+            genAttrs [ "system" "pkgs" "packages" "formatter" ] (
+              attr:
+              throw (
+                "You are referencing ${attr} in your 'config' attribute "
+                + "of the 'mkFlake' input. These inputs are based on the "
+                + "'config', which is evaluated before everything else.\n"
+                + "Make sure you do not reference these in the 'config' "
+                + "section. Read more on how to configure properly in "
+                + "the documentation."
+              )
+            )
+          );
+          configNoPkgs = assembleConfigs (configList ++ [ systemAttrsNoInput.config or { } ]) fauxPkgs;
+
+          systems = (configNoPkgs).systems;
         in
         foldl' (
           accumulator: system:
           let
-            systemAttrsNoInput = f (
-              genAttrs [ "system" "pkgs" "packages" "formatter" ] (
-                attr:
-                throw (
-                  "You are referencing ${attr} in your 'config' attribute "
-                  + "of the 'mkFlake' input. These inputs are based on the "
-                  + "'config', which is evaluated before everything else.\n"
-                  + "Make sure you do not reference these in the 'config' "
-                  + "section. Read more on how to configure properly in "
-                  + "the documentation."
-                )
-              )
-            );
 
-            pkgs =
-              applyIfFunction
-                (assembleConfigs [
-                  configNoPkgs
-                  systemAttrsNoInput.config or { }
-                ] fauxPkgs).withPkgs
-                system;
+            pkgs = applyIfFunction configNoPkgs.withPkgs system;
 
             systemAttrs =
               let
