@@ -3,6 +3,7 @@ nixpkgs:
 # Default configuration begins here.
 {
   pkgs,
+  system,
   # previous,
   # default,
   # helpers,
@@ -28,15 +29,13 @@ in
   # Specify the 'pkgs' used to assemble the configs. Everything using the 'pkgs'
   # from '{ pkgs, ... }:', and all other uses of 'pkgs' in bevy-flake itself,
   # will be using this.
-  withPkgs =
-    system:
-    import nixpkgs {
-      inherit system;
-      config = {
-        allowUnfree = true;
-        microsoftVisualStudioLicenseAccepted = true;
-      };
+  withPkgs = import nixpkgs {
+    inherit system;
+    config = {
+      allowUnfree = true;
+      microsoftVisualStudioLicenseAccepted = true;
     };
+  };
 
   linux = {
     targets = [

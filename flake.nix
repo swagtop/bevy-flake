@@ -27,11 +27,10 @@
 
       defaultConfig = import ./config.nix nixpkgs;
       assembleConfigs =
-        configList: pkgs:
+        configList: system: pkgs:
         let
           configInputs = {
-            inherit pkgs;
-            inherit (pkgs.stdenv.hostPlatform) system;
+            inherit pkgs system;
             default = defaultConfig { inherit pkgs; };
           };
           helpersNoPrevious = import ./helpers.nix configInputs;
@@ -57,30 +56,32 @@
           )
         ) { } configList;
 
-      defaultFlake =
-        {
-          pkgs,
-          packages,
-          system,
-          formatter,
-          ...
-        }:
-        {
-          inherit packages formatter;
-          devShells.default = pkgs.mkShell {
-            name = "bevy-flake";
-            packages = [
-              packages.rust-toolchain.develop
-              packages.dioxus-cli.develop
-              # packages.bevy-cli.develop
-            ];
+      defaultFlake = {
+        perSystem = 
+          {
+            pkgs,
+            packages,
+            system,
+            formatter,
+            ...
+          }:
+          {
+            inherit packages formatter;
+            devShells.default = pkgs.mkShell {
+              name = "bevy-flake";
+              packages = [
+                packages.rust-toolchain.develop
+                packages.dioxus-cli.develop
+                # packages.bevy-cli.develop
+              ];
+            };
           };
-        };
+      };
 
       mkFlake = (
-        configList: f:
+        configList: flake:
         let
-          fauxPkgs =
+          pkgsWarn =
             # To construct the 'forSystems' that is used in generating the rest
             # of the flake, we need to get the 'systems' config attribute before
             # anything else, as the rest of the config attributes need the
@@ -93,36 +94,22 @@
               + "through 'nixpkgs.lib' instead."
             );
 
-          systemAttrsNoInput = f (
-            genAttrs [ "system" "pkgs" "packages" "formatter" ] (
-              attr:
-              throw (
-                "You are referencing '${attr}' in your 'config' attribute "
-                + "from the 'mkFlake' input. These inputs are based on your "
-                + "'config', which is evaluated before anything else.\n"
-                + "Make sure you do not reference these in the 'config' "
-                + "section. Read more on how to configure bevy-flake properly "
-                + "in the documentation."
-              )
-            )
-          );
+          finalConfigList = (configList ++ [ flake.config or { } ]);
+          assembledConfig = assembleConfigs finalConfigList;
 
-          finalConfigList = (configList ++ [ systemAttrsNoInput.config or { } ]);
-          finalConfig = assembleConfigs finalConfigList;
-          configNoPkgs = finalConfig fauxPkgs;
-
-          systems = (configNoPkgs).systems;
+          systems = (assembledConfig null pkgsWarn).systems;
         in
         foldl'
           (
             accumulator: system:
             let
-              pkgs = applyIfFunction configNoPkgs.withPkgs system;
+              pkgs = applyIfFunction (assembledConfig system pkgsWarn).withPkgs system;
 
               systemAttrs =
                 let
                   systemAttrsInputs = {
                     inherit pkgs system;
+                    inherit (pkgs) lib;
                     formatter = pkgs.nixfmt-tree;
                     packages = import ./packages.nix {
                       # Now we have a 'pkgs' to assemble the configs with.
@@ -133,25 +120,17 @@
                         defaultFlake
                         ;
                       reconfigure = (mkFlake finalConfigList defaultFlake).configure;
-                      config = finalConfig pkgs;
+                      config = assembledConfig system pkgs;
                     };
                   };
                 in
-                f systemAttrsInputs;
+                flake.perSystem systemAttrsInputs;
             in
             accumulator
-            // systemAttrs
-            # Poperly merge flake schema attributes.
+            # Poperly merge perSystem attributes.
             //
               genAttrs
-                (filter (attr: systemAttrs ? ${attr}) [
-                  "apps"
-                  "checks"
-                  "devShells"
-                  "formatter"
-                  "legacyPackages"
-                  "packages"
-                ])
+                (attrNames systemAttrs)
                 (
                   attribute:
                   accumulator.${attribute} or { }
@@ -159,6 +138,7 @@
                     ${system} = systemAttrs.${attribute} or { };
                   }
                 )
+            # 'hydraJobs' should be merged one more step up.
             // (
               if systemAttrs ? hydraJobs then
                 {
@@ -181,7 +161,7 @@
               forSystems = genAttrs systems;
               mkFlake = mkFlake finalConfigList;
             };
-            configure = c: mkFlake (finalConfigList ++ [ c ]) f;
+            configure = newConfig: mkFlake (finalConfigList ++ [ newConfig ]) flake;
           }
           systems
       );

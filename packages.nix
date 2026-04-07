@@ -318,11 +318,11 @@ in
 
           list = buildList;
           configure =
-            addedConfig:
-            if addedConfig ? systems then
+            newConfig:
+            if (applyIfFunction newConfig { }) ? systems then
               throw "You cannot configure systems on the packages level."
             else
-              (reconfigure addedConfig).packages.${hostSystem}.targets;
+              (reconfigure newConfig).packages.${hostSystem}.targets;
         };
       }
     ) { };
@@ -386,11 +386,11 @@ in
           inherit appliedConfig;
 
           configure =
-            addedConfig:
-            if addedConfig ? systems then
+            newConfig:
+            if (applyIfFunction newConfig { }) ? systems then
               throw "You cannot configure systems on the packages level."
             else
-              (reconfigure addedConfig).packages.${hostSystem}.web;
+              (reconfigure newConfig).packages.${hostSystem}.web;
         };
       };
   }
