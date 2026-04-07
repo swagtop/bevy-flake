@@ -31,7 +31,7 @@
         let
           configInputs = {
             inherit pkgs system;
-            default = defaultConfig { inherit pkgs; };
+            default = defaultConfig { inherit system pkgs; };
           };
           helpersNoPrevious = import ./helpers.nix configInputs;
         in
