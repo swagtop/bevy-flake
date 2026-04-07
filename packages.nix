@@ -319,10 +319,7 @@ in
           list = buildList;
           configure =
             newConfig:
-            if (applyIfFunction newConfig { }) ? systems then
-              throw "You cannot configure systems on the packages level."
-            else
-              (reconfigure newConfig).packages.${hostSystem}.targets;
+            (reconfigure newConfig).packages.${hostSystem}.targets;
         };
       }
     ) { };
@@ -387,10 +384,7 @@ in
 
           configure =
             newConfig:
-            if (applyIfFunction newConfig { }) ? systems then
-              throw "You cannot configure systems on the packages level."
-            else
-              (reconfigure newConfig).packages.${hostSystem}.web;
+            (reconfigure newConfig).packages.${hostSystem}.web;
         };
       };
   }
