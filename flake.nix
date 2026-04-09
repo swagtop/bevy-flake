@@ -11,7 +11,6 @@
         isFunction
         warn
         filter
-        attrNames
         ;
 
       applyIfFunction = f: input: if isFunction f then f input else f;
@@ -57,7 +56,7 @@
         ) { } configList;
 
       defaultFlake = {
-        perSystem = 
+        perSystem =
           {
             pkgs,
             packages,
@@ -94,7 +93,13 @@
               + "through 'nixpkgs.lib' instead."
             );
 
-          finalConfigList = (configList ++ [ flake.config or { } ]);
+          finalConfigList =
+            if flake ? systems then
+              throw "Set systems with 'config.systems = [ <system> ]'."
+            else if flake ? imports then
+              throw "Use flake-parts for this sort of behaviour."
+            else
+              (configList ++ [ flake.config or { } ]);
           assembledConfig = assembleConfigs finalConfigList;
 
           systems = (assembledConfig null pkgsWarn).systems;
@@ -130,7 +135,14 @@
             # Poperly merge perSystem attributes.
             //
               genAttrs
-                (attrNames systemAttrs)
+                (filter (attr: systemAttrs ? ${attr}) [
+                  "apps"
+                  "checks"
+                  "devShells"
+                  "formatter"
+                  "legacyPackages"
+                  "packages"
+                ])
                 (
                   attribute:
                   accumulator.${attribute} or { }
@@ -138,31 +150,19 @@
                     ${system} = systemAttrs.${attribute} or { };
                   }
                 )
-            # 'hydraJobs' should be merged one more step up.
-            // (
-              if systemAttrs ? hydraJobs then
-                {
-                  hydraJobs = genAttrs (attrNames systemAttrs.hydraJobs) (
-                    attribute:
-                    (accumulator.hydraJobs or { }).${attribute} or { }
-                    // {
-                      ${system} = systemAttrs.hydraJobs.${attribute};
-                    }
-                  );
-                }
-              else
-                { }
-            )
           )
-          {
-            inherit systems;
-            forSystems = warn "forSystems if being moved to lib.forSystems." (genAttrs systems);
-            lib = {
-              forSystems = genAttrs systems;
-              mkFlake = mkFlake finalConfigList;
-            };
-            configure = newConfig: mkFlake (finalConfigList ++ [ newConfig ]) flake;
-          }
+          (
+            {
+              inherit systems;
+              forSystems = warn "forSystems if being moved to lib.forSystems." (genAttrs systems);
+              lib = {
+                forSystems = genAttrs systems;
+                mkFlake = mkFlake finalConfigList;
+              };
+              configure = newConfig: mkFlake (finalConfigList ++ [ newConfig ]) flake;
+            }
+            // flake.flake or { }
+          )
           systems
       );
     in

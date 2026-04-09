@@ -12,7 +12,7 @@
   outputs =
     { nixpkgs, bevy-flake, ... }:
     bevy-flake.lib.mkFlake {
-      perSystem = 
+      perSystem =
         {
           pkgs,
           formatter,

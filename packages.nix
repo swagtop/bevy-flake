@@ -317,9 +317,7 @@ in
           inherit appliedConfig;
 
           list = buildList;
-          configure =
-            newConfig:
-            (reconfigure newConfig).packages.${hostSystem}.targets;
+          configure = newConfig: (reconfigure newConfig).packages.${hostSystem}.targets;
         };
       }
     ) { };
@@ -382,9 +380,7 @@ in
         passthru = {
           inherit appliedConfig;
 
-          configure =
-            newConfig:
-            (reconfigure newConfig).packages.${hostSystem}.web;
+          configure = newConfig: (reconfigure newConfig).packages.${hostSystem}.web;
         };
       };
   }
