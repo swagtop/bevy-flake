@@ -30,7 +30,7 @@ bevy-flake.lib.mkFlake {
     {
       pkgs,
       system,
-      packages,
+      packages, # Outputs the configured packages from 'bevy-flake.packages'.
       ...
     }:
     {
