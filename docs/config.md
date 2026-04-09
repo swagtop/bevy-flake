@@ -15,7 +15,7 @@ the flake output, or by setting it in the `config` attribute used when calling
 # Configuring by calling configure on the flake output:
 let
   bf = bevy-flake.configure (
-    { pkgs, previous, default, ... }:
+    { pkgs, previous, default, helpers, ... }:
     {
       # Config goes here.
     }
@@ -42,7 +42,7 @@ bevy-flake.lib.mkFlake {
   };
 
   config = (
-    { pkgs, previous, default, ... }:
+    { pkgs, previous, default, helpers, ... }:
     {
       # Config goes here.
     }
