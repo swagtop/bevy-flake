@@ -79,91 +79,92 @@
 
       mkFlake = (
         configList: flake:
-        if flake ? systems then
-          throw "Set systems with 'config.systems = [ <system> ]'."
-        else if flake ? imports then
-          throw "Use flake-parts for this sort of behaviour."
-        else
-          let
-            pkgsWarn =
-              # To construct the 'forSystems' that is used in generating the rest
-              # of the flake, we need to get the 'systems' config attribute before
-              # anything else, as the rest of the config attributes need the
-              # 'system' they are being built for.
-              # This is why you cannot reference 'pkgs' in 'systems' or
-              # 'withPkgs'. A helpful error is thrown, should this ever happen.
-              throw (
-                "You cannot reference 'pkgs' from the config inputs in 'systems' "
-                + "or 'withPkgs'.\nIf you're using a 'pkgs.lib' function, get it "
-                + "through 'nixpkgs.lib' instead."
-              );
+        let
+          pkgsWarn =
+            # To construct the 'forSystems' that is used in generating the rest
+            # of the flake, we need to get the 'systems' config attribute before
+            # anything else, as the rest of the config attributes need the
+            # 'system' they are being built for.
+            # This is why you cannot reference 'pkgs' in 'systems' or
+            # 'withPkgs'. A helpful error is thrown, should this ever happen.
+            throw (
+              "You cannot reference 'pkgs' from the config inputs in 'systems' "
+              + "or 'withPkgs'.\nIf you're using a 'pkgs.lib' function, get it "
+              + "through 'nixpkgs.lib' instead."
+            );
 
-            finalConfigList = configList ++ [ flake.config or { } ];
-            assembledConfig = assembleConfigs finalConfigList;
+          finalConfigList =
+            if flake ? systems then
+              throw "Set systems with 'config.systems = [ <system> ]'."
+            else if flake ? imports then
+              throw "Use flake-parts for this sort of behaviour."
+            else
+              configList ++ [ flake.config or { } ];
+          assembledConfig = assembleConfigs finalConfigList;
 
-            systems = (assembledConfig null pkgsWarn).systems;
-          in
-          foldl'
-            (
-              accumulator: system:
-              let
-                pkgs = applyIfFunction (assembledConfig system pkgsWarn).withPkgs system;
+          systems = (assembledConfig null pkgsWarn).systems;
+        in
+        foldl'
+          (
+            accumulator: system:
+            let
+              pkgs = applyIfFunction (assembledConfig system pkgsWarn).withPkgs system;
 
-                systemAttrs =
-                  let
-                    systemAttrsInputs = {
-                      inherit pkgs system;
-                      inherit (pkgs) lib;
-                      formatter = pkgs.nixfmt-tree;
-                      packages = import ./packages.nix {
-                        # Now we have a 'pkgs' to assemble the configs with.
-                        inherit
-                          pkgs
-                          assembleConfigs
-                          applyIfFunction
-                          defaultFlake
-                          ;
-                        reconfigure = (mkFlake finalConfigList defaultFlake).configure;
-                        config = assembledConfig system pkgs;
-                      };
+              systemAttrs =
+                let
+                  systemAttrsInputs = {
+                    inherit pkgs system;
+                    inherit (pkgs) lib;
+                    formatter = pkgs.nixfmt-tree;
+                    packages = import ./packages.nix {
+                      # Now we have a 'pkgs' to assemble the configs with.
+                      inherit
+                        pkgs
+                        assembleConfigs
+                        applyIfFunction
+                        defaultFlake
+                        ;
+                      reconfigure = (mkFlake finalConfigList defaultFlake).configure;
+                      config = assembledConfig system pkgs;
                     };
-                  in
-                  flake.perSystem systemAttrsInputs;
-              in
-              accumulator
-              # Poperly merge perSystem attributes.
-              //
-                genAttrs
-                  (filter (attr: systemAttrs ? ${attr}) [
-                    "apps"
-                    "checks"
-                    "devShells"
-                    "formatter"
-                    "legacyPackages"
-                    "packages"
-                  ])
-                  (
-                    attribute:
-                    accumulator.${attribute} or { }
-                    // {
-                      ${system} = systemAttrs.${attribute} or { };
-                    }
-                  )
-            )
-            (
-              {
-                inherit systems;
-                forSystems = warn "forSystems if being moved to lib.forSystems." (genAttrs systems);
-                lib = {
-                  forSystems = genAttrs systems;
-                  mkFlake = mkFlake finalConfigList;
-                };
-                configure = newConfig: mkFlake (finalConfigList ++ [ newConfig ]) flake;
-              }
-              // flake.flake or { }
-            )
-            systems
-        );
+                  };
+                in
+                flake.perSystem systemAttrsInputs;
+            in
+            accumulator
+            # Poperly merge perSystem attributes.
+            //
+              genAttrs
+                (filter (attr: systemAttrs ? ${attr}) [
+                  "apps"
+                  "checks"
+                  "devShells"
+                  "formatter"
+                  "legacyPackages"
+                  "packages"
+                ])
+                (
+                  attribute:
+                  accumulator.${attribute} or { }
+                  // {
+                    ${system} = systemAttrs.${attribute} or { };
+                  }
+                )
+          )
+          (
+            {
+              inherit systems;
+              forSystems = warn "forSystems if being moved to lib.forSystems." (genAttrs systems);
+              lib = {
+                forSystems = genAttrs systems;
+                mkFlake = mkFlake finalConfigList;
+              };
+              configure = newConfig: mkFlake (finalConfigList ++ [ newConfig ]) flake;
+            }
+            // flake.flake or { }
+          )
+          systems
+      );
     in
     mkFlake [ defaultConfig ] defaultFlake
     // {
