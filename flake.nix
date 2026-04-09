@@ -98,8 +98,8 @@
               throwExplain =
                 string:
                 throw (
-                  "The 'bevy-flake.lib.mkFlake' is not identical 'flake-parts.lib.mkFlake'.\n"
-                  + "It is mimicking the interface of the other, for ease-of-use.\n"
+                  "'bevy-flake.lib.mkFlake' is not identical to 'flake-parts.lib.mkFlake'.\n"
+                  + "It is mimicking the interface of the other, for ease-of-use.\n\n"
                   + string
                 );
             in
