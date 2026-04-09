@@ -10,10 +10,7 @@ let
   inherit (builtins)
     attrNames
     concatStringsSep
-    isAttrs
-    isFunction
     elem
-    warn
     ;
   inherit (pkgs.lib)
     attrsToList
@@ -21,88 +18,14 @@ let
     importTOML
     makeOverridable
     optionalAttrs
-    optionalString
-    optionals
-    subtractLists
-    mapAttrsToList
-    makeSearchPath
     ;
 
   hostSystem = pkgs.stdenv.hostPlatform.system;
 
-  applyConfig =
-    config:
-    let
-      inherit (config)
-        macos
-        windows
-        ;
-
-      validTargets =
-        subtractLists
-          # Disable cross-compilation for MacOS targets, if the SDK is not
-          # present in the config.
-          (optionals (macos.sdk == null) macos.targets ++ optionals (windows.sdk == null) windows.targets)
-          (
-            let
-              usingDefaultToolchain =
-                config.rustToolchain.bfDefaultToolchain or false;
-            in
-            if usingDefaultToolchain then
-              # Disable cross-compilation in 'targets' if using the default
-              # toolchain, as it doesn't have any of the stdlibs other than for
-              # the system it is built for.
-              [
-                pkgs.stdenv.hostPlatform.rust.rustcTarget
-              ]
-            else
-              attrNames config.targetEnvironments
-          );
-
-      exportEnv =
-        env: concatStringsSep "\n" (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env);
-    in
-    config
-    // {
-      rustToolchain = config.rustToolchain validTargets;
-      sharedEnvironment = pkgs.writeTextFile {
-        name = "bevy-flake-shared-environment.bash";
-        text = exportEnv config.sharedEnvironment;
-        passthru.env = config.sharedEnvironment;
-      };
-      devEnvironment = pkgs.writeTextFile {
-        name = "bevy-flake-dev-environment.bash";
-        text = exportEnv (
-          config.devEnvironment
-          // {
-            PKG_CONFIG_PATH =
-              "${config.devEnvironment.PKG_CONFIG_PATH or ""}:"
-              + makeSearchPath "lib/pkgconfig" (map (p: p.dev or null) config.runtimeInputs);
-            RUSTFLAGS =
-              "${config.devEnvironment.RUSTFLAGS or ""} "
-              + optionalString pkgs.stdenv.isLinux "-C link-args=-Wl,-rpath,${makeSearchPath "lib" config.runtimeInputs}";
-          }
-        );
-        passthru.env = config.devEnvironment;
-      };
-      targetEnvironments = genAttrs validTargets (
-        target:
-        pkgs.writeTextFile {
-          name = "bevy-flake-${target}-environment.bash";
-          text = exportEnv (
-            config.targetEnvironments.${target}
-            // {
-              RUSTFLAGS =
-                "${config.targetEnvironments.${target}.RUSTFLAGS or ""} "
-                + concatStringsSep " " config.crossPlatformRustflags or [ ];
-            }
-          );
-          passthru.env = config.targetEnvironments.${target};
-        }
-      );
-    };
+  applyConfig = import ./apply.nix { inherit pkgs; };
 
   appliedConfig = applyConfig config;
+
   inherit (appliedConfig)
     src
     systems

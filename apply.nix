@@ -1,0 +1,101 @@
+{
+  pkgs,
+}:
+
+config@{
+  systems,
+  withPkgs,
+  linux,
+  windows,
+  macos,
+  web,
+  crossPlatformRustflags,
+  sharedEnvironment,
+  devEnvironment,
+  targetEnvironments,
+  extraScript,
+  rustToolchain,
+  runtimeInputs,
+  stdenv,
+  src,
+}:
+let
+  inherit (builtins)
+    attrNames
+    concatStringsSep
+    ;
+
+  inherit (pkgs.lib)
+    genAttrs
+    makeSearchPath
+    mapAttrsToList
+    optionals
+    optionalString
+    subtractLists
+    ;
+
+  validTargets =
+    subtractLists
+      # Disable cross-compilation for MacOS targets, if the SDK is not
+      # present in the config.
+      (optionals (macos.sdk == null) macos.targets ++ optionals (windows.sdk == null) windows.targets)
+      (
+        let
+          usingDefaultToolchain = rustToolchain.bfDefaultToolchain or false;
+        in
+        if usingDefaultToolchain then
+          # Disable cross-compilation in 'targets' if using the default
+          # toolchain, as it doesn't have any of the stdlibs other than for
+          # the system it is built for.
+          [
+            pkgs.stdenv.hostPlatform.rust.rustcTarget
+          ]
+        else
+          attrNames targetEnvironments
+      );
+
+  exportEnv =
+    env: concatStringsSep "\n" (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env);
+in
+config
+// {
+  rustToolchain = rustToolchain validTargets;
+
+  sharedEnvironment = pkgs.writeTextFile {
+    name = "bevy-flake-shared-environment.bash";
+    text = exportEnv sharedEnvironment;
+    passthru.env = sharedEnvironment;
+  };
+
+  devEnvironment = pkgs.writeTextFile {
+    name = "bevy-flake-dev-environment.bash";
+    text = exportEnv (
+      devEnvironment
+      // {
+        PKG_CONFIG_PATH =
+          "${devEnvironment.PKG_CONFIG_PATH or ""}:"
+          + makeSearchPath "lib/pkgconfig" (map (p: p.dev or null) runtimeInputs);
+        RUSTFLAGS =
+          "${devEnvironment.RUSTFLAGS or ""} "
+          + optionalString pkgs.stdenv.isLinux "-C link-args=-Wl,-rpath,${makeSearchPath "lib" runtimeInputs}";
+      }
+    );
+    passthru.env = devEnvironment;
+  };
+
+  targetEnvironments = genAttrs validTargets (
+    target:
+    pkgs.writeTextFile {
+      name = "bevy-flake-${target}-environment.bash";
+      text = exportEnv (
+        targetEnvironments.${target}
+        // {
+          RUSTFLAGS =
+            "${targetEnvironments.${target}.RUSTFLAGS or ""} "
+            + concatStringsSep " " (config.crossPlatformRustflags or [ ]);
+        }
+      );
+      passthru.env = targetEnvironments.${target};
+    }
+  );
+}

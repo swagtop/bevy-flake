@@ -202,7 +202,7 @@ in
         };
     in
     # Ignore the functor part here, if looking for how to import your own
-    # toolchain. We are using a functor here to check in packages.nix if the
+    # toolchain. We are using a functor here to check in 'packages.nix' if the
     # user is using the default toolchain.
     # When setting your own toolchain, just write something akin to the
     # definition of 'defaultToolchain' above.

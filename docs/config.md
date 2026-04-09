@@ -77,6 +77,29 @@ let
 in
 ```
 
+The packages can also be reconfigured:
+
+```nix
+let
+  inherit (bf.packages.${system})
+    rust-toolchain
+    dioxus-cli
+    bevy-cli
+    targets
+    web
+    ;
+
+  config = import ./config.nix;
+in
+{
+  rust-toolchain = rust-toolchain.configure config;
+  dioxus-cli = dioxus-cli.configure config;
+  bevy-cli = bevy-cli.configure config;
+  targets = targets.configure config;
+  web = web.configure config;
+}
+```
+
 ### `systems`
 
 If you find that a system you want to use `bevy-flake` isn't included by
