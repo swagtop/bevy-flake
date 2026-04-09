@@ -95,7 +95,8 @@
 
           finalConfigList =
             let
-              throwExplain = string: throw ("This 'mkFlake' function merely mimicks flake-parts." + string);
+              throwExplain =
+                string: throw ("The 'bevy-flake.lib.mkFlake' function merely mimicks flake-parts. " + string);
             in
             if isFunction flake then
               throwExplain (
