@@ -94,10 +94,18 @@
             );
 
           finalConfigList =
-            if flake ? systems then
-              throw "Set systems with 'config.systems = [ <system> ]'."
+            let
+              throwExplain = string: throw ("This 'mkFlake' function merely mimicks flake-parts." + string);
+            in
+            if isFunction flake then
+              throwExplain (
+                "It will not work with anything more complicated than the input:\n"
+                + "{\n  config = <config>;\n  perSystem = <function>\n  flake = <attrs>;\n}"
+              )
+            else if flake ? systems then
+              throwExplain "Set systems with 'config.systems = [ <system> ]'."
             else if flake ? imports then
-              throw "Use flake-parts for this sort of behaviour."
+              throwExplain "Use flake-parts for this sort of behaviour."
             else
               configList ++ [ flake.config or { } ];
           assembledConfig = assembleConfigs finalConfigList;
