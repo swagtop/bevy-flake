@@ -82,7 +82,7 @@ bf = bevy-flake.configure {
 };
 ```
 
-Now `bf.forSystems` produces the systems you have input. If you want to add onto
+Now `bf.lib.forSystems` produces the systems you have input. If you want to add onto
 the existing ones, this could be done like so:
 
 ```nix

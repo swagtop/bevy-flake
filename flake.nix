@@ -80,16 +80,13 @@
       mkFlake = (
         configList: flake:
         let
-          pkgsWarn =
-            throw (
-              "You cannot reference 'pkgs' from the config inputs in 'systems' "
-              + "or 'withPkgs'.\nIf you're using a 'pkgs.lib' function, get it "
-              + "through 'nixpkgs.lib' instead."
-            );
-
-          systemWarn = throw (
-            "You cannot reference 'system' from the config inputs in 'systems'."
+          pkgsWarn = throw (
+            "You cannot reference 'pkgs' and 'lib' from the config inputs in "
+            + "'systems' or 'withPkgs'.\n"
+            + "If you're using a 'lib' function, use 'nixpkgs.lib' instead."
           );
+
+          systemWarn = throw "You cannot reference 'system' from the config inputs in 'systems'.";
 
           finalConfigList =
             let

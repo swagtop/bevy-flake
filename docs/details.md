@@ -19,9 +19,13 @@ or a package wrapped, that isn't included by default.
 
 ```nix
 {
-  # The list of systems supported, and the 'forSystems' helper function.
+  # The list of systems supported.
   systems = [ <system> ];
-  forSystems = <function>; # Shorthand for 'nixpkgs.lib.genattrs systems'.
+
+  lib = {
+    forSystems = <function>; # Shorthand for 'nixpkgs.lib.genattrs systems'.
+    mkFlake = <function>; # A 'flake-parts.lib.mkFlake'-like function.
+  };
 
   # The function used for configuring bevy-flake. Read docs/config.md for info.
   configure = <function>;
