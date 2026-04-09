@@ -98,20 +98,20 @@
               throwExplain =
                 string:
                 throw (
-                  "The 'bevy-flake.lib.mkFlake' function is not the same as 'flake-parts.lib.mkFlake'.\n"
-                  + "The function is provided for ease-of-use with a familiar interface.\n"
+                  "The 'bevy-flake.lib.mkFlake' is not identical 'flake-parts.lib.mkFlake'.\n"
+                  + "It is mimicking the interface of the other, for ease-of-use.\n"
                   + string
                 );
             in
             if isFunction flake then
               throwExplain (
-                "It will not work with anything more complicated than the input:\n"
-                + "{\n  config = <config>;\n  perSystem = <function>\n  flake = <attrs>;\n}"
+                "It will not work with anything more complicated than the input:\n\n"
+                + "{\n  config = <config>;\n  perSystem = <function>;\n  flake = <attrs>;\n}"
               )
             else if flake ? systems then
-              throwExplain "Set systems with 'config.systems = [ <system> ]'."
+              throwExplain "Set systems with '{ config.systems = [ <system> ]; }'."
             else if flake ? imports then
-              throwExplain "Use flake-parts for this sort of behaviour."
+              throwExplain "Use flake-parts for features like 'imports'."
             else
               configList ++ [ flake.config or { } ];
           assembledConfig = assembleConfigs finalConfigList;
