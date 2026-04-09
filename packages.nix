@@ -46,7 +46,7 @@ let
           (
             let
               usingDefaultToolchain =
-                if isAttrs config.rustToolchain then config.rustToolchain.bfDefaultToolchain or false else false;
+                config.rustToolchain.bfDefaultToolchain or false;
             in
             if usingDefaultToolchain then
               # Disable cross-compilation in 'targets' if using the default
