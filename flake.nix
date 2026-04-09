@@ -81,17 +81,15 @@
         configList: flake:
         let
           pkgsWarn =
-            # To construct the 'forSystems' that is used in generating the rest
-            # of the flake, we need to get the 'systems' config attribute before
-            # anything else, as the rest of the config attributes need the
-            # 'system' they are being built for.
-            # This is why you cannot reference 'pkgs' in 'systems' or
-            # 'withPkgs'. A helpful error is thrown, should this ever happen.
             throw (
               "You cannot reference 'pkgs' from the config inputs in 'systems' "
               + "or 'withPkgs'.\nIf you're using a 'pkgs.lib' function, get it "
               + "through 'nixpkgs.lib' instead."
             );
+
+          systemWarn = throw (
+            "You cannot reference 'system' from the config inputs in 'systems'."
+          );
 
           finalConfigList =
             let
@@ -116,7 +114,7 @@
               configList ++ [ flake.config or { } ];
           assembledConfig = assembleConfigs finalConfigList;
 
-          systems = (assembledConfig null pkgsWarn).systems;
+          systems = (assembledConfig systemWarn pkgsWarn).systems;
         in
         foldl'
           (
