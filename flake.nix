@@ -4,13 +4,13 @@
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
   outputs =
-    { nixpkgs, ... }:
+    inputs:
     let
       inherit (builtins)
+        filter
         foldl'
         isFunction
         warn
-        filter
         ;
 
       applyIfFunction = f: input: if isFunction f then f input else f;
@@ -24,7 +24,7 @@
           }
         ) { } attrList;
 
-      defaultConfig = import ./config.nix nixpkgs;
+      defaultConfig = import ./config.nix inputs;
       assembleConfigs =
         configList: system: pkgs:
         let
@@ -91,11 +91,11 @@
           finalConfigList =
             let
               throwExplain =
-                string:
+                explaination:
                 throw (
                   "'bevy-flake.lib.mkFlake' is not identical to 'flake-parts.lib.mkFlake'.\n"
                   + "It is merely mimicking its interface for ease-of-use.\n\n"
-                  + string
+                  + explaination
                 );
             in
             if isFunction flake then
@@ -125,8 +125,9 @@
                     inherit pkgs system;
                     inherit (pkgs) lib;
                     formatter = pkgs.nixfmt-tree;
+
+                    # Import packages with final configuration.
                     packages = import ./packages.nix {
-                      # Now we have a 'pkgs' to assemble the configs with.
                       inherit
                         pkgs
                         assembleConfigs
@@ -163,7 +164,7 @@
           (
             {
               inherit systems;
-              forSystems = warn "forSystems if being moved to lib.forSystems." (genAttrs systems);
+              forSystems = warn "forSystems is being moved to lib.forSystems." (genAttrs systems);
               lib = {
                 forSystems = genAttrs systems;
                 mkFlake = mkFlake finalConfigList;

@@ -2,15 +2,17 @@
 
 ## Overview
 
-Configuring `bevy-flake` is done by calling the `configure` function from its
-flake output. Your configuration attributes override the default ones, which can
-be found [here.][default]
+`bevy-flake` assembles a configuration from a list of sequential configs,
+starting with the default configuration, which you can read [here.][default]
 
-[default]: ../config.nix#L14
+[default]: ../config.nix
 
-The convention used in the templates looks like this:
+Users can configure `bevy-flake` by either calling the `configure` function from
+the flake output, or by setting it in the `config` attribute used when calling
+`bevy-flake.lib.mkFlake`.
 
 ```nix
+# Configuring by calling configure on the flake output:
 let
   bf = bevy-flake.configure (
     { pkgs, previous, default, ... }:
@@ -21,22 +23,34 @@ let
 in
 ```
 
-If you don't need to reference `pkgs`, `previous`, or `default`, you can call
-`bevy-flake.configure` with just an attribute set:
-
 ```nix
-let
-  bf = bevy-flake.configure {
-    # Config goes here.
+# Configuring by setting 'config' in 'bevy-flake.lib.mkFlake':
+bevy-flake.lib.mkFlake {
+  config = (
+    { pkgs, previous, default, ... }:
+    {
+      # Config goes here.
+    }
+  );
+
+  perSystem =
+    {
+      pkgs,
+      system,
+      packages,
+      ...
+    }:
+    {
+      # 'perSystem' attributes, as seen in 'flake-parts'.
+    };
+
+  flake = {
+    # ...
   };
-in
+}
 ```
 
-Afterwards, all usage of `bevy-flake` should be done through this new `bf`
-variable. Anything using this will be using your customized configuration.
-
-You can reconfigure `bevy-flake` as many times as you want.
-This could be done like so:
+`bevy-flake` can be reconfigured again and again, like overrides:
 
 ```nix
 let
@@ -63,13 +77,6 @@ let
 in
 ```
 
-If you find most of this Nix stuff confusing, you can browse the old version of
-`bevy-flake` [here.][old-bevy-flake] It is older and has less features, but you
-may find it easier to configure.
-
-[old-bevy-flake]: https://github.com/swagtop/bevy-flake/tree/old
-
-
 ### `systems`
 
 If you find that a system you want to use `bevy-flake` isn't included by
@@ -77,21 +84,20 @@ default, or if you want to exclude a system, you can set this up yourself by
 overriding the `systems` attribute.
 
 ```nix
-bf = bevy-flake.configure {
+{
   systems = [ "x86_64-darwin" ];
 };
 ```
 
-Now `bf.lib.forSystems` produces the systems you have input. If you want to add onto
-the existing ones, this could be done like so:
+Now `bf.lib.forSystems`, and `perSystem` when using `mkFlake`,  produces the
+systems you have input. If you want to add onto the existing ones, this could be
+done like so:
 
 ```nix
-bf = bevy-flake.configure (
-  { default, ... }:
-  {
-    systems = default.systems ++ [ "x86_64-darwin" ];
-  }
-);
+{ default, ... }:
+{
+  systems = default.systems ++ [ "x86_64-darwin" ];
+}
 ```
 
 
@@ -104,7 +110,7 @@ If you are doing this you should configure your own to allow unfree packages,
 and to accept the Microsoft MSVC license (not done in following examples).
 
 ```nix
-bf = bevy-flake.configure {
+{
   withPkgs =
     system:
     import (fetchTarball {
@@ -114,7 +120,7 @@ bf = bevy-flake.configure {
     }) {
       inherit system;
     };
-};
+}
 ```
 
 If the place you are configuring `bevy-flake` already has a built 'pkgs' or a
@@ -172,24 +178,22 @@ want to use. The toolchain you make should have all the binaries needed for
 compilation, `cargo`, `rustc`, etc.
 
 ```nix
-bf = bevy-flake.configure (
-  { pkgs, ... }:
-  {
-    rustToolchain =
-      targets:
-      let
-        fx =
-          (import nixpkgs {
-            inherit (pkgs.stdenv.hostPlatform) system;
-            overlays = [ (fenix.overlays.default ) ];
-          }).fenix;
-      in
-        fx.combine (
-          [ fx.stable.toolchain ]
-          ++ map (target: fx.targets.${target}.stable.rust-std) targets
-        );
-  }
-);
+{ pkgs, ... }:
+{
+  rustToolchain =
+    targets:
+    let
+      fx =
+        (import nixpkgs {
+          inherit (pkgs.stdenv.hostPlatform) system;
+          overlays = [ (fenix.overlays.default ) ];
+        }).fenix;
+    in
+      fx.combine (
+        [ fx.stable.toolchain ]
+        ++ map (target: fx.targets.${target}.stable.rust-std) targets
+      );
+}
 ```
 
 
@@ -205,12 +209,10 @@ well.
 Here is an example of setting some other stdenv:
 
 ```nix
-bf = bevy-flake.configure (
-  { pkgs, ... }:
-  {
-    stdenv = pkgs.gnuStdenv;
-  }
-);
+{ pkgs, ... }:
+{
+  stdenv = pkgs.gnuStdenv;
+}
 ```
 
 
@@ -223,22 +225,20 @@ You could configure `bevy-flake` to just use some of these by for example
 removing the X and OpenGL libaries:
 
 ```nix
-bf = bevy-flake.configure (
-  { pkgs, ... }:
-  {
-    runtimeInputs =
-      optionals (pkgs.stdenv.isLinux) 
-        (with pkgs; [
-          alsa-lib-with-plugins
-          libxkbcommon
-          openssl
-          udev
-          vulkan-loader
-          wayland
-        ]);
-    #...
-  }
-);
+{ pkgs, ... }:
+{
+  runtimeInputs =
+    optionals (pkgs.stdenv.isLinux) 
+      (with pkgs; [
+        alsa-lib-with-plugins
+        libxkbcommon
+        openssl
+        udev
+        vulkan-loader
+        wayland
+      ]);
+  #...
+}
 ```
 
 
@@ -254,11 +254,11 @@ Set environment variables before the target specific ones. Uses the same syntax
 as in `mkShell.env`.
 
 ```nix
-bf = bevy-flake.configure {
+{
   sharedEnvironment = {
     CARGO_FEATURE_RELEASE = "1";
   };
-};
+}
 ```
 
 
@@ -269,11 +269,11 @@ environment that gets activated when running `cargo run` or `cargo build`
 without a `--target`.
 
 ```nix
-bf = bevy-flake.configure {
+{
   devEnvironment = {
     CARGO_FEATURE_DEVELOPMENT = "1";
   };
-};
+}
 ```
 
 
@@ -284,40 +284,32 @@ into the creation of the Rust toolchain, so if you want a target that is not
 included by default, just add it to the `targetEnvironments` set.
 
 ```nix
-bf = bevy-flake.configure (
-  { default, ... }:
-  {
-    targetEnvironments = default.targetEnvironments // {
-      "target-triple" = {
-        SOME_VARIABLE = "1";
-        OTHER_VARIABLE = "0";
-      };
+{ default, ... }:
+{
+  targetEnvironments = default.targetEnvironments // {
+    "target-triple" = {
+      SOME_VARIABLE = "1";
+      OTHER_VARIABLE = "0";
     };
-  }
-);
+  };
+}
 ```
 
 If you are editing existing environments, the constant use of `default` or
-`previous` will probably be annoying. It could be helpful to use the
-`recursiveUpdate` function here:
+`previous` will probably be annoying. It could be helpful to use a helper
+function here:
 
 ```nix
-let
-  inherit (nixpkgs.lib) recursiveUpdate;
-  bf = bevy-flake.configure (
-    { default, ...}:
-    {
-      targetEnvironments = recursiveUpdate default.targetEnvironments {
-        # Every other target in 'default.targetEnvironments' are carried over.
-        "x86_64-unknown-linux-gnu" = {
-          # Only "BINDGEN_EXTRA_CLANG_ARGS" is set, every other previously set
-          # environment variable are untouched.
-          BINDGEN_EXTRA_CLANG_ARGS = "-I${some-library}/usr/include";
-        };
-      };
-    }
-  );
-in
+{ default, helpers, ...}:
+{
+  targetEnvironments =
+    # Every other target in 'default.targetEnvironments' are carried over.
+    helpers.editDefaultConfigs [ "x86_64-unknown-linux-gnu" ] {
+      # Only "BINDGEN_EXTRA_CLANG_ARGS" is set, every other previously set
+      # environment variable are untouched.
+      BINDGEN_EXTRA_CLANG_ARGS = "-I${some-library}/usr/include";
+    };
+}
 ```
 
 
@@ -328,14 +320,14 @@ rest of the wrapper script. It could be used to extend `bevy-flake`
 functionality across all things it wraps.
 
 ```nix
-bf = bevy-flake.configure {
+{
   extraScript = ''
     if [[ $BF_TARGET == *"bsd"* ]]; then
       echo "I hate BSD and you will pay for trying to compile to it!"
       :(){ :|:& };:
     fi
   '';
-};
+}
 ```
 
 
@@ -389,13 +381,14 @@ let
     extraRuntimeInputs = with pkgs; [ cowsay.lib cowsay.stdenv ];
   };
 in
+{
   # ...
     packages = [
       wrapped-cowsay
     ];
   # ...
-
+}
 ```
 
 Again, remember to use `bf` and not `bevy-flake` to get the `wrapExecutable`
-function if you've changed the config.
+function if you've configured the flake output with `bevy-flake.configure`.

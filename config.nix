@@ -1,4 +1,4 @@
-nixpkgs:
+inputs:
 
 # Default configuration begins here.
 {
@@ -29,7 +29,7 @@ in
   # Specify the 'pkgs' used to assemble the configs. Everything using the 'pkgs'
   # from '{ pkgs, ... }:', and all other uses of 'pkgs' in bevy-flake itself,
   # will be using this.
-  withPkgs = import nixpkgs {
+  withPkgs = import inputs.nixpkgs {
     inherit system;
     config = {
       allowUnfree = true;
