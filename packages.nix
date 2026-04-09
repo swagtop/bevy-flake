@@ -11,6 +11,7 @@ let
     attrNames
     concatStringsSep
     elem
+    warn
     ;
   inherit (pkgs.lib)
     attrsToList
@@ -51,7 +52,7 @@ let
     executable = appliedConfig.rustToolchain + "/bin/cargo";
     symlinkPackage = appliedConfig.rustToolchain;
     passthru = {
-      inherit wrapExecutable;
+      wrapExecutable = warn "'wrapExecutable' is being moved to 'tools.wrapExecutable'" wrapExecutable;
       unwrapped = appliedConfig.rustToolchain;
 
       # Attributes needed for 'makeRustPlatform' compatibility.

@@ -164,7 +164,7 @@
           (
             {
               inherit systems;
-              forSystems = warn "forSystems is being moved to lib.forSystems." (genAttrs systems);
+              forSystems = warn "'forSystems' is being moved to lib.forSystems." (genAttrs systems);
               lib = {
                 forSystems = genAttrs systems;
                 mkFlake = mkFlake finalConfigList;
