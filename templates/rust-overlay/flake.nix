@@ -43,9 +43,20 @@
         };
 
       config =
-        { pkgs, ... }:
+        { pkgs, system, ... }:
         {
-          src = ./.;
+          src = builtins.path {
+            path = ./.;
+
+            # Ignore files that aren't needed in compilation of Bevy project.
+            filter =
+              path: type:
+              !(builtins.elem (baseNameOf path) [
+                "flake.lock"
+                "flake.nix"
+              ]);
+          };
+
           rustToolchain =
             targets:
             let
@@ -58,12 +69,11 @@
                 "rust-analyzer"
               ];
             };
-          withPkgs =
-            system:
-            import nixpkgs {
-              inherit system;
-              overlays = [ (import rust-overlay) ];
-            };
+
+          withPkgs = import nixpkgs {
+            inherit system;
+            overlays = [ (import rust-overlay) ];
+          };
         };
     };
 }

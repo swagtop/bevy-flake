@@ -45,12 +45,23 @@
       config =
         { pkgs, system, ... }:
         {
-          src = ./.;
+          src = builtins.path {
+            path = ./.;
+
+            # Ignore files that aren't needed in compilation of Bevy project.
+            filter =
+              path: type:
+              !(builtins.elem (baseNameOf path) [
+                "flake.lock"
+                "flake.nix"
+              ]);
+          };
+
           rustToolchain =
             targets:
             let
-              fx = fenix.packages.${system};
               channel = "stable"; # For nightly, use "latest".
+              fx = fenix.packages.${system};
               stds = map (target: fx.targets.${target}.${channel}.rust-std) targets;
             in
             fx.combine ([ fx.${channel}.toolchain ] ++ stds);

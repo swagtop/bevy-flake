@@ -185,22 +185,31 @@ in
 
   extraScript = "";
 
-  rustToolchain = {
-    __functor =
-      _: targets:
-      pkgs.symlinkJoin {
-        name = "nixpkgs-rust-toolchain";
-        pname = "cargo";
-        paths = with pkgs; [
-          cargo
-          clippy
-          rust-analyzer
-          rustc
-          rustfmt
-        ];
-      };
-    bfDefaultToolchain = true;
-  };
+  rustToolchain =
+    let
+      defaultToolchain =
+        targets:
+        pkgs.symlinkJoin {
+          name = "nixpkgs-rust-toolchain";
+          pname = "cargo";
+          paths = with pkgs; [
+            cargo
+            clippy
+            rust-analyzer
+            rustc
+            rustfmt
+          ];
+        };
+    in
+    # Ignore the functor part here, if looking for how to import your own
+    # toolchain. We are using a functor here to check in packages.nix if the
+    # user is using the default toolchain.
+    # When setting your own toolchain, just write something akin to the
+    # definition of 'defaultToolchain' above.
+    {
+      __functor = _: defaultToolchain;
+      bfDefaultToolchain = true;
+    };
 
   runtimeInputs = optionals (pkgs.stdenv.isLinux) (
     with pkgs;

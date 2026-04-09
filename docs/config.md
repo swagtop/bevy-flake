@@ -26,13 +26,6 @@ in
 ```nix
 # Configuring by setting 'config' in 'bevy-flake.lib.mkFlake':
 bevy-flake.lib.mkFlake {
-  config = (
-    { pkgs, previous, default, ... }:
-    {
-      # Config goes here.
-    }
-  );
-
   perSystem =
     {
       pkgs,
@@ -47,6 +40,13 @@ bevy-flake.lib.mkFlake {
   flake = {
     # ...
   };
+
+  config = (
+    { pkgs, previous, default, ... }:
+    {
+      # Config goes here.
+    }
+  );
 }
 ```
 

@@ -31,5 +31,19 @@
             ];
           };
         };
+
+      config = {
+        src = builtins.path {
+          path = ./.;
+
+          # Ignore files that aren't needed in compilation of Bevy project.
+          filter =
+            path: type:
+            !(builtins.elem (baseNameOf path) [
+              "flake.lock"
+              "flake.nix"
+            ]);
+        };
+      };
     };
 }
