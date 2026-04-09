@@ -36,8 +36,8 @@ let
 
   validTargets =
     subtractLists
-      # Disable cross-compilation for MacOS targets, if the SDK is not
-      # present in the config.
+      # Disable cross-compilation for MacOS and Windows targets, if their SDK 
+      # are not present in the config.
       (optionals (macos.sdk == null) macos.targets ++ optionals (windows.sdk == null) windows.targets)
       (
         let

@@ -12,9 +12,10 @@ if stdenv.isDarwin then
   throw (
     "Packaging the Windows SDK is not supported on MacOS. "
     + "Because the MacOS filesystem is case-insensitive, the output of the "
-    + "'windows.sdk' package is missing critical symlinks needed on Linux.\n"
-    + "Run this on a Linux system instead. After it has been created on Linux, "
-    + "it can be unpacked and used on MacOS just fine."
+    + "'windows.sdk' package will be missing critical symlinks needed on"
+    + "Linux.\n"
+    + "Run this on a Linux system instead. After it has been created on "
+    + "Linux, it can be unpacked and used on MacOS just fine."
   )
 else
   writeShellApplication {
@@ -48,7 +49,7 @@ else
       find . -type f ! -type l  -print0 | tar --null --owner=0 --group=0 -cf "$TMP_FILE" -T -
 
       echo "Packaging symlinks"
-      find . -type l -print0 | tar --owner=0 --group=0 --null -rf "$TMP_FILE" -T -
+      find . -type l -print0 | tar --null --owner=0 --group=0 -rf "$TMP_FILE" -T -
 
       popd
 

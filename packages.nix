@@ -51,7 +51,7 @@ let
     executable = appliedConfig.rustToolchain + "/bin/cargo";
     symlinkPackage = appliedConfig.rustToolchain;
     passthru = {
-      inherit wrapExecutable package-macos-sdk;
+      inherit wrapExecutable;
       unwrapped = appliedConfig.rustToolchain;
 
       # Attributes needed for 'makeRustPlatform' compatibility.
@@ -118,7 +118,10 @@ in
   # Useful tools can be reached through this package.
   tools =
     pkgs.writeShellScriptBin "tools" ''
-      echo "bevy-flake: bla"
+      echo "bevy-flake:"
+      echo "Lorem ipsum dolor sit amet"
+      echo "Lorem ipsum dolor sit amet"
+      echo "Lorem ipsum dolor sit amet"
     ''
     // {
       inherit wrapExecutable package-macos-sdk package-windows-sdk;
