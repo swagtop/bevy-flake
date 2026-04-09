@@ -94,14 +94,12 @@
             );
 
           finalConfigList =
-            builtins.seq (
-              if flake ? systems then
-                throw "Set systems with 'config.systems = [ <system> ]'."
-              else if flake ? imports then
-                throw "Use flake-parts for this sort of behaviour."
-              else
-                null
-            ) (configList ++ [ flake.config or { } ]);
+            if flake ? systems then
+              throw "Set systems with 'config.systems = [ <system> ]'."
+            else if flake ? imports then
+              throw "Use flake-parts for this sort of behaviour."
+            else
+              configList ++ [ flake.config or { } ];
           assembledConfig = assembleConfigs finalConfigList;
 
           systems = (assembledConfig null pkgsWarn).systems;
