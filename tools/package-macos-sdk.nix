@@ -86,7 +86,7 @@ writeShellApplication {
     findutils
     gnugrep
     gnused
-    # Wrap 'tar' to make sure no user info makes its way into the final tarball.
+    # Wrap 'tar' to prevent user info from making its way into the tarball.
     (writeShellScriptBin "tar" "exec ${gnutar}/bin/tar \"$@\" --owner=0 --group=0")
   ];
   text = ''
