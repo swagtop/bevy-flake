@@ -110,11 +110,7 @@ in
       package-macos-sdk = pkgs.callPackage (import ./tools/package-macos-sdk.nix) { };
       package-windows-sdk = pkgs.callPackage (import ./tools/package-windows-sdk.nix) { };
     };
-}
-# If 'src' is defined in config, add the 'targets' package, which builds
-# every target defined in 'targetEnvironments'. Individual targets can be built
-# from 'targets.<target>', eg. 'targets.wasm32-unknown-unknown'.
-// {
+
   targets = {
     configure = newConfig: (reconfigure newConfig).packages.${hostSystem}.web;
   }

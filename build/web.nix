@@ -27,28 +27,29 @@ config@{
   src,
 }:
 
+let
+  inherit (builtins) warn;
+  inherit (pkgs.lib) importTOML;
+
+  manifest = (importTOML "${src}/Cargo.toml").package;
+  packageNamePrefix =
+    if manifest ? version then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
+  webToolchain = wrapped-rust-toolchain.override {
+    crossCompileOnly = true;
+    targets = [ "wasm32-unknown-unknown" ];
+  };
+  webRustPlatform = pkgs.makeRustPlatform {
+    cargo = webToolchain;
+    rustc = webToolchain;
+  };
+in
 if src == null then
-  builtins.warn "You have not configured any 'src' to build." (
+  warn "You have not configured any 'src' to build." (
     pkgs.writeShellScriptBin "bevy-flake-no-src" ''
       echo "You do not have any bevy!!!"
     ''
   )
 else
-  let
-    inherit (pkgs.lib) importTOML;
-
-    manifest = (importTOML "${src}/Cargo.toml").package;
-    packageNamePrefix =
-      if manifest ? version then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
-    webToolchain = wrapped-rust-toolchain.override {
-      crossCompileOnly = true;
-      targets = [ "wasm32-unknown-unknown" ];
-    };
-    webRustPlatform = pkgs.makeRustPlatform {
-      cargo = webToolchain;
-      rustc = webToolchain;
-    };
-  in
   webRustPlatform.buildRustPackage {
     inherit src;
 
@@ -79,7 +80,9 @@ else
       runHook preBuild
 
       bevy --version
-      bevy build web ''${bevyBuildFlags[@]}
+      bevy build web \
+        -j $NIX_BUILD_CORES \
+        ''${bevyBuildFlags[@]}
 
       runHook postBuild
     '';
