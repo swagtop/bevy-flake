@@ -43,79 +43,88 @@ let
 
   validTargets = attrNames targetEnvironments;
 
-  everyTarget = genAttrs validTargets (
-    target:
-    let
-      targetToolchain = wrapped-rust-toolchain.override {
-        targets = [ target ];
-      };
-      targetRustPlatform = pkgs.makeRustPlatform {
-        cargo = targetToolchain;
-        rustc = targetToolchain;
-      };
-    in
-    targetRustPlatform.buildRustPackage {
-      inherit src target;
+  everyTarget =
+    { useIndividualToolchain }:
+    genAttrs validTargets (
+      target:
+      let
+        targetToolchain =
+          if useIndividualToolchain then 
+            wrapped-rust-toolchain.override {
+              crossCompileOnly = true;
+              targets = [ target ];
+            }
+          else
+            wrapped-rust-toolchain.override {
+              crossCompileOnly = true;
+            };
 
-      name = packageNamePrefix + target;
+        targetRustPlatform = pkgs.makeRustPlatform {
+          cargo = targetToolchain;
+          rustc = targetToolchain;
+        };
+      in
+      targetRustPlatform.buildRustPackage {
+        inherit src target;
 
-      cargoLock.lockFile = src + "/Cargo.lock";
-      cargoProfile = "release";
-      cargoBuildFlags = [ ];
+        name = packageNamePrefix + target;
 
-      buildPhase = ''
-        runHook preBuild
+        cargoLock.lockFile = src + "/Cargo.lock";
+        cargoProfile = "release";
+        cargoBuildFlags = [ ];
 
-        cargo build \
-          -j "$NIX_BUILD_CORES" \
-          --profile "$cargoProfile" \
-          --target "$target" \
-          --offline \
-          ''${cargoBuildFlags[@]}
+        buildPhase = ''
+          runHook preBuild
 
-        runHook postBuild
-      '';
+          cargo build \
+            -j "$NIX_BUILD_CORES" \
+            --profile "$cargoProfile" \
+            --target "$target" \
+            --offline \
+            ''${cargoBuildFlags[@]}
 
-      # Copied and edited for multi-target purposes from nixpkgs Rust hooks.
-      installPhase = ''
-        runHook preInstall
+          runHook postBuild
+        '';
 
-        if [[ $cargoProfile == "dev" ]]; then
-          # Set dev profile environment variable to match correct directory.
-          export cargoProfile="debug"
-        fi
+        # Copied and edited for multi-target purposes from nixpkgs Rust hooks.
+        installPhase = ''
+          runHook preInstall
 
-        buildDir=target/"${target}"/"$cargoProfile"
-        bins=$(find $buildDir \
-          -maxdepth 1 \
-          -type f \
-          -executable ! \( -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)" \))
-        libs=$(find $buildDir \
-          -maxdepth 1 \
-          -type f \
-          -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)")
+          if [[ $cargoProfile == "dev" ]]; then
+            # Set dev profile environment variable to match correct directory.
+            export cargoProfile="debug"
+          fi
 
-        mkdir -p $out/{bin,lib}
+          buildDir=target/"${target}"/"$cargoProfile"
+          bins=$(find $buildDir \
+            -maxdepth 1 \
+            -type f \
+            -executable ! \( -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)" \))
+          libs=$(find $buildDir \
+            -maxdepth 1 \
+            -type f \
+            -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)")
 
-        for file in $bins; do
-          cp $file $out/bin/
-        done
+          mkdir -p $out/{bin,lib}
 
-        for file in $libs; do
-          cp $file $out/lib/
-        done
+          for file in $bins; do
+            cp $file $out/bin/
+          done
 
-        rmdir --ignore-fail-on-non-empty $out/{bin,lib}
+          for file in $libs; do
+            cp $file $out/lib/
+          done
 
-        runHook postInstall
-      '';
+          rmdir --ignore-fail-on-non-empty $out/{bin,lib}
 
-      dontAutoPatchelf = true;
-      doCheck = false;
-    }
-  );
+          runHook postInstall
+        '';
 
-  buildList = attrsToList everyTarget;
+        dontAutoPatchelf = true;
+        doCheck = false;
+      }
+    );
+
 in
 if src == null then
   builtins.warn "You have not configured any 'src' to build." (
@@ -124,6 +133,9 @@ if src == null then
     ''
   )
 else
+  let
+    buildList = attrsToList (everyTarget { individualToolchain = false; });
+  in
   pkgs.stdenvNoCC.mkDerivation {
     # Only warn about default toolchain when building all targets.
     name = packageNamePrefix + "all-targets";
@@ -145,9 +157,16 @@ else
     '';
 
     phases = [ "installPhase" ];
-    passthru = everyTarget // {
-      inherit appliedConfig;
+    passthru =
+      let
+        individualBuildList = attrsToList (everyTarget { individualToolchain = false; });
+      in
+      genAttrs (map (item: item.name) buildList) (
+        attr: everyTarget.${attr} // { individually = individualBuildList.${attr}; }
+      )
+      // {
+        inherit appliedConfig;
 
-      list = buildList;
-    };
+        list = buildList;
+      };
   }
