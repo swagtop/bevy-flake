@@ -44,9 +44,6 @@ let
     rawConfig = config;
   };
 
-  package-macos-sdk = pkgs.callPackage (import ./macos-sdk.nix) { };
-  package-windows-sdk = pkgs.callPackage (import ./windows-sdk.nix) { };
-
   wrapped-rust-toolchain = wrapExecutable {
     name = "cargo";
     executable = appliedConfig.rustToolchain + "/bin/cargo";
@@ -84,7 +81,7 @@ let
         }
       );
     in
-    makeOverridable wrapExecutable {
+    wrapExecutable {
       name = "bevy";
       extraRuntimeInputs = [
         pkgs.binaryen
@@ -104,7 +101,7 @@ in
 {
   rust-toolchain = wrapped-rust-toolchain;
 
-  dioxus-cli = makeOverridable wrapExecutable {
+  dioxus-cli = wrapExecutable {
     name = "dx";
     executable = pkgs.dioxus-cli + "/bin/dx";
     extraRuntimeInputs = [
@@ -125,190 +122,37 @@ in
       echo "Lorem ipsum dolor sit amet"
     ''
     // {
-      inherit wrapExecutable package-macos-sdk package-windows-sdk;
+      inherit wrapExecutable;
+      package-macos-sdk = pkgs.callPackage (import ./tools/package-macos-sdk.nix) { };
+      package-windows-sdk = pkgs.callPackage (import ./tools/package-windows-sdk.nix) { };
     };
 }
 # If 'src' is defined in config, add the 'targets' package, which builds
 # every target defined in 'targetEnvironments'. Individual targets can be built
 # from 'targets.<target>', eg. 'targets.wasm32-unknown-unknown'.
-// optionalAttrs (src != null) (
-  let
-    manifest = (importTOML "${src}/Cargo.toml").package;
-    packageNamePrefix =
-      if manifest ? version then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
-    validTargets = attrNames targetEnvironments;
-  in
-  {
-    targets = makeOverridable (
-      overridedAttrs:
-      let
-        everyTarget = genAttrs validTargets (
-          target:
-          let
-            targetToolchain = wrapped-rust-toolchain.override {
-              targets = [ target ];
-            };
-            targetRustPlatform = pkgs.makeRustPlatform {
-              cargo = targetToolchain;
-              rustc = targetToolchain;
-            };
-          in
-          targetRustPlatform.buildRustPackage (
-            {
-              inherit src target;
-
-              name = packageNamePrefix + target;
-
-              cargoLock.lockFile = src + "/Cargo.lock";
-              cargoProfile = "release";
-              cargoBuildFlags = [ ];
-
-              buildPhase = ''
-                runHook preBuild
-
-                cargo build \
-                  -j "$NIX_BUILD_CORES" \
-                  --profile "$cargoProfile" \
-                  --target "$target" \
-                  --offline \
-                  ''${cargoBuildFlags[@]}
-
-                runHook postBuild
-              '';
-
-              # Copied and edited for multi-target purposes from nixpkgs Rust hooks.
-              installPhase = ''
-                runHook preInstall
-
-                if [[ $cargoProfile == "dev" ]]; then
-                  # Set dev profile environment variable to match correct directory.
-                  export cargoProfile="debug"
-                fi
-
-                buildDir=target/"${target}"/"$cargoProfile"
-                bins=$(find $buildDir \
-                  -maxdepth 1 \
-                  -type f \
-                  -executable ! \( -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)" \))
-                libs=$(find $buildDir \
-                  -maxdepth 1 \
-                  -type f \
-                  -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)")
-
-                mkdir -p $out/{bin,lib}
-
-                for file in $bins; do
-                  cp $file $out/bin/
-                done
-
-                for file in $libs; do
-                  cp $file $out/lib/
-                done
-
-                rmdir --ignore-fail-on-non-empty $out/{bin,lib}
-
-                runHook postInstall
-              '';
-
-              dontAutoPatchelf = true;
-              doCheck = false;
-            }
-            // overridedAttrs
-          )
-        );
-
-        buildList = attrsToList everyTarget;
-      in
-      pkgs.stdenvNoCC.mkDerivation {
-        # Only warn about default toolchain when building all targets.
-        name = packageNamePrefix + "all-targets";
-
-        linkBuilds = true;
-        buildInputs = map (build: build.value) buildList;
-        installPhase = ''
-          mkdir -p $out
-
-          if [[ $linkBuilds == "1" ]]; then
-            ${concatStringsSep "\n" (
-              map (build: "ln -s \"${build.value}\" $out/\"${build.name}\"") buildList
-            )}
-          else
-            ${concatStringsSep "\n" (
-              map (build: "cp -r \"${build.value}\" $out/\"${build.name}\"") buildList
-            )}
-          fi
-        '';
-
-        phases = [ "installPhase" ];
-        passthru = everyTarget // {
-          inherit appliedConfig;
-
-          list = buildList;
-          configure = newConfig: (reconfigure newConfig).packages.${hostSystem}.targets;
-        };
-      }
-    ) { };
+// {
+  targets = {
+    configure = newConfig: (reconfigure newConfig).packages.${hostSystem}.web;
   }
-  # Add a web build by 'bevy-cli', if "wasm32-unknown-unknown" is a valid target.
-  // optionalAttrs (elem "wasm32-unknown-unknown" validTargets) {
-    web =
-      let
-        webToolchain = wrapped-rust-toolchain.override {
-          crossCompileOnly = true;
-          targets = [ "wasm32-unknown-unknown" ];
-        };
-        webRustPlatform = pkgs.makeRustPlatform {
-          cargo = webToolchain;
-          rustc = webToolchain;
-        };
-      in
-      webRustPlatform.buildRustPackage {
-        inherit src;
+  // import ./build/targets.nix {
+    inherit
+      pkgs
+      appliedConfig
+      reconfigure
+      wrapped-rust-toolchain
+      ;
+  } config;
 
-        name = packageNamePrefix + "web";
-        nativeBuildInputs = [
-          (wrapped-bevy-cli.override {
-            crossCompileOnly = true;
-            targets = [ "wasm32-unknown-unknown" ];
-          })
-        ];
-
-        cargoLock.lockFile = src + "/Cargo.lock";
-
-        dontFixup = true;
-        doCheck = false;
-
-        bevyBuildFlags = [
-          "--bundle"
-          "--wasm-opt"
-          "-Oz"
-          "--wasm-opt"
-          "-all"
-        ];
-
-        env.BF_TARGET = "wasm32-unknown-unknown";
-
-        buildPhase = ''
-          runHook preBuild
-
-          bevy --version
-          bevy build web ''${bevyBuildFlags[@]}
-
-          runHook postBuild
-        '';
-
-        installPhase = ''
-          runHook preInstall
-
-          cp -r target/bevy_web/web/"${manifest.name}" $out
-
-          runHook postInstall
-        '';
-        passthru = {
-          inherit appliedConfig;
-
-          configure = newConfig: (reconfigure newConfig).packages.${hostSystem}.web;
-        };
-      };
+  web = {
+    configure = newConfig: (reconfigure newConfig).packages.${hostSystem}.targets;
   }
-)
+  // import ./build/web.nix {
+    inherit
+      pkgs
+      appliedConfig
+      reconfigure
+      wrapped-rust-toolchain
+      wrapped-bevy-cli
+      ;
+  } config;
+}

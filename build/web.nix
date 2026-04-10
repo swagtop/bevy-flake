@@ -1,0 +1,97 @@
+{
+  pkgs,
+  appliedConfig,
+
+  reconfigure,
+
+  wrapped-rust-toolchain,
+  wrapped-bevy-cli,
+
+}:
+
+config@{
+  systems,
+  withPkgs,
+  linux,
+  windows,
+  macos,
+  web,
+  crossPlatformRustflags,
+  sharedEnvironment,
+  devEnvironment,
+  targetEnvironments,
+  extraScript,
+  rustToolchain,
+  runtimeInputs,
+  stdenv,
+  src,
+}:
+
+if src == null then
+  builtins.warn "You have not configured any 'src' to build." (
+    pkgs.writeShellScriptBin "bevy-flake-no-src" ''
+      echo "You do not have any bevy!!!"
+    ''
+  )
+else
+let
+  inherit (pkgs.lib) importTOML;
+
+  manifest = (importTOML "${src}/Cargo.toml").package;
+  packageNamePrefix =
+    if manifest ? version then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
+  webToolchain = wrapped-rust-toolchain.override {
+    crossCompileOnly = true;
+    targets = [ "wasm32-unknown-unknown" ];
+  };
+  webRustPlatform = pkgs.makeRustPlatform {
+    cargo = webToolchain;
+    rustc = webToolchain;
+  };
+in
+webRustPlatform.buildRustPackage {
+  inherit src;
+
+  name = packageNamePrefix + "web";
+  nativeBuildInputs = [
+    (wrapped-bevy-cli.override {
+      crossCompileOnly = true;
+      targets = [ "wasm32-unknown-unknown" ];
+    })
+  ];
+
+  cargoLock.lockFile = src + "/Cargo.lock";
+
+  dontFixup = true;
+  doCheck = false;
+
+  bevyBuildFlags = [
+    "--bundle"
+    "--wasm-opt"
+    "-Oz"
+    "--wasm-opt"
+    "-all"
+  ];
+
+  env.BF_TARGET = "wasm32-unknown-unknown";
+
+  buildPhase = ''
+    runHook preBuild
+
+    bevy --version
+    bevy build web ''${bevyBuildFlags[@]}
+
+    runHook postBuild
+  '';
+
+  installPhase = ''
+    runHook preInstall
+
+    cp -r target/bevy_web/web/"${manifest.name}" $out
+
+    runHook postInstall
+  '';
+  passthru = {
+    inherit appliedConfig;
+  };
+}

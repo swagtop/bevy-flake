@@ -109,6 +109,7 @@
               throwExplain "Use flake-parts for features like 'imports'."
             else
               configList ++ [ flake.config or { } ];
+
           assembledConfig = assembleConfigs finalConfigList;
 
           systems = (assembledConfig systemWarn pkgsWarn).systems;
@@ -122,8 +123,8 @@
               systemAttrs =
                 let
                   systemAttrsInputs = {
-                    inherit pkgs system;
                     inherit (pkgs) lib;
+                    inherit pkgs system;
                     formatter = pkgs.nixfmt-tree;
 
                     # Import packages with final configuration.
@@ -164,14 +165,17 @@
           (
             {
               inherit systems;
-              forSystems = warn "'forSystems' is being moved to lib.forSystems." (genAttrs systems);
-              lib = {
-                forSystems = genAttrs systems;
-                mkFlake = mkFlake finalConfigList;
-              };
+              forSystems = warn "'forSystems' is being moved to 'lib.forSystems'." (genAttrs systems);
               configure = newConfig: mkFlake (finalConfigList ++ [ newConfig ]) flake;
             }
             // flake.flake or { }
+            // {
+              lib = {
+                forSystems = genAttrs systems;
+                mkFlake = mkFlake finalConfigList;
+              }
+              // (flake.flake or { }).lib or { };
+            }
           )
           systems
       );
