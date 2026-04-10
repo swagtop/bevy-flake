@@ -31,119 +31,122 @@ if src == null then
     ''
   )
 else
-let
-  inherit (builtins)
-    attrNames
-    concatStringsSep
-    ;
-  inherit (pkgs.lib)
-    importTOML
-    genAttrs
-    attrsToList
-    ;
+  let
+    inherit (builtins)
+      attrNames
+      concatStringsSep
+      ;
+    inherit (pkgs.lib)
+      importTOML
+      genAttrs
+      attrsToList
+      ;
 
-  manifest = (importTOML "${src}/Cargo.toml").package;
-  packageNamePrefix =
-    if manifest ? version then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
-  validTargets = attrNames targetEnvironments;
-  everyTarget = genAttrs validTargets (
-    target:
-    let
-      targetToolchain = wrapped-rust-toolchain.override {
-        targets = [ target ];
-      };
-      targetRustPlatform = pkgs.makeRustPlatform {
-        cargo = targetToolchain;
-        rustc = targetToolchain;
-      };
-    in
-    targetRustPlatform.buildRustPackage {
-      inherit src target;
+    manifest = (importTOML "${src}/Cargo.toml").package;
 
-      name = packageNamePrefix + target;
+    packageNamePrefix =
+      if manifest ? version then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
 
-      cargoLock.lockFile = src + "/Cargo.lock";
-      cargoProfile = "release";
-      cargoBuildFlags = [ ];
+    validTargets = attrNames targetEnvironments;
 
-      buildPhase = ''
-        runHook preBuild
+    everyTarget = genAttrs validTargets (
+      target:
+      let
+        targetToolchain = wrapped-rust-toolchain.override {
+          targets = [ target ];
+        };
+        targetRustPlatform = pkgs.makeRustPlatform {
+          cargo = targetToolchain;
+          rustc = targetToolchain;
+        };
+      in
+      targetRustPlatform.buildRustPackage {
+        inherit src target;
 
-        cargo build \
-          -j "$NIX_BUILD_CORES" \
-          --profile "$cargoProfile" \
-          --target "$target" \
-          --offline \
-          ''${cargoBuildFlags[@]}
+        name = packageNamePrefix + target;
 
-        runHook postBuild
-      '';
+        cargoLock.lockFile = src + "/Cargo.lock";
+        cargoProfile = "release";
+        cargoBuildFlags = [ ];
 
-      # Copied and edited for multi-target purposes from nixpkgs Rust hooks.
-      installPhase = ''
-        runHook preInstall
+        buildPhase = ''
+          runHook preBuild
 
-        if [[ $cargoProfile == "dev" ]]; then
-          # Set dev profile environment variable to match correct directory.
-          export cargoProfile="debug"
-        fi
+          cargo build \
+            -j "$NIX_BUILD_CORES" \
+            --profile "$cargoProfile" \
+            --target "$target" \
+            --offline \
+            ''${cargoBuildFlags[@]}
 
-        buildDir=target/"${target}"/"$cargoProfile"
-        bins=$(find $buildDir \
-          -maxdepth 1 \
-          -type f \
-          -executable ! \( -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)" \))
-        libs=$(find $buildDir \
-          -maxdepth 1 \
-          -type f \
-          -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)")
+          runHook postBuild
+        '';
 
-        mkdir -p $out/{bin,lib}
+        # Copied and edited for multi-target purposes from nixpkgs Rust hooks.
+        installPhase = ''
+          runHook preInstall
 
-        for file in $bins; do
-          cp $file $out/bin/
-        done
+          if [[ $cargoProfile == "dev" ]]; then
+            # Set dev profile environment variable to match correct directory.
+            export cargoProfile="debug"
+          fi
 
-        for file in $libs; do
-          cp $file $out/lib/
-        done
+          buildDir=target/"${target}"/"$cargoProfile"
+          bins=$(find $buildDir \
+            -maxdepth 1 \
+            -type f \
+            -executable ! \( -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)" \))
+          libs=$(find $buildDir \
+            -maxdepth 1 \
+            -type f \
+            -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)")
 
-        rmdir --ignore-fail-on-non-empty $out/{bin,lib}
+          mkdir -p $out/{bin,lib}
 
-        runHook postInstall
-      '';
+          for file in $bins; do
+            cp $file $out/bin/
+          done
 
-      dontAutoPatchelf = true;
-      doCheck = false;
-    }
-  );
+          for file in $libs; do
+            cp $file $out/lib/
+          done
 
-  buildList = attrsToList everyTarget;
-in
-pkgs.stdenvNoCC.mkDerivation {
-  # Only warn about default toolchain when building all targets.
-  name = packageNamePrefix + "all-targets";
+          rmdir --ignore-fail-on-non-empty $out/{bin,lib}
 
-  linkBuilds = true;
-  buildInputs = map (build: build.value) buildList;
-  installPhase = ''
-    mkdir -p $out
+          runHook postInstall
+        '';
 
-    if [[ $linkBuilds == "1" ]]; then
-      ${concatStringsSep "\n" (
-        map (build: "ln -s \"${build.value}\" $out/\"${build.name}\"") buildList
-      )}
-    else
-      ${concatStringsSep "\n" (
-        map (build: "cp -r \"${build.value}\" $out/\"${build.name}\"") buildList
-      )}
-    fi
-  '';
+        dontAutoPatchelf = true;
+        doCheck = false;
+      }
+    );
 
-  phases = [ "installPhase" ];
-  passthru = everyTarget // {
-    inherit appliedConfig;
+    buildList = attrsToList everyTarget;
+  in
+  pkgs.stdenvNoCC.mkDerivation {
+    # Only warn about default toolchain when building all targets.
+    name = packageNamePrefix + "all-targets";
 
-    list = buildList;
-  };
-}
+    linkBuilds = true;
+    buildInputs = map (build: build.value) buildList;
+    installPhase = ''
+      mkdir -p $out
+
+      if [[ $linkBuilds == "1" ]]; then
+        ${concatStringsSep "\n" (
+          map (build: "ln -s \"${build.value}\" $out/\"${build.name}\"") buildList
+        )}
+      else
+        ${concatStringsSep "\n" (
+          map (build: "cp -r \"${build.value}\" $out/\"${build.name}\"") buildList
+        )}
+      fi
+    '';
+
+    phases = [ "installPhase" ];
+    passthru = everyTarget // {
+      inherit appliedConfig;
+
+      list = buildList;
+    };
+  }

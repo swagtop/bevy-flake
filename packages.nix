@@ -8,17 +8,7 @@
 }:
 let
   inherit (builtins)
-    attrNames
-    concatStringsSep
-    elem
     warn
-    ;
-  inherit (pkgs.lib)
-    attrsToList
-    genAttrs
-    importTOML
-    makeOverridable
-    optionalAttrs
     ;
 
   hostSystem = pkgs.stdenv.hostPlatform.system;
@@ -26,12 +16,6 @@ let
   applyConfig = import ./apply.nix { inherit pkgs; };
 
   appliedConfig = applyConfig config;
-
-  inherit (appliedConfig)
-    src
-    systems
-    targetEnvironments
-    ;
 
   wrapExecutable = import ./wrapper.nix {
     inherit
@@ -53,7 +37,7 @@ let
       unwrapped = appliedConfig.rustToolchain;
 
       # Attributes needed for 'makeRustPlatform' compatibility.
-      targetPlatforms = systems;
+      targetPlatforms = appliedConfig.systems;
       badTargetPlatforms = [ ];
     };
   };

@@ -34,64 +34,65 @@ if src == null then
     ''
   )
 else
-let
-  inherit (pkgs.lib) importTOML;
+  let
+    inherit (pkgs.lib) importTOML;
 
-  manifest = (importTOML "${src}/Cargo.toml").package;
-  packageNamePrefix =
-    if manifest ? version then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
-  webToolchain = wrapped-rust-toolchain.override {
-    crossCompileOnly = true;
-    targets = [ "wasm32-unknown-unknown" ];
-  };
-  webRustPlatform = pkgs.makeRustPlatform {
-    cargo = webToolchain;
-    rustc = webToolchain;
-  };
-in
-webRustPlatform.buildRustPackage {
-  inherit src;
-
-  name = packageNamePrefix + "web";
-  nativeBuildInputs = [
-    (wrapped-bevy-cli.override {
+    manifest = (importTOML "${src}/Cargo.toml").package;
+    packageNamePrefix =
+      if manifest ? version then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
+    webToolchain = wrapped-rust-toolchain.override {
       crossCompileOnly = true;
       targets = [ "wasm32-unknown-unknown" ];
-    })
-  ];
+    };
+    webRustPlatform = pkgs.makeRustPlatform {
+      cargo = webToolchain;
+      rustc = webToolchain;
+    };
+  in
+  webRustPlatform.buildRustPackage {
+    inherit src;
 
-  cargoLock.lockFile = src + "/Cargo.lock";
+    name = packageNamePrefix + "web";
+    nativeBuildInputs = [
+      (wrapped-bevy-cli.override {
+        crossCompileOnly = true;
+        targets = [ "wasm32-unknown-unknown" ];
+      })
+    ];
 
-  dontFixup = true;
-  doCheck = false;
+    cargoLock.lockFile = src + "/Cargo.lock";
 
-  bevyBuildFlags = [
-    "--bundle"
-    "--wasm-opt"
-    "-Oz"
-    "--wasm-opt"
-    "-all"
-  ];
+    dontFixup = true;
+    doCheck = false;
 
-  env.BF_TARGET = "wasm32-unknown-unknown";
+    bevyBuildFlags = [
+      "--bundle"
+      "--wasm-opt"
+      "-Oz"
+      "--wasm-opt"
+      "-all"
+    ];
 
-  buildPhase = ''
-    runHook preBuild
+    env.BF_TARGET = "wasm32-unknown-unknown";
 
-    bevy --version
-    bevy build web ''${bevyBuildFlags[@]}
+    buildPhase = ''
+      runHook preBuild
 
-    runHook postBuild
-  '';
+      bevy --version
+      bevy build web ''${bevyBuildFlags[@]}
 
-  installPhase = ''
-    runHook preInstall
+      runHook postBuild
+    '';
 
-    cp -r target/bevy_web/web/"${manifest.name}" $out
+    installPhase = ''
+      runHook preInstall
 
-    runHook postInstall
-  '';
-  passthru = {
-    inherit appliedConfig;
-  };
-}
+      cp -r target/bevy_web/web/"${manifest.name}" $out
+
+      runHook postInstall
+    '';
+
+    passthru = {
+      inherit appliedConfig;
+    };
+  }
