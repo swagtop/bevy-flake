@@ -134,7 +134,7 @@ if src == null then
   )
 else
   let
-    buildList = attrsToList (everyTarget { individualToolchain = false; });
+    buildList = attrsToList (everyTarget { useIndividualToolchain = false; });
   in
   pkgs.stdenvNoCC.mkDerivation {
     # Only warn about default toolchain when building all targets.
@@ -159,7 +159,7 @@ else
     phases = [ "installPhase" ];
     passthru =
       let
-        individualBuildList = attrsToList (everyTarget { individualToolchain = false; });
+        individualBuildList = attrsToList (everyTarget { useIndividualToolchain = true; });
       in
       genAttrs (map (item: item.name) buildList) (
         attr: everyTarget.${attr} // { individually = individualBuildList.${attr}; }
