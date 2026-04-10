@@ -80,9 +80,7 @@ else
       runHook preBuild
 
       bevy --version
-      bevy build web \
-        -j $NIX_BUILD_CORES \
-        ''${bevyBuildFlags[@]}
+      bevy build -j $NIX_BUIL_CORES web ''${bevyBuildFlags[@]}
 
       runHook postBuild
     '';
