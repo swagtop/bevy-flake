@@ -6,7 +6,6 @@
 
   wrapped-rust-toolchain,
   wrapped-bevy-cli,
-
 }:
 
 config@{
@@ -80,7 +79,7 @@ else
       runHook preBuild
 
       bevy --version
-      bevy build -j $NIX_BUIL_CORES web ''${bevyBuildFlags[@]}
+      bevy build -j $NIX_BUILD_CORES web ''${bevyBuildFlags[@]}
 
       runHook postBuild
     '';
