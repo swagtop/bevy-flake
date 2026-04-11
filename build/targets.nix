@@ -146,14 +146,14 @@ else
       mkdir -p $out
 
       if [[ $linkBuilds == "1" ]]; then
-        ${concatStringsSep "\n" (
-          map (build: "ln -s \"${build.value}\" $out/\"${build.name}\"") buildList
-        )}
+        COPY_OR_LINK="ln -s"
       else
-        ${concatStringsSep "\n" (
-          map (build: "cp -r \"${build.value}\" $out/\"${build.name}\"") buildList
-        )}
+        COPY_OR_LINK="cp -s"
       fi
+      
+      ${concatStringsSep "\n" (
+        map (build: "$COPY_OR_LINK \"${build.value}\" $out/\"${build.name}\"") buildList
+      )}
     '';
 
     phases = [ "installPhase" ];
@@ -162,7 +162,7 @@ else
         individualBuildList = attrsToList (everyTarget { useIndividualToolchain = true; });
       in
       genAttrs (map (item: item.name) buildList) (
-        attr: everyTarget.${attr} // { individually = individualBuildList.${attr}; }
+        attr: everyTarget.${attr} // { alone = individualBuildList.${attr}; }
       )
       // {
         inherit appliedConfig;

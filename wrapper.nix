@@ -30,7 +30,7 @@ let
     in
     result
     // {
-      override = makeOverridableAndConfigurable (o: f (if isFunction o then i // (o i) else i // o));
+      override = o: makeOverridableAndConfigurable (f (i // applyIfFunction o i));
       develop = makeOverridableAndConfigurable f (i // { developOnly = true; });
       configure = makeOverridableAndConfigurable (
         c:
