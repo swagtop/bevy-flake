@@ -82,17 +82,7 @@ let
     done
   '';
 
-  makeOverridable =
-    f: i:
-    let
-      result = f i;
-    in
-    result
-    // {
-      override = o: f (if isFunction i then i // (i o) else i // o);
-    };
-
-  wrapExecutable = makeOverridable (
+  wrapExecutable = 
     {
       name,
       executable,
@@ -273,7 +263,6 @@ let
           wrapped
           symlinkPackage
         ];
-      }
-  );
+      };
 in
 makeOverridableAndConfigurable wrapExecutable
