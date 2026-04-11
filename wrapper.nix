@@ -82,7 +82,7 @@ let
     done
   '';
 
-  wrapExecutable = 
+  wrapExecutable =
     {
       name,
       executable,

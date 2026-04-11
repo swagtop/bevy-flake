@@ -83,19 +83,27 @@ let
     };
 in
 {
-  rust-toolchain = wrapped-rust-toolchain;
-
-  dioxus-cli = wrapExecutable {
-    name = "dx";
-    executable = pkgs.dioxus-cli + "/bin/dx";
-    extraRuntimeInputs = [
-      # Need 'lld' for hot-reloading.
-      pkgs.llvmPackages.bintools
-    ];
+  rust-toolchain = wrapped-rust-toolchain // {
+    configure = newConfig: (reconfigure newConfig).packages.${hostSystem}.rust-toolchain;
   };
 
+  dioxus-cli =
+    wrapExecutable {
+      name = "dx";
+      executable = pkgs.dioxus-cli + "/bin/dx";
+      extraRuntimeInputs = [
+        # Need 'lld' for hot-reloading.
+        pkgs.llvmPackages.bintools
+      ];
+    }
+    // {
+      configure = newConfig: (reconfigure newConfig).packages.${hostSystem}.dioxus-cli;
+    };
+
   # For now we build 'bevy-cli' from source, as it is not in nixpkgs yet.
-  bevy-cli = wrapped-bevy-cli;
+  bevy-cli = wrapped-bevy-cli // {
+    configure = newConfig: (reconfigure newConfig).packages.${hostSystem}.bevy-cli;
+  };
 
   # Useful tools can be reached through this package.
   tools =

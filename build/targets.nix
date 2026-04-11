@@ -49,7 +49,7 @@ let
       target:
       let
         targetToolchain =
-          if useIndividualToolchain then 
+          if useIndividualToolchain then
             wrapped-rust-toolchain.override {
               crossCompileOnly = true;
               targets = [ target ];
@@ -134,14 +134,16 @@ if src == null then
   )
 else
   let
-    buildList = attrsToList (everyTarget { useIndividualToolchain = false; });
+    buildList = attrsToList (everyTarget {
+      useIndividualToolchain = false;
+    });
   in
   pkgs.stdenvNoCC.mkDerivation {
     # Only warn about default toolchain when building all targets.
     name = packageNamePrefix + "all-targets";
 
     linkBuilds = true;
-    buildInputs = map (build: build.value) buildList;
+    nativeBuildInputs = map (build: build.value) buildList;
     installPhase = ''
       mkdir -p $out
 
@@ -150,7 +152,7 @@ else
       else
         COPY_OR_LINK="cp -s"
       fi
-      
+
       ${concatStringsSep "\n" (
         map (build: "$COPY_OR_LINK \"${build.value}\" $out/\"${build.name}\"") buildList
       )}
@@ -159,10 +161,12 @@ else
     phases = [ "installPhase" ];
     passthru =
       let
-        individualBuildList = attrsToList (everyTarget { useIndividualToolchain = true; });
+        individualBuildList = attrsToList (everyTarget {
+          useIndividualToolchain = true;
+        });
       in
       genAttrs (map (item: item.name) buildList) (
-        attr: everyTarget.${attr} // { alone = individualBuildList.${attr}; }
+        attr: everyTarget.${attr} // { only = individualBuildList.${attr}; }
       )
       // {
         inherit appliedConfig;
