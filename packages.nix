@@ -8,6 +8,7 @@
 }:
 let
   inherit (builtins)
+    mapAttrs
     warn
     ;
 
@@ -82,29 +83,49 @@ let
         '';
     };
 in
-{
-  rust-toolchain = wrapped-rust-toolchain // {
-    configure = newConfig: (reconfigure newConfig).packages.${hostSystem}.rust-toolchain;
-  };
+mapAttrs
+  (
+    name: value:
+    value
+    // {
+      configure = newConfig: (reconfigure newConfig).packages.${hostSystem}.${name};
+    }
+  )
+  {
+    rust-toolchain = wrapped-rust-toolchain;
 
-  dioxus-cli =
-    wrapExecutable {
+    dioxus-cli = wrapExecutable {
       name = "dx";
       executable = pkgs.dioxus-cli + "/bin/dx";
       extraRuntimeInputs = [
         # Need 'lld' for hot-reloading.
         pkgs.llvmPackages.bintools
       ];
-    }
-    // {
-      configure = newConfig: (reconfigure newConfig).packages.${hostSystem}.dioxus-cli;
     };
 
-  # For now we build 'bevy-cli' from source, as it is not in nixpkgs yet.
-  bevy-cli = wrapped-bevy-cli // {
-    configure = newConfig: (reconfigure newConfig).packages.${hostSystem}.bevy-cli;
-  };
+    # For now we build 'bevy-cli' from source, as it is not in nixpkgs yet.
+    bevy-cli = wrapped-bevy-cli;
 
+    targets = import ./build/targets.nix {
+      inherit
+        pkgs
+        appliedConfig
+        reconfigure
+        wrapped-rust-toolchain
+        ;
+    } config;
+
+    web = import ./build/web.nix {
+      inherit
+        pkgs
+        appliedConfig
+        reconfigure
+        wrapped-rust-toolchain
+        wrapped-bevy-cli
+        ;
+    } config;
+  }
+// {
   # Useful tools can be reached through this package.
   tools =
     pkgs.writeShellScriptBin "tools" ''
@@ -118,29 +139,4 @@ in
       package-macos-sdk = pkgs.callPackage (import ./tools/package-macos-sdk.nix) { };
       package-windows-sdk = pkgs.callPackage (import ./tools/package-windows-sdk.nix) { };
     };
-
-  targets = {
-    configure = newConfig: (reconfigure newConfig).packages.${hostSystem}.web;
-  }
-  // import ./build/targets.nix {
-    inherit
-      pkgs
-      appliedConfig
-      reconfigure
-      wrapped-rust-toolchain
-      ;
-  } config;
-
-  web = {
-    configure = newConfig: (reconfigure newConfig).packages.${hostSystem}.targets;
-  }
-  // import ./build/web.nix {
-    inherit
-      pkgs
-      appliedConfig
-      reconfigure
-      wrapped-rust-toolchain
-      wrapped-bevy-cli
-      ;
-  } config;
 }
