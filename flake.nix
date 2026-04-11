@@ -59,8 +59,8 @@
         perSystem =
           {
             pkgs,
-            packages,
             system,
+            packages,
             formatter,
             ...
           }:

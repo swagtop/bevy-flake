@@ -19,13 +19,7 @@ let
   appliedConfig = applyConfig config;
 
   wrapExecutable = import ./wrapper.nix {
-    inherit
-      pkgs
-      applyConfig
-      assembleConfigs
-      applyIfFunction
-      appliedConfig
-      ;
+    inherit pkgs applyIfFunction appliedConfig;
     rawConfig = config;
   };
 
@@ -124,19 +118,18 @@ mapAttrs
         wrapped-bevy-cli
         ;
     } config;
+
+    # Useful tools can be reached through this package.
+    tools =
+      pkgs.writeShellScriptBin "tools" ''
+        echo "bevy-flake:"
+        echo "Lorem ipsum dolor sit amet"
+        echo "Lorem ipsum dolor sit amet"
+        echo "Lorem ipsum dolor sit amet"
+      ''
+      // {
+        inherit wrapExecutable;
+        package-macos-sdk = pkgs.callPackage (import ./tools/package-macos-sdk.nix) { };
+        package-windows-sdk = pkgs.callPackage (import ./tools/package-windows-sdk.nix) { };
+      };
   }
-// {
-  # Useful tools can be reached through this package.
-  tools =
-    pkgs.writeShellScriptBin "tools" ''
-      echo "bevy-flake:"
-      echo "Lorem ipsum dolor sit amet"
-      echo "Lorem ipsum dolor sit amet"
-      echo "Lorem ipsum dolor sit amet"
-    ''
-    // {
-      inherit wrapExecutable;
-      package-macos-sdk = pkgs.callPackage (import ./tools/package-macos-sdk.nix) { };
-      package-windows-sdk = pkgs.callPackage (import ./tools/package-windows-sdk.nix) { };
-    };
-}

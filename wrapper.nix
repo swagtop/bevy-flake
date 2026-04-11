@@ -1,8 +1,6 @@
 {
   pkgs,
 
-  assembleConfigs,
-  applyConfig,
   applyIfFunction,
 
   rawConfig,
@@ -13,7 +11,6 @@ let
   inherit (builtins)
     attrNames
     concatStringsSep
-    isFunction
     any
     ;
   inherit (pkgs.lib)
