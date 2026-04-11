@@ -22,32 +22,15 @@ let
     optionalAttrs
     ;
 
-  # Just be happy I didn't also add 'AndDevelopable' to this function name.
-  makeOverridableAndConfigurable =
+  makeOverridableAndDevelopable =
     f: i:
     let
       result = f i;
     in
     result
     // {
-      override = o: makeOverridableAndConfigurable f (i // applyIfFunction o i);
-      develop = makeOverridableAndConfigurable f (i // { developOnly = true; });
-      configure = makeOverridableAndConfigurable (
-        c:
-        if c ? systems then
-          throw "You cannot configure 'systems' on a package level."
-        else if c ? withPkgs then
-          throw "You cannot configure 'withPkgs' on a package level, as "
-          + "not everything can be pinned from here. Configure bevy-flake "
-          + "and get the package from there for this type of behaviour."
-        else
-          f (
-            i
-            // {
-              config = applyConfig (assembleConfigs [ rawConfig c ] pkgs);
-            }
-          )
-      );
+      override = o: makeOverridableAndDevelopable f (i // applyIfFunction o i);
+      develop = makeOverridableAndDevelopable f (i // { developOnly = true; });
     };
 
   exportEnv =
@@ -265,4 +248,4 @@ let
         ];
       };
 in
-makeOverridableAndConfigurable wrapExecutable
+makeOverridableAndDevelopable wrapExecutable
