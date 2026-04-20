@@ -41,12 +41,11 @@ bevy-flake.lib.mkFlake {
     # ...
   };
 
-  config = (
+  config =
     { pkgs, previous, default, helpers, ... }:
     {
       # Config goes here.
-    }
-  );
+    };
 }
 ```
 
@@ -77,7 +76,7 @@ let
 in
 ```
 
-The packages can also be reconfigured:
+You can also reconfigure packages on an individual level:
 
 ```nix
 let
@@ -89,14 +88,17 @@ let
     web
     ;
 
-  config = import ./config.nix;
+  newConfig = import ./config.nix;
 in
 {
-  rust-toolchain = rust-toolchain.configure config;
-  dioxus-cli = dioxus-cli.configure config;
-  bevy-cli = bevy-cli.configure config;
-  targets = targets.configure config;
-  web = web.configure config;
+  # Programs for developing Bevy.
+  rust-toolchain = rust-toolchain.configure newConfig;
+  dioxus-cli = dioxus-cli.configure newConfig;
+  bevy-cli = bevy-cli.configure newConfig;
+
+  # Builds.
+  targets = targets.configure newConfig;
+  web = web.configure newConfig;
 }
 ```
 
@@ -201,14 +203,14 @@ want to use. The toolchain you make should have all the binaries needed for
 compilation, `cargo`, `rustc`, etc.
 
 ```nix
-{ pkgs, ... }:
+{ system, ... }:
 {
   rustToolchain =
     targets:
     let
       fx =
         (import nixpkgs {
-          inherit (pkgs.stdenv.hostPlatform) system;
+          inherit system;
           overlays = [ (fenix.overlays.default ) ];
         }).fenix;
     in
@@ -327,7 +329,7 @@ function here:
 {
   targetEnvironments =
     # Every other target in 'default.targetEnvironments' are carried over.
-    helpers.editDefaultConfigs [ "x86_64-unknown-linux-gnu" ] {
+    helpers.editDefaultTargets [ "x86_64-unknown-linux-gnu" ] {
       # Only "BINDGEN_EXTRA_CLANG_ARGS" is set, every other previously set
       # environment variable are untouched.
       BINDGEN_EXTRA_CLANG_ARGS = "-I${some-library}/usr/include";

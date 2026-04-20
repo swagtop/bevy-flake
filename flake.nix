@@ -112,7 +112,7 @@
 
           assembledConfig = assembleConfigs finalConfigList;
 
-          systems = (assembledConfig systemWarn pkgsWarn).systems;
+          inherit (assembledConfig systemWarn pkgsWarn) systems;
         in
         foldl'
           (
