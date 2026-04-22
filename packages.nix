@@ -1,10 +1,8 @@
 {
   pkgs,
   config,
-  assembleConfigs,
   applyIfFunction,
   reconfigure,
-  defaultFlake,
 }:
 let
   inherit (builtins)
@@ -100,24 +98,22 @@ mapAttrs
     # For now we build 'bevy-cli' from source, as it is not in nixpkgs yet.
     bevy-cli = wrapped-bevy-cli;
 
-    targets = import ./build/targets.nix {
+    targets = import ./build/targets.nix config {
       inherit
         pkgs
         appliedConfig
-        reconfigure
         wrapped-rust-toolchain
         ;
-    } config;
+    };
 
-    web = import ./build/web.nix {
+    web = import ./build/web.nix config {
       inherit
         pkgs
         appliedConfig
-        reconfigure
         wrapped-rust-toolchain
         wrapped-bevy-cli
         ;
-    } config;
+    };
 
     # Useful tools can be reached through this package.
     tools =

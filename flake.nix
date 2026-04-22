@@ -129,12 +129,7 @@
 
                     # Import packages with final configuration.
                     packages = import ./packages.nix {
-                      inherit
-                        pkgs
-                        assembleConfigs
-                        applyIfFunction
-                        defaultFlake
-                        ;
+                      inherit pkgs applyIfFunction;
                       reconfigure = (mkFlake finalConfigList defaultFlake).configure;
                       config = assembledConfig system pkgs;
                     };

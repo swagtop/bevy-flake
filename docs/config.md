@@ -177,12 +177,18 @@ Currently there is nothing to configure for the Linux targets.
 By default this will be the latest Windows MSVC SDK provided by `nixpkgs`. This
 sets the `BF_WINDOWS_SDK_PATH` environment variable to the path of the SDK.
 
-The SDK set here should contain the libs for both `x86_64` and `aarch64` arches.
+The SDK set here should contain the libs for both `x86_64` and `aarch64`.
 
 Beware of issues that can arise on case insensitive file systems - such as the
 one used by MacOS - if you try to package it yourself by putting an existing one
 in a tarball. Unpacking this as a fixed-output derivation can result in a messed
 up, broken SDK.
+
+`bevy-flake` comes with a built in script for packaging the SDK into a tarball,
+and a helper function for unpacking it properly on all platforms again.
+Read more on this [here.][windows]
+
+[windows]: ./windows.md
 
 
 ### `macos`
@@ -322,16 +328,20 @@ included by default, just add it to the `targetEnvironments` set.
 
 If you are editing existing environments, the constant use of `default` or
 `previous` will probably be annoying. It could be helpful to use a helper
-function here:
+
+unction here:
 
 ```nix
-{ default, helpers, ...}:
+{ helpers, ...}:
+let
+  some-library = /* ... */ ;
+in
 {
   targetEnvironments =
-    # Every other target in 'default.targetEnvironments' are carried over.
+    # Every other target in 'default.targetEnvironments' is carried over.
     helpers.editDefaultTargets [ "x86_64-unknown-linux-gnu" ] {
-      # Only "BINDGEN_EXTRA_CLANG_ARGS" is set, every other previously set
-      # environment variable are untouched.
+      # Only "BINDGEN_EXTRA_CLANG_ARGS" is set, any other previously set
+      # environment variables are untouched.
       BINDGEN_EXTRA_CLANG_ARGS = "-I${some-library}/usr/include";
     };
 }

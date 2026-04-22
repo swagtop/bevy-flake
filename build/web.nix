@@ -1,13 +1,3 @@
-{
-  pkgs,
-  appliedConfig,
-
-  reconfigure,
-
-  wrapped-rust-toolchain,
-  wrapped-bevy-cli,
-}:
-
 config@{
   systems,
   withPkgs,
@@ -26,11 +16,19 @@ config@{
   src,
 }:
 
+{
+  pkgs,
+  appliedConfig,
+
+  wrapped-rust-toolchain,
+  wrapped-bevy-cli,
+}:
+
 let
   inherit (builtins) warn;
   inherit (pkgs.lib) importTOML;
 
-  manifest = (importTOML "${src}/Cargo.toml").package;
+  manifest = (importTOML "${src}/Cargo.toml").package or { name = "no-name"; };
   packageNamePrefix =
     if manifest ? version then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
   webToolchain = wrapped-rust-toolchain.override {

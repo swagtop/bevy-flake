@@ -1,12 +1,3 @@
-{
-  pkgs,
-  appliedConfig,
-
-  reconfigure,
-
-  wrapped-rust-toolchain,
-}:
-
 config@{
   systems,
   withPkgs,
@@ -25,6 +16,13 @@ config@{
   src,
 }:
 
+{
+  pkgs,
+  appliedConfig,
+
+  wrapped-rust-toolchain,
+}:
+
 let
   inherit (builtins)
     attrNames
@@ -36,7 +34,7 @@ let
     attrsToList
     ;
 
-  manifest = (importTOML "${src}/Cargo.toml").package;
+  manifest = (importTOML "${src}/Cargo.toml").package or { name = "no-name"; };
 
   packageNamePrefix =
     if manifest ? version then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
