@@ -16,8 +16,8 @@ let
 
   appliedConfig = applyConfig config;
 
-  wrapExecutable = import ./wrapper.nix {
-    inherit pkgs applyIfFunction appliedConfig;
+  wrapExecutable = import ./wrapper.nix appliedConfig {
+    inherit pkgs applyIfFunction;
     rawConfig = config;
   };
 
@@ -118,10 +118,18 @@ mapAttrs
     # Useful tools can be reached through this package.
     tools =
       pkgs.writeShellScriptBin "tools" ''
-        echo "bevy-flake:"
-        echo "Lorem ipsum dolor sit amet"
-        echo "Lorem ipsum dolor sit amet"
-        echo "Lorem ipsum dolor sit amet"
+        echo
+        echo "'nix run github:swagtop/bevy-flake#tools.<tool>' can be run for the following tools:"
+        echo
+        echo "package-macos-sdk:"
+        printf "  Call with the first argument being the 'Xcode.app' you want "
+        printf "to package the MacOS SDK from.\n  Get more info about this "
+        printf "from the bevy-flake docs.\n"
+        echo
+        echo "package-windows-sdk:"
+        printf "  Call with no arguments to fetch the Windows MSVC SDK found "
+        printf "in configured nixpkgs.\n"
+        echo
       ''
       // {
         inherit wrapExecutable;

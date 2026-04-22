@@ -1,10 +1,27 @@
+appliedConfig@{
+  systems,
+  withPkgs,
+  linux,
+  windows,
+  macos,
+  web,
+  crossPlatformRustflags,
+  sharedEnvironment,
+  devEnvironment,
+  targetEnvironments,
+  extraScript,
+  rustToolchain,
+  runtimeInputs,
+  stdenv,
+  src,
+}:
+
 {
   pkgs,
 
   applyIfFunction,
 
   rawConfig,
-  appliedConfig,
 }:
 
 let

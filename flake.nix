@@ -32,18 +32,19 @@
             inherit pkgs system;
             default = defaultConfig { inherit system pkgs; };
           };
-          helpersNoPrevious = import ./helpers.nix configInputs;
+          helpersWithoutPrevious = import ./helpers.nix configInputs;
         in
         foldl' (
           accumulator: config:
           accumulator
           // (
             let
+              previous = accumulator;
               step = applyIfFunction config (
                 configInputs
                 // {
-                  previous = accumulator;
-                  helpers = helpersNoPrevious accumulator;
+                  inherit previous;
+                  helpers = helpersWithoutPrevious previous;
                 }
               );
             in
@@ -160,7 +161,7 @@
           (
             {
               inherit systems;
-              forSystems = warn "'forSystems' is being moved to 'lib.forSystems'." (genAttrs systems);
+              forSystems = warn "'forSystems' is being moved to 'lib.forSystems' 2027-01-01." (genAttrs systems);
               configure = newConfig: mkFlake (finalConfigList ++ [ newConfig ]) flake;
             }
             // flake.flake or { }
