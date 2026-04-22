@@ -119,7 +119,12 @@ mapAttrs
     tools =
       pkgs.writeShellScriptBin "tools" ''
         echo
-        echo "'nix run github:swagtop/bevy-flake#tools.<tool>' can be run for the following tools:"
+        echo "This package contains some tools to be run, and a function to "
+        echo "wrap your own programs with the bevy-flake wrapper script."
+        echo
+        echo "In Nix, use 'tools.wrapExecutable { /* ... */ }' to wrap programs."
+        echo
+        echo "In your shell, run 'nix run github:swagtop/bevy-flake#tools.<tool>' to use the following tools:"
         echo
         echo "package-macos-sdk:"
         printf "  Call with the first argument being the 'Xcode.app' you want "
@@ -128,7 +133,7 @@ mapAttrs
         echo
         echo "package-windows-sdk:"
         printf "  Call with no arguments to fetch the Windows MSVC SDK found "
-        printf "in configured nixpkgs.\n"
+        printf "in configured 'pkgs'.\n"
         echo
       ''
       // {
