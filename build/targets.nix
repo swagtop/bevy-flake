@@ -42,7 +42,7 @@ let
   validTargets = attrNames targetEnvironments;
 
   everyTarget =
-    { useIndividualToolchain }:
+    { useIndividualToolchain ? false }:
     genAttrs validTargets (
       target:
       let
@@ -132,9 +132,8 @@ if src == null then
   )
 else
   let
-    buildList = attrsToList (everyTarget {
-      useIndividualToolchain = false;
-    });
+    collectiveBuilds = everyTarget { };
+    buildList = attrsToList collectiveBuilds;
   in
   pkgs.stdenvNoCC.mkDerivation {
     # Only warn about default toolchain when building all targets.
@@ -159,12 +158,10 @@ else
     phases = [ "installPhase" ];
     passthru =
       let
-        individualBuildList = attrsToList (everyTarget {
-          useIndividualToolchain = true;
-        });
+        individualBuilds = everyTarget { useIndividualToolchain = true; };
       in
       genAttrs (map (item: item.name) buildList) (
-        attr: everyTarget.${attr} // { only = individualBuildList.${attr}; }
+        attr: collectiveBuilds.${attr} // { only = individualBuilds.${attr}; }
       )
       // {
         inherit appliedConfig;
