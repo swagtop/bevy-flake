@@ -32,6 +32,7 @@ let
     importTOML
     genAttrs
     attrsToList
+    optionalAttrs
     ;
 
   manifest = (importTOML "${src}/Cargo.toml").package or { name = "no-name"; };
@@ -42,20 +43,20 @@ let
   validTargets = attrNames targetEnvironments;
 
   everyTarget =
-    { useIndividualToolchain ? false }:
+    {
+      useIndividualToolchain ? false,
+    }:
     genAttrs validTargets (
       target:
       let
-        targetToolchain =
-          if useIndividualToolchain then
-            wrapped-rust-toolchain.override {
-              crossCompileOnly = true;
-              targets = [ target ];
-            }
-          else
-            wrapped-rust-toolchain.override {
-              crossCompileOnly = true;
-            };
+        targetToolchain = wrapped-rust-toolchain.override (
+          {
+            crossCompileOnly = true;
+          }
+          // optionalAttrs useIndividualToolchain {
+            targets = [ target ];
+          }
+        );
 
         targetRustPlatform = pkgs.makeRustPlatform {
           cargo = targetToolchain;
@@ -120,6 +121,8 @@ let
 
         dontAutoPatchelf = true;
         doCheck = false;
+
+        passthru = { inherit appliedConfig; };
       }
     );
 
