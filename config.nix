@@ -16,7 +16,6 @@ let
   inherit (pkgs.lib)
     makeSearchPath
     optionals
-    optionalString
     ;
 in
 {

@@ -31,8 +31,9 @@ You will not find a link to one anywhere on this repo.
 
 2. Add it to your config like so:
    ```nix
+   { pkgs, ... }:
    {
-     macos.sdk = fetchTarball {
+     macos.sdk = pkgs.fetchzip {
        url = "https://website.com/path/to/macos/sdk/MacOSX<version>.sdk.tar.xz";
        sha256 = "sha256:some-long-hash-string-goes-here";
      };
@@ -75,7 +76,7 @@ this structure is found inside of subpath of the SDK, you can scope in on it
 like so:
 
 ```nix
-fetchTarball {
+pkgs.fetchzip {
   url = "https://website.com/path/to/macos/sdk/MacOSX<version>.sdk.tar.xz";
   sha256 = "sha256:some-long-hash-string-goes-here";
 } + "/sub-path";

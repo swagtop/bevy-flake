@@ -28,7 +28,10 @@ let
 
         PASSED_LINKS=0
 
+        # Read all files in archive in reverse.
         tar -tvf "$src" | tac | while read -r file; do
+          # Check if the first letter of the file info is 'l'.
+          # If it is 'l', it is a symlink.
           if [[ ''${file:0:1} != "l" ]]; then
             PASSED_LINKS="1"
           elif [[ ''${file:0:1} == "l" && $PASSED_LINKS == "1" ]]; then
