@@ -39,13 +39,11 @@ let
   packageNamePrefix =
     if manifest ? version then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
 
-  validTargets = attrNames targetEnvironments;
-
   everyTarget =
     {
       useIndividualToolchain ? false,
     }:
-    genAttrs validTargets (
+    genAttrs (attrNames targetEnvironments) (
       target:
       let
         targetToolchain = wrapped-rust-toolchain.override (
@@ -128,6 +126,7 @@ let
   wholeBuild =
     {
       linkBuilds,
+      passthru ? { },
     }:
     let
       collectiveBuilds = everyTarget { };
@@ -140,6 +139,9 @@ let
       name = packageNamePrefix + "all-targets";
 
       nativeBuildInputs = map (build: build.value) buildList;
+
+      phases = [ "installPhase" ];
+
       installPhase = ''
         mkdir -p $out
 
@@ -154,12 +156,12 @@ let
         )}
       '';
 
-      phases = [ "installPhase" ];
       passthru =
         let
           individualBuilds = everyTarget { useIndividualToolchain = true; };
         in
-        genAttrs (map (item: item.name) buildList) (
+        passthru
+        // genAttrs (map (item: item.name) buildList) (
           attr: collectiveBuilds.${attr} // { only = individualBuilds.${attr}; }
         )
         // {
@@ -180,16 +182,27 @@ if src == null then
     }
   )
 else
-  wholeBuild { linkBuilds = true; }
-  // {
-    copied = wholeBuild { linkBuilds = false; };
-    tarball = pkgs.stdenvNoCC.mkDerivation {
-      name = packageNamePrefix + "tarball";
-      phases = [ "installPhase" ];
-      src = wholeBuild { linkBuilds = false; };
-      nativeBuildInputs = [ pkgs.gnutar ];
-      installPhase = ''
-        tar -cJf $out -C $src .
-      '';
-    };
+  wholeBuild {
+    linkBuilds = true;
+    passthru =
+      let
+        copiedWholeBuild = wholeBuild { linkBuilds = false; };
+      in
+      {
+        copied = copiedWholeBuild;
+
+        tarball = pkgs.stdenvNoCC.mkDerivation {
+          name = packageNamePrefix + "tarball";
+
+          src = copiedWholeBuild;
+
+          phases = [ "installPhase" ];
+
+          nativeBuildInputs = [ pkgs.gnutar ];
+
+          installPhase = ''
+            tar -cJf $out -C $src .
+          '';
+        };
+      };
   }
