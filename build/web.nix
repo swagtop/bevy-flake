@@ -92,5 +92,7 @@ else
       runHook postInstall
     '';
 
-    passthru.appliedConfig = appliedConfig // { rustToolchain = webToolchain; };
+    passthru.appliedConfig = appliedConfig // {
+      rustToolchain = webToolchain;
+    };
   }

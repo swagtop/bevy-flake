@@ -125,6 +125,49 @@ let
       }
     );
 
+  wholeBuild =
+    {
+      linkBuilds,
+    }:
+    let
+      collectiveBuilds = everyTarget { };
+      buildList = attrsToList collectiveBuilds;
+    in
+    pkgs.stdenvNoCC.mkDerivation {
+      inherit linkBuilds;
+
+      # Only warn about default toolchain when building all targets.
+      name = packageNamePrefix + "all-targets";
+
+      nativeBuildInputs = map (build: build.value) buildList;
+      installPhase = ''
+        mkdir -p $out
+
+        if [[ $linkBuilds == "1" ]]; then
+          COPY_OR_LINK="ln -s"
+        else
+          COPY_OR_LINK="cp -r"
+        fi
+
+        ${concatStringsSep "\n" (
+          map (build: "$COPY_OR_LINK \"${build.value}\" $out/\"${build.name}\"") buildList
+        )}
+      '';
+
+      phases = [ "installPhase" ];
+      passthru =
+        let
+          individualBuilds = everyTarget { useIndividualToolchain = true; };
+        in
+        genAttrs (map (item: item.name) buildList) (
+          attr: collectiveBuilds.${attr} // { only = individualBuilds.${attr}; }
+        )
+        // {
+          inherit appliedConfig;
+
+          list = buildList;
+        };
+    };
 in
 if src == null then
   warn "You have not configured any 'src' to build." (
@@ -137,41 +180,16 @@ if src == null then
     }
   )
 else
-  let
-    collectiveBuilds = everyTarget { };
-    buildList = attrsToList collectiveBuilds;
-  in
-  pkgs.stdenvNoCC.mkDerivation {
-    # Only warn about default toolchain when building all targets.
-    name = packageNamePrefix + "all-targets";
-
-    linkBuilds = true;
-    nativeBuildInputs = map (build: build.value) buildList;
-    installPhase = ''
-      mkdir -p $out
-
-      if [[ $linkBuilds == "1" ]]; then
-        COPY_OR_LINK="ln -s"
-      else
-        COPY_OR_LINK="cp -r"
-      fi
-
-      ${concatStringsSep "\n" (
-        map (build: "$COPY_OR_LINK \"${build.value}\" $out/\"${build.name}\"") buildList
-      )}
-    '';
-
-    phases = [ "installPhase" ];
-    passthru =
-      let
-        individualBuilds = everyTarget { useIndividualToolchain = true; };
-      in
-      genAttrs (map (item: item.name) buildList) (
-        attr: collectiveBuilds.${attr} // { only = individualBuilds.${attr}; }
-      )
-      // {
-        inherit appliedConfig;
-
-        list = buildList;
-      };
+  wholeBuild { linkBuilds = true; }
+  // {
+    copied = wholeBuild { linkBuilds = false; };
+    tarball = pkgs.stdenvNoCC.mkDerivation {
+      name = packageNamePrefix + "tarball";
+      phases = [ "installPhase" ];
+      src = wholeBuild { linkBuilds = false; };
+      nativeBuildInputs = [ pkgs.gnutar ];
+      installPhase = ''
+        tar $out -C $src
+      '';
+    };
   }

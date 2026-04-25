@@ -217,7 +217,9 @@ let
 
         passthru = passthru // {
           inherit runtimeInputs;
-          appliedConfig = appliedConfig // { rustToolchain = rustToolchain'; };
+          appliedConfig = appliedConfig // {
+            rustToolchain = rustToolchain';
+          };
           targets = targets';
           meta = {
             mainProgram = name;
