@@ -189,7 +189,7 @@ else
       src = wholeBuild { linkBuilds = false; };
       nativeBuildInputs = [ pkgs.gnutar ];
       installPhase = ''
-        tar -cJf $out -C $src
+        tar -cJf $out -C $src .
       '';
     };
   }
