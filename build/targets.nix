@@ -27,6 +27,7 @@ let
   inherit (builtins)
     attrNames
     concatStringsSep
+    warn
     ;
   inherit (pkgs.lib)
     importTOML
@@ -51,7 +52,7 @@ let
       let
         targetToolchain = wrapped-rust-toolchain.override (
           {
-            crossCompileOnly = true;
+            disableDevelop = true;
           }
           // optionalAttrs useIndividualToolchain {
             targets = [ target ];
@@ -128,10 +129,14 @@ let
 
 in
 if src == null then
-  builtins.warn "You have not configured any 'src' to build." (
-    pkgs.writeShellScriptBin "bevy-flake-no-src" ''
-      echo "You do not have any bevy!!!"
-    ''
+  warn "You have not configured any 'src' to build." (
+    pkgs.writeTextFile {
+      name = "bevy-flake-no-src";
+      text = ''
+        You have not configured 'bevy-flake' to build any 'src'.
+        Set 'src' to the root path of your Bevy project.
+      '';
+    }
   )
 else
   let

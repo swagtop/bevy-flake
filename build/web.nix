@@ -32,7 +32,7 @@ let
   packageNamePrefix =
     if manifest ? version then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
   webToolchain = wrapped-rust-toolchain.override {
-    crossCompileOnly = true;
+    disableDevelop = true;
     targets = [ "wasm32-unknown-unknown" ];
   };
   webRustPlatform = pkgs.makeRustPlatform {
@@ -42,9 +42,13 @@ let
 in
 if src == null then
   warn "You have not configured any 'src' to build." (
-    pkgs.writeShellScriptBin "bevy-flake-no-src" ''
-      echo "You do not have any bevy!!!"
-    ''
+    pkgs.writeTextFile {
+      name = "bevy-flake-no-src";
+      text = ''
+        You have not configured 'bevy-flake' to build any 'src'.
+        Set 'src' to the root path of your Bevy project.
+      '';
+    }
   )
 else
   webRustPlatform.buildRustPackage {
@@ -53,7 +57,7 @@ else
     name = packageNamePrefix + "web";
     nativeBuildInputs = [
       (wrapped-bevy-cli.override {
-        crossCompileOnly = true;
+        disableDevelop = true;
         targets = [ "wasm32-unknown-unknown" ];
       })
     ];

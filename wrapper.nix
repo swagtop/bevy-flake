@@ -18,9 +18,7 @@ appliedConfig@{
 
 {
   pkgs,
-
   applyIfFunction,
-
   rawConfig,
 }:
 
@@ -44,7 +42,7 @@ let
     result
     // {
       override = o: makeOverridableAndDevelopable f (i // applyIfFunction o i);
-      develop = makeOverridableAndDevelopable f (i // { developOnly = true; });
+      develop = makeOverridableAndDevelopable f (i // { disableCrossCompile = true; });
     };
 
   exportEnv =
@@ -88,32 +86,11 @@ let
       postExtraScript ? "",
       extraRuntimeInputs ? [ ],
       targets ? null,
-      developOnly ? false,
-      crossCompileOnly ? false,
-      config ? appliedConfig,
+      disableCrossCompile ? false,
+      disableDevelop ? false,
       passthru ? { },
     }:
     let
-      inherit (config)
-        systems
-        withPkgs
-        rustToolchain
-        # linux
-        windows
-        macos
-        web
-        # crossPlatformRustflags
-        sharedEnvironment
-        devEnvironment
-        targetEnvironments
-        extraScript
-        runtimeInputs
-        stdenv
-        # src
-        ;
-
-      pkgs = applyIfFunction withPkgs stdenv.hostPlatform.system;
-
       runtimeInputs' = runtimeInputs ++ extraRuntimeInputs;
       argParser' = applyIfFunction argParser defaultArgParser;
       targets' = if targets != null then targets else attrNames targetEnvironments;
@@ -148,7 +125,7 @@ let
             }
             # Only add variables relevant to cross-compiliation when not in
             # develop only mode.
-            // optionalAttrs (!developOnly) (
+            // optionalAttrs (!disableCrossCompile) (
               {
                 PKG_CONFIG_ALLOW_CROSS = "1";
               }
@@ -185,9 +162,9 @@ let
           case "$BF_TARGET" in
             "")
               ${
-                if (crossCompileOnly && developOnly) then
-                  throw "You cannot be in both cross-compilation and develop mode at the same time."
-                else if crossCompileOnly then
+                if (disableDevelop && disableCrossCompile) then
+                  throw "You cannot disable both cross-compilation and develop mode at the same time."
+                else if disableDevelop then
                   ''
                     echo "bevy-flake: You are using this package in cross-compilation mode."
                     echo "You can therefore only cross-compile for your selected targets."
@@ -202,7 +179,7 @@ let
             ;;
 
             ${
-              if developOnly then
+              if disableCrossCompile then
                 ''
                   *)
                     echo "${
@@ -239,8 +216,9 @@ let
         '';
 
         passthru = passthru // {
-          inherit runtimeInputs targets;
-          appliedConfig = config;
+          inherit runtimeInputs;
+          appliedConfig = appliedConfig // { rustToolchain = rustToolchain'; };
+          targets = targets';
           meta = {
             mainProgram = name;
             platforms = systems;
