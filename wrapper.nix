@@ -134,7 +134,7 @@ let
                   # Set up Windows SDK.
                   BF_WINDOWS_SDK_PATH = windows.sdk;
                 }
-                // optionalAttrs (windows.static) {
+                // optionalAttrs (windows.staticBuild) {
                   BF_WINDOWS_STATIC_FLAG = "-C target-feature=+crt-static";
                 }
               )

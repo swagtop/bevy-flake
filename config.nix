@@ -53,7 +53,7 @@ in
         pkgs.pkgsCross.x86_64-windows.windows.sdk
       ];
     };
-    static = true;
+    staticBuild = false;
     targets = [
       "x86_64-pc-windows-msvc"
       "aarch64-pc-windows-msvc"
@@ -96,18 +96,24 @@ in
       linuxEnvironmentFor =
         crossSystem:
         let
-          hostSystem = pkgs.stdenv.hostPlatform.system;
-          ifCross = optionalString (hostSystem != crossSystem);
           flags = {
             aarch64-linux = [
               "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
               "-C linker=${
-                pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc + "/bin/${ifCross "aarch64-unknown-linux-gnu-"}cc"
+                let
+                  linker-package = pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc;
+                in
+                linker-package + "/bin/${linker-package.meta.mainProgram}"
               }"
             ];
             x86_64-linux = [
               "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-x86-64.so.2"
-              "-C linker=${pkgs.pkgsCross.gnu64.stdenv.cc + "/bin/${ifCross "x86_64-unknown-linux-gnu-"}cc"}"
+              "-C linker=${
+                let
+                  linker-package = pkgs.pkgsCross.gnu64.stdenv.cc;
+                in
+                linker-package + "/bin/${linker-package.meta.mainProgram}"
+              }"
             ];
           };
         in
