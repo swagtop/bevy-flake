@@ -10,8 +10,11 @@ let
   inherit (builtins)
     foldl'
     baseNameOf
+    isFunction
     ;
   inherit (pkgs.lib) recursiveUpdate;
+
+  applyIfFunction = f: input: if isFunction f then f input else f;
 
   unpackTarballSkipOldFiles =
     src:
@@ -55,7 +58,7 @@ let
       in
       accumulator
       // {
-        ${target} = recursiveUpdate targetEnv (f targetEnv);
+        ${target} = recursiveUpdate targetEnv (applyIfFunction f targetEnv);
       }
     ) environments list;
 in
