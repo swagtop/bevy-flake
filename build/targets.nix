@@ -1,4 +1,4 @@
-config@{
+appliedConfig@{
   systems,
   withPkgs,
   linux,
@@ -18,8 +18,6 @@ config@{
 
 {
   pkgs,
-  appliedConfig,
-
   wrapped-rust-toolchain,
 }:
 
@@ -80,7 +78,7 @@ let
             -j "$NIX_BUILD_CORES" \
             --profile "$cargoProfile" \
             --target "$target" \
-            --offline \
+            --frozen \
             ''${cargoBuildFlags[@]}
 
           runHook postBuild
@@ -123,7 +121,7 @@ let
         dontAutoPatchelf = true;
         doCheck = false;
 
-        passthru = { inherit appliedConfig; };
+        passthru = { inherit (targetToolchain) appliedConfig; };
       }
     );
 
@@ -155,7 +153,7 @@ else
       if [[ $linkBuilds == "1" ]]; then
         COPY_OR_LINK="ln -s"
       else
-        COPY_OR_LINK="cp -s"
+        COPY_OR_LINK="cp -r"
       fi
 
       ${concatStringsSep "\n" (

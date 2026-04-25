@@ -98,18 +98,16 @@ mapAttrs
     # For now we build 'bevy-cli' from source, as it is not in nixpkgs yet.
     bevy-cli = wrapped-bevy-cli;
 
-    targets = import ./build/targets.nix config {
+    targets = import ./build/targets.nix appliedConfig {
       inherit
         pkgs
-        appliedConfig
         wrapped-rust-toolchain
         ;
     };
 
-    web = import ./build/web.nix config {
+    web = import ./build/web.nix appliedConfig {
       inherit
         pkgs
-        appliedConfig
         wrapped-rust-toolchain
         wrapped-bevy-cli
         ;

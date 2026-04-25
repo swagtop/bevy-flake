@@ -1,4 +1,4 @@
-config@{
+appliedConfig@{
   systems,
   withPkgs,
   linux,
@@ -18,8 +18,6 @@ config@{
 
 {
   pkgs,
-  appliedConfig,
-
   wrapped-rust-toolchain,
   wrapped-bevy-cli,
 }:
@@ -81,7 +79,7 @@ else
       runHook preBuild
 
       bevy --version
-      bevy build -j $NIX_BUILD_CORES web ''${bevyBuildFlags[@]}
+      bevy build -j $NIX_BUILD_CORES --frozen web ''${bevyBuildFlags[@]}
 
       runHook postBuild
     '';
@@ -94,7 +92,5 @@ else
       runHook postInstall
     '';
 
-    passthru = {
-      inherit appliedConfig;
-    };
+    passthru.appliedConfig = appliedConfig // { rustToolchain = webToolchain; };
   }
