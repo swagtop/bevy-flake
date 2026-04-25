@@ -77,6 +77,11 @@ bevy run web --open
 bevy build web --bundle
 ```
 
+The packages come with a `develop` attribute, which are versions of the same
+package, with only the dependencies needed for developing and compiling for the
+host system included. It can be accessed with `<package>.develop`, and is the
+default version of the packages included in the template development shells.
+
 If you've set the `src` config attribute to the path of your project, you can
 build it using Nix:
 
@@ -86,6 +91,9 @@ nix build .#targets -j 1 # Restricting builds to one at a time with '-j 1'.
 
 # Build individual targets:
 nix build .#targets.x86_64-unknown-linux-gnu
+
+# Build individual targets, fetching only the dependencies for the specific one:
+nix build .#targets.x86_64-unknown-linux-gnu.only
 
 # Build your project from any machine with access to your repo:
 nix build github:username/repository/branch#targets -j 1
