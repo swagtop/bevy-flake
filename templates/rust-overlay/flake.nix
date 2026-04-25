@@ -73,6 +73,10 @@
           withPkgs = import nixpkgs {
             inherit system;
             overlays = [ (import rust-overlay) ];
+            config = {
+              allowUnfree = true;
+              microsoftVisualStudioLicenseAccepted = true;
+            };
           };
         };
     };
