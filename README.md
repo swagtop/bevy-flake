@@ -80,7 +80,7 @@ bevy build web --bundle
 The packages come with a `develop` attribute, which are versions of the same
 package, with only the dependencies needed for developing and compiling for the
 host system included. It can be accessed with `<package>.develop`, and is the
-default version of the packages included in the template development shells.
+default version of the packages included in the template flakes.
 
 If you've set the `src` config attribute to the path of your project, you can
 build it using Nix:
