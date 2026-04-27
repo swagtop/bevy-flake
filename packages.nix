@@ -135,7 +135,7 @@ mapAttrs
         echo
       ''
       // {
-        inherit wrapExecutable;
+        inherit wrapExecutable appliedConfig;
         package-macos-sdk = pkgs.callPackage (import ./tools/package-macos-sdk.nix) { };
         package-windows-sdk = pkgs.callPackage (import ./tools/package-windows-sdk.nix) { };
       };

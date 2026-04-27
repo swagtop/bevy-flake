@@ -87,7 +87,7 @@ build it using Nix:
 
 ```sh
 # Build all targets:
-nix build .#targets -j 1 # Restricting builds to one at a time with '-j 1'.
+nix build .#targets --max-jobs 1 # Restricting builds to one target at a time.
 
 # Build individual targets:
 nix build .#targets.x86_64-unknown-linux-gnu
@@ -96,7 +96,7 @@ nix build .#targets.x86_64-unknown-linux-gnu
 nix build .#targets.x86_64-unknown-linux-gnu.only
 
 # Build your project from any machine with access to your repo:
-nix build github:username/repository/branch#targets -j 1
+nix build github:username/repository/branch#targets --max-jobs 1
 ```
 
 You can compile to every target with a `targetEnvironments` [entry.][entries]
