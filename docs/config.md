@@ -15,7 +15,14 @@ the flake output, or by setting it in the `config` attribute used when calling
 # Configuring by calling configure on the flake output:
 let
   bf = bevy-flake.lib.configure (
-    { pkgs, previous, default, helpers, ... }:
+    {
+      pkgs,
+      system,
+      previous,
+      default,
+      helpers,
+      ...
+    }:
     {
       # Config goes here.
     }
@@ -42,7 +49,14 @@ bevy-flake.lib.mkFlake {
   };
 
   config =
-    { pkgs, previous, default, helpers, ... }:
+    {
+      pkgs,
+      system,
+      previous,
+      default,
+      helpers,
+      ...
+    }:
     {
       # Config goes here.
     };
@@ -125,7 +139,7 @@ overriding the `systems` attribute.
 ```nix
 {
   systems = [ "x86_64-darwin" ];
-};
+}
 ```
 
 Now `bf.lib.forSystems`, and `perSystem` when using `mkFlake`,  produces the
@@ -145,39 +159,22 @@ done like so:
 You can replace the default `pkgs` used in config assembly with your own, be it
 a pinned instance of `nixpkgs`, or if you want to use overlays.
 
-If you are doing this you should configure your own to allow unfree packages,
-and to accept the Microsoft MSVC license (not done in following examples).
-
 ```nix
+{ system, ... }:
 {
   withPkgs =
-    system:
     import (fetchTarball {
       name = "nixos-unstable-2018-09-12";
       url = "https://github.com/nixos/nixpkgs/archive/ca2ba44cab47767c8127d1c8633e2b581644eb8f.tar.gz";
       sha256 = "1jg7g6cfpw8qvma0y19kwyp549k1qyf11a5sg6hvn6awvmkny47v";
     }) {
       inherit system;
+      config = {
+        allowUnfree = true;
+        microsoftVisualStudioLicenseAccepted = true;
+      };
     };
 }
-```
-
-If the place you are configuring `bevy-flake` already has a built 'pkgs' or a
-'system' available, you can just omit the `system:` part:
-
-```nix
-let
-  system = "x86_64-linux";
-  bf = bevy-flake.lib.configure {
-    withPkgs = import nixpkgs { inherit system; };
-  };
-in
-```
-```nix
-let
-  pkgs = import nixpkgs { system = "x86_64-linux"; };
-  bf = bevy-flake.lib.configure { withPkgs = pkgs; };
-in
 ```
 
 
