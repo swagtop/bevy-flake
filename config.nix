@@ -23,8 +23,7 @@ in
     "aarch64-darwin"
     "aarch64-linux"
     "x86_64-linux"
-  ]
-  ++ builtins.currentSystem or [ ];
+  ];
 
   # Specify the 'pkgs' used to assemble the configs. Everything using the 'pkgs'
   # from '{ pkgs, ... }:', and all other uses of 'pkgs' in bevy-flake itself,
