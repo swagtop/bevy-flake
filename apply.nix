@@ -1,7 +1,3 @@
-{
-  pkgs,
-}:
-
 config@{
   systems,
   withPkgs,
@@ -18,6 +14,10 @@ config@{
   runtimeInputs,
   stdenv,
   src,
+}:
+
+{
+  pkgs,
 }:
 
 let

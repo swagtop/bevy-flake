@@ -14,7 +14,7 @@ the flake output, or by setting it in the `config` attribute used when calling
 ```nix
 # Configuring by calling configure on the flake output:
 let
-  bf = bevy-flake.configure (
+  bf = bevy-flake.lib.configure (
     { pkgs, previous, default, helpers, ... }:
     {
       # Config goes here.
@@ -53,12 +53,12 @@ bevy-flake.lib.mkFlake {
 
 ```nix
 let
-  bf = bevy-flake.configure {
+  bf = bevy-flake.lib.configure {
     systems = [ "x86_64-darwin" ];
   };
   # bf.systems == [ "x86_64-darwin" ]
   
-  bf' = bf.configure (
+  bf' = bf.lib.configure (
     { previous, ... }:
     {
       systems = previous.systems ++ [ "arm7l-linux" ];
@@ -66,7 +66,7 @@ let
   );
   # bf'.systems == [ "x86_64-darwin" "arm7l-linux" ]
   
-  bf'' = bf'.configure (
+  bf'' = bf'.lib.configure (
     { default, ... }:
     {
       systems = default.systems;
@@ -154,7 +154,7 @@ If the place you are configuring `bevy-flake` already has a built 'pkgs' or a
 ```nix
 let
   system = "x86_64-linux";
-  bf = bevy-flake.configure {
+  bf = bevy-flake.lib.configure {
     withPkgs = import nixpkgs { inherit system; };
   };
 in
@@ -162,7 +162,7 @@ in
 ```nix
 let
   pkgs = import nixpkgs { system = "x86_64-linux"; };
-  bf = bevy-flake.configure { withPkgs = pkgs; };
+  bf = bevy-flake.lib.configure { withPkgs = pkgs; };
 in
 ```
 
@@ -426,4 +426,4 @@ in
 ```
 
 Again, remember to use `bf` and not `bevy-flake` to get the `wrapExecutable`
-function if you've configured the flake output with `bevy-flake.configure`.
+function if you've configured the flake output with `bevy-flake.lib.configure`.

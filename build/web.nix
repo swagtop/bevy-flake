@@ -29,7 +29,7 @@ let
   manifest = (importTOML "${src}/Cargo.toml").package or { name = "no-name"; };
   packageNamePrefix =
     if manifest ? version then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
-  webToolchain = wrapped-rust-toolchain.override {
+  webToolchain = wrapped-rust-toolchain.overrideWrapper {
     disableDevelop = true;
     targets = [ "wasm32-unknown-unknown" ];
   };
@@ -54,7 +54,7 @@ else
 
     name = packageNamePrefix + "web";
     nativeBuildInputs = [
-      (wrapped-bevy-cli.override {
+      (wrapped-bevy-cli.overrideWrapper {
         disableDevelop = true;
         targets = [ "wasm32-unknown-unknown" ];
       })

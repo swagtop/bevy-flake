@@ -1,6 +1,6 @@
 {
   pkgs,
-  config,
+  rawConfig,
   applyIfFunction,
   reconfigure,
 }:
@@ -12,13 +12,10 @@ let
 
   hostSystem = pkgs.stdenv.hostPlatform.system;
 
-  applyConfig = import ./apply.nix { inherit pkgs; };
-
-  appliedConfig = applyConfig config;
+  appliedConfig = import ./apply.nix rawConfig { inherit pkgs; };
 
   wrapExecutable = import ./wrapper.nix appliedConfig {
-    inherit pkgs applyIfFunction;
-    rawConfig = config;
+    inherit pkgs rawConfig applyIfFunction;
   };
 
   wrapped-rust-toolchain = wrapExecutable {
@@ -99,18 +96,11 @@ mapAttrs
     bevy-cli = wrapped-bevy-cli;
 
     targets = import ./build/targets.nix appliedConfig {
-      inherit
-        pkgs
-        wrapped-rust-toolchain
-        ;
+      inherit pkgs wrapped-rust-toolchain;
     };
 
     web = import ./build/web.nix appliedConfig {
-      inherit
-        pkgs
-        wrapped-rust-toolchain
-        wrapped-bevy-cli
-        ;
+      inherit pkgs wrapped-rust-toolchain wrapped-bevy-cli;
     };
 
     # Useful tools can be reached through this package.

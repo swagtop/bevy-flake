@@ -10,10 +10,12 @@
         filter
         foldl'
         isFunction
+        mapAttrs
         warn
         ;
 
       applyIfFunction = f: input: if isFunction f then f input else f;
+
       genAttrs =
         attrList: f:
         foldl' (
@@ -25,6 +27,8 @@
         ) { } attrList;
 
       defaultConfig = import ./config.nix inputs;
+
+      # Merge all individual configs into one, from oldest to newest.
       assembleConfigs =
         configList: system: pkgs:
         let
@@ -56,6 +60,7 @@
           )
         ) { } configList;
 
+      # Output of this flake.
       defaultFlake = {
         perSystem =
           {
@@ -132,7 +137,7 @@
                     packages = import ./packages.nix {
                       inherit pkgs applyIfFunction;
                       reconfigure = (mkFlake finalConfigList defaultFlake).configure;
-                      config = assembledConfig system pkgs;
+                      rawConfig = assembledConfig system pkgs;
                     };
                   };
                 in
@@ -159,18 +164,20 @@
                 )
           )
           (
-            {
-              inherit systems;
-              forSystems = warn "'forSystems' is being moved to 'lib.forSystems' 2027-01-01." (genAttrs systems);
-              configure = newConfig: mkFlake (finalConfigList ++ [ newConfig ]) flake;
-            }
+            let
+              lib = {
+                inherit systems;
+                forSystems = genAttrs systems;
+                configure = newConfig: mkFlake (finalConfigList ++ [ newConfig ]) flake;
+              };
+            in
+            mapAttrs (
+              name: value:
+              warn "The '${name}' attribute will be removed, and moved to 'lib.${name}' at the date '2027-01-01.'" value
+            ) lib
             // flake.flake or { }
             // {
-              lib = {
-                forSystems = genAttrs systems;
-                mkFlake = mkFlake finalConfigList;
-              }
-              // (flake.flake or { }).lib or { };
+              lib = lib // { mkFlake = mkFlake finalConfigList; } // (flake.flake or { }).lib or { };
             }
           )
           systems

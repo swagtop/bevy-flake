@@ -10,13 +10,17 @@
   };
 
   outputs =
-    { nixpkgs, bevy-flake, ... }:
+    {
+      nixpkgs,
+      bevy-flake,
+      ...
+    }:
     bevy-flake.lib.mkFlake {
       perSystem =
         {
           pkgs,
-          formatter,
           packages,
+          formatter,
           ...
         }:
         {

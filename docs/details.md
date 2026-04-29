@@ -40,7 +40,7 @@ or a package wrapped, that isn't included by default.
     "<wrapped-package>".develop = <derivation>;
 
     # Override 'wrapExecutable'.
-    "<wrapped-package>".override = <function>; 
+    "<wrapped-package>".overrideWrapper = <function>; 
 
     # Configure on a package level.
     "<wrapped-package>".configure = <function>; 

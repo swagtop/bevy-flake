@@ -41,7 +41,7 @@ let
     in
     result
     // {
-      override = o: makeOverridableAndDevelopable f (i // applyIfFunction o i);
+      overrideWrapper = o: makeOverridableAndDevelopable f (i // applyIfFunction o i);
       develop = makeOverridableAndDevelopable f (i // { disableCrossCompile = true; });
     };
 
@@ -49,7 +49,7 @@ let
     env: concatStringsSep "\n" (mapAttrsToList (name: val: "export ${name}=\"${val}\"") env);
 
   defaultArgParser = ''
-    # Check if what the adapter is being run with.
+    # Check for specific args the wrapper is run with.
     TARGET_ARG_NO=1
     for arg in "$@"; do
       case $arg in

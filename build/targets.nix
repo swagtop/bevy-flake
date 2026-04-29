@@ -46,7 +46,7 @@ let
     genAttrs (attrNames targetEnvironments) (
       target:
       let
-        targetToolchain = wrapped-rust-toolchain.override (
+        targetToolchain = wrapped-rust-toolchain.overrideWrapper (
           {
             disableDevelop = true;
           }

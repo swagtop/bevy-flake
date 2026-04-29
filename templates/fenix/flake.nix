@@ -24,9 +24,9 @@
       perSystem =
         {
           pkgs,
-          formatter,
-          packages,
           system,
+          packages,
+          formatter,
           ...
         }:
         {
@@ -43,7 +43,11 @@
         };
 
       config =
-        { pkgs, system, ... }:
+        {
+          pkgs,
+          system,
+          ...
+        }:
         {
           src = builtins.path {
             path = ./.;
