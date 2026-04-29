@@ -102,6 +102,20 @@ in
 }
 ```
 
+If you are importing `bevy-flake` on a non-flake enabled system, you can
+configure it like so:
+
+```nix
+let
+  bf = import <bevy-flake> {
+    config = /* configuration here */;
+  };
+in
+```
+
+Here, `bf` will output the flake `packages` for your `builtins.currentSystem`.
+
+
 ### `systems`
 
 If you find that a system you want to use `bevy-flake` isn't included by
