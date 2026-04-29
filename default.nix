@@ -10,7 +10,7 @@ let
   flakeWithSystem = flakeCompatOutput.defaultNix.lib.configure (
     { default, ... }:
     {
-      sytems = [ system ] ++ default.systems;
+      systems = [ system ] ++ default.systems;
     }
   );
   configuredFlake = flakeWithSystem.lib.configure config;
