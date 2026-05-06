@@ -45,7 +45,7 @@ bevy-flake.lib.mkFlake {
     };
 
   flake = {
-    # ...
+    # Attributes for the flake outputs.
   };
 
   config =
