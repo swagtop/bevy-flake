@@ -1,4 +1,5 @@
 {
+  system ? builtins.currentSystem,
   config ? { systems = [ builtins.currentSystem ]; },
 }:
 let
@@ -9,4 +10,4 @@ let
   configuredFlake = flakeCompatOutput.defaultNix.lib.configure config;
 in
 # flakeCompatOutput
-(configuredFlake).packages.${builtins.currentSystem}
+(configuredFlake).packages.${system}

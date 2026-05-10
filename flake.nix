@@ -94,6 +94,8 @@
 
           systemWarn = throw "You cannot reference 'system' from the config inputs in 'systems'.";
 
+          # Before assembling configs, check if user is trying to use
+          # flake-parts features that aren't supported by bevy-flake.
           finalConfigList =
             let
               throwExplain =
@@ -113,6 +115,8 @@
               throwExplain "Set systems with '{ config.systems = [ <system> ]; }'."
             else if flake ? imports then
               throwExplain "Use flake-parts for features like 'imports'."
+            else if flake ? inputs then
+              throwExplain "Remove '{ inherit inputs; }', or use flake-parts for this feature."
             else
               configList ++ [ flake.config or { } ];
 

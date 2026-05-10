@@ -61,7 +61,7 @@ let
         };
       in
       targetRustPlatform.buildRustPackage {
-        inherit src target;
+        inherit src target stdenv;
 
         name = packageNamePrefix + target;
 

@@ -122,12 +122,13 @@ configure it like so:
 ```nix
 let
   bf = import <bevy-flake> {
+    system = /* system here */;
     config = /* configuration here */;
   };
 in
 ```
 
-Here, `bf` will output the flake `packages` for your `builtins.currentSystem`.
+Here, `bf` will output the flake `packages` for the sat `system`.
 
 
 ### `systems`
