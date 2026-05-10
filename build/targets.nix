@@ -39,7 +39,7 @@ let
   packageNamePrefix =
     if manifest ? version then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
 
-  everyTarget =
+  individualTargetBuilds =
     {
       useIndividualToolchain ? false,
     }:
@@ -119,7 +119,10 @@ let
         dontAutoPatchelf = true;
         doCheck = false;
 
-        passthru = { inherit (targetToolchain) appliedConfig; };
+        passthru = {
+          inherit (targetToolchain) appliedConfig;
+          env = targetEnvironments.${target};
+        };
       }
     );
 
@@ -129,7 +132,7 @@ let
       passthru ? { },
     }:
     let
-      collectiveBuilds = everyTarget { };
+      collectiveBuilds = individualTargetBuilds { };
       buildList = attrsToList collectiveBuilds;
     in
     pkgs.stdenvNoCC.mkDerivation {
@@ -158,7 +161,7 @@ let
 
       passthru =
         let
-          individualBuilds = everyTarget { useIndividualToolchain = true; };
+          individualBuilds = individualTargetBuilds { useIndividualToolchain = true; };
         in
         passthru
         // genAttrs (map (item: item.name) buildList) (
