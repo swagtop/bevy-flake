@@ -121,7 +121,7 @@ let
 
         passthru = {
           inherit (targetToolchain) appliedConfig;
-          env = targetEnvironments.${target};
+          inherit (targetEnvironments.${target}) env;
         };
       }
     );
