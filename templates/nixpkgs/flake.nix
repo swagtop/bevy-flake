@@ -38,6 +38,7 @@
 
       config = {
         src = builtins.path {
+          name = "src";
           path = ./.;
 
           # Ignore files that aren't needed in compilation of Bevy project.
