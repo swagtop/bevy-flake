@@ -177,7 +177,7 @@
             in
             mapAttrs (
               name: value:
-              warn "The '${name}' is moved to 'lib.${name}', and will be removed at the date '2027-01-01'." value
+              warn "The '${name}' attribute is moved to 'lib.${name}', and will be removed at the date '2027-01-01'." value
             ) lib
             // flake.flake or { }
             // {
