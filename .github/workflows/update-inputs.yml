@@ -1,4 +1,4 @@
-name: Automatic lockfile update.
+name: Automatic lockfile update
 on:
   schedule:
     - cron: '39 0 * * 6'
@@ -31,43 +31,43 @@ jobs:
 
       # Build each target, cleaning each afterwards to not exceed maximum storage usage for runner.
 
-      - name: Build Breakout for aarch64-pc-windows-msvc
+      - name: Build Breakout example for aarch64-pc-windows-msvc
         working-directory: bevy
         run: |
           cargo build --locked --example breakout --target aarch64-pc-windows-msvc
           cargo clean --target aarch64-pc-windows-msvc
 
-      - name: Build Breakout for x86_64-pc-windows-msvc
+      - name: Build Breakout example for x86_64-pc-windows-msvc
         working-directory: bevy
         run: |
           cargo build --locked --example breakout --target x86_64-pc-windows-msvc
           cargo clean --target x86_64-pc-windows-msvc
 
-      - name: Build Breakout for aarch64-unknown-linux-gnu
+      - name: Build Breakout example for aarch64-unknown-linux-gnu
         working-directory: bevy
         run: |
           cargo build --locked --example breakout --target aarch64-unknown-linux-gnu
           cargo clean --target aarch64-unknown-linux-gnu
 
-      - name: Build Breakout for x86_64-unknown-linux-gnu
+      - name: Build Breakout example for x86_64-unknown-linux-gnu
         working-directory: bevy
         run: |
           cargo build --locked --example breakout --target x86_64-unknown-linux-gnu
           cargo clean --target x86_64-unknown-linux-gnu
 
-      - name: Build Breakout for aarch64-apple-darwin
+      - name: Build Breakout example for aarch64-apple-darwin
         working-directory: bevy
         run: |
           cargo build --locked --example breakout --target aarch64-apple-darwin
           cargo clean --target aarch64-apple-darwin
 
-      - name: Build Breakout for x86_64-apple-darwin
+      - name: Build Breakout example for x86_64-apple-darwin
         working-directory: bevy
         run: |
           cargo build --locked --example breakout --target x86_64-apple-darwin
           cargo clean --target x86_64-apple-darwin
 
-      - name: Build Breakout for wasm32-unknown-unknown
+      - name: Build Breakout example for wasm32-unknown-unknown
         working-directory: bevy
         run: |
           cargo build --locked --example breakout --target wasm32-unknown-unknown 
