@@ -83,7 +83,7 @@
           };
       };
 
-      mkFlake = (
+      mkFlake =
         configList: flake:
         let
           pkgsWarn = throw (
@@ -184,8 +184,7 @@
               lib = lib // { mkFlake = mkFlake finalConfigList; } // (flake.flake or { }).lib or { };
             }
           )
-          systems
-      );
+          systems;
     in
     mkFlake [ defaultConfig ] defaultFlake
     // {
