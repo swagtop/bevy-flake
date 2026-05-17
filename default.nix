@@ -1,6 +1,8 @@
 {
   system ? builtins.currentSystem,
-  config ? { systems = [ builtins.currentSystem ]; },
+  config ? {
+    systems = [ builtins.currentSystem ];
+  },
 }:
 let
   flakeCompatOutput = import (fetchTarball {

@@ -92,39 +92,26 @@ in
   # Environment variables set for individual targets.
   targetEnvironments =
     let
+      cc = pkgs.llvmPackages.clang-unwrapped;
+      bintools = pkgs.llvmPackages.bintools-unwrapped;
+
       linuxEnvironmentFor =
         crossSystem:
         let
-          flags = {
-            aarch64-linux = [
-              "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
-              "-C linker=${
-                let
-                  linker-package = pkgs.pkgsCross.aarch64-multiplatform.stdenv.cc;
-                in
-                linker-package + "/bin/${linker-package.meta.mainProgram}"
-              }"
-            ];
-            x86_64-linux = [
-              "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-x86-64.so.2"
-              "-C linker=${
-                let
-                  linker-package = pkgs.pkgsCross.gnu64.stdenv.cc;
-                in
-                linker-package + "/bin/${linker-package.meta.mainProgram}"
-              }"
-            ];
-          };
+          reimportedPkgs = import pkgs.path { system = crossSystem; };
         in
         {
+          CC = "${cc}/bin/clang";
+
+          # Need these for the 'cc-rs' crate.
+          CFLAGS = "-I${reimportedPkgs.llvmPackages.libc.libc.dev}/include";
+          LDFLAGS = "-L${reimportedPkgs.llvmPackages.libc-full}/lib";
+
           PKG_CONFIG_PATH = makeSearchPath "lib/pkgconfig" (
             # Getting these libraries through re-importing nixpkgs instead of
             # doing 'pkgs.pkgsCross.<system>', lets us fetch them directly
             # without needing to build a ton of stuff through the nixpkgs cross-
             # compilation system.
-            let
-              reimportedPkgs = import pkgs.path { system = crossSystem; };
-            in
             with reimportedPkgs;
             [
               alsa-lib-with-plugins.dev
@@ -134,12 +121,39 @@ in
               wayland.dev
             ]
           );
-          RUSTFLAGS = concatStringsSep " " flags.${crossSystem};
+          RUSTFLAGS = concatStringsSep " " (
+            let
+              target-linker =
+                {
+                  aarch64-linux = pkgs.pkgsCross.aarch64-multiplatform.clangStdenv.cc;
+                  x86_64-linux = pkgs.pkgsCross.gnu64.clangStdenv.cc;
+                }
+                .${crossSystem};
+            in
+            [
+              "-C link-arg=-fuse-ld=${bintools}/bin/ld.lld"
+              "-C linker=${target-linker}/bin/${target-linker.meta.mainProgram}"
+            ]
+            ++ optionals (crossSystem == "aarch64-linux") [
+              "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
+            ]
+
+            ++ optionals (crossSystem == "x86_64-linux") [
+              "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-x86-64.so.2"
+            ]
+          );
         };
 
       windowsEnvironmentFor = arch: {
+        CC = "${cc}/bin/clang-cl";
+        AR = "${bintools}/bin/llvm-lib";
+        CFLAGS = concatStringsSep " " [
+          "-fuse-ld=${bintools}/bin/lld-link"
+          "-I$BF_WINDOWS_SDK_PATH/sdk/include/ucrt"
+          "-I$BF_WINDOWS_SDK_PATH/crt/include"
+        ];
         RUSTFLAGS = concatStringsSep " " [
-          "-C linker=${pkgs.lld}/bin/lld-link"
+          "-C linker=${bintools}/bin/lld-link"
           "-L $BF_WINDOWS_SDK_PATH/crt/lib/${arch}"
           "-L $BF_WINDOWS_SDK_PATH/sdk/lib/ucrt/${arch}"
           "-L $BF_WINDOWS_SDK_PATH/sdk/lib/um/${arch}"
@@ -152,6 +166,7 @@ in
           frameworks = "$BF_MACOS_SDK_PATH/System/Library/Frameworks";
         in
         {
+          CC = "${cc}/bin/clang";
           SDKROOT = "$BF_MACOS_SDK_PATH";
           COREAUDIO_SDK_PATH = "${frameworks}/CoreAudio.framwork/Headers";
           BINDGEN_EXTRA_CLANG_ARGS = concatStringsSep " " [
@@ -160,8 +175,8 @@ in
             "--sysroot=$BF_MACOS_SDK_PATH"
           ];
           RUSTFLAGS = concatStringsSep " " [
-            "-C linker=${pkgs.clangStdenv.cc.cc}/bin/clang"
-            "-C link-arg=-fuse-ld=${pkgs.lld}/bin/ld64.lld"
+            "-C linker=${cc}/bin/clang"
+            "-C link-arg=-fuse-ld=${bintools}/bin/ld64.lld"
             "-C link-arg=--target=$BF_TARGET"
             "-C link-arg=${
               concatStringsSep "," [
@@ -184,7 +199,7 @@ in
       "aarch64-apple-darwin" = macosEnvironment;
       "wasm32-unknown-unknown" = {
         RUSTFLAGS = ''--cfg getrandom_backend=\"wasm_js\"'';
-        PATH = "$BF_WASM_BINDGEN/bin:$PATH";
+        WASM_BINDGEN = "$BF_WASM_BINDGEN/bin/wasm-bindgen";
       };
     };
 
