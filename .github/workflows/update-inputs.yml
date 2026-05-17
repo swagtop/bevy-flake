@@ -23,7 +23,7 @@ jobs:
         run: |
           nix flake init --template ..#fenix
           nix flake lock ../.
-          nix flake lock --override-input bevy-flake git+file:../.
+          nix flake lock --override-input bevy-flake git+file:../. --allow-dirty-locks
 
       - name: build breakout for x86_64-pc-windows-msvc
         working-directory: bevy
