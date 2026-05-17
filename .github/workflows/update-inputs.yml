@@ -25,49 +25,53 @@ jobs:
           nix flake lock ../.
           nix flake lock --override-input bevy-flake git+file:../. --allow-dirty-locks
 
+      - name: Add toolchain to PATH
+        working-directory: bevy
+        run: nix profile add .#rust-toolchain
+
       # Build each target, cleaning each afterwards to not exceed maximum storage usage for runner.
 
       - name: Build Breakout for aarch64-pc-windows-msvc
         working-directory: bevy
         run: |
-          nix run .#rust-toolchain build -- --locked --example breakout --target aarch64-pc-windows-msvc
-          nix run .#rust-toolchain clean -- --target aarch64-pc-windows-msvc
+          cargo build --locked --example breakout --target aarch64-pc-windows-msvc
+          cargo clean --target aarch64-pc-windows-msvc
 
       - name: Build Breakout for x86_64-pc-windows-msvc
         working-directory: bevy
         run: |
-          nix run .#rust-toolchain build -- --locked --example breakout --target x86_64-pc-windows-msvc
-          nix run .#rust-toolchain clean -- --target x86_64-pc-windows-msvc
+          cargo build --locked --example breakout --target x86_64-pc-windows-msvc
+          cargo clean --target x86_64-pc-windows-msvc
 
       - name: Build Breakout for aarch64-unknown-linux-gnu
         working-directory: bevy
         run: |
-          nix run .#rust-toolchain build -- --locked --example breakout --target aarch64-unknown-linux-gnu
-          nix run .#rust-toolchain clean -- --target aarch64-unknown-linux-gnu
+          cargo build --locked --example breakout --target aarch64-unknown-linux-gnu
+          cargo clean --target aarch64-unknown-linux-gnu
 
       - name: Build Breakout for x86_64-unknown-linux-gnu
         working-directory: bevy
         run: |
-          nix run .#rust-toolchain build -- --locked --example breakout --target x86_64-unknown-linux-gnu
-          nix run .#rust-toolchain clean -- --target x86_64-unknown-linux-gnu
+          cargo build --locked --example breakout --target x86_64-unknown-linux-gnu
+          cargo clean --target x86_64-unknown-linux-gnu
 
       - name: Build Breakout for aarch64-apple-darwin
         working-directory: bevy
         run: |
-          nix run .#rust-toolchain build -- --locked --example breakout --target aarch64-apple-darwin
-          nix run .#rust-toolchain clean -- --target aarch64-apple-darwin
+          cargo build --locked --example breakout --target aarch64-apple-darwin
+          cargo clean --target aarch64-apple-darwin
 
       - name: Build Breakout for x86_64-apple-darwin
         working-directory: bevy
         run: |
-          nix run .#rust-toolchain build -- --locked --example breakout --target x86_64-apple-darwin
-          nix run .#rust-toolchain clean -- --target x86_64-apple-darwin
+          cargo build --locked --example breakout --target x86_64-apple-darwin
+          cargo clean --target x86_64-apple-darwin
 
       - name: Build Breakout for wasm32-unknown-unknown
         working-directory: bevy
         run: |
-          nix run .#rust-toolchain build -- --locked --example breakout --target wasm32-unknown-unknown 
-          nix run .#rust-toolchain clean -- --target wasm32-unknown-unknown
+          cargo build --locked --example breakout --target wasm32-unknown-unknown 
+          cargo clean --target wasm32-unknown-unknown
 
       # If every target builds successfully, update is good and we can push.
         
