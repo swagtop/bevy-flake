@@ -28,22 +28,22 @@ jobs:
       - name: build breakout for x86_64-pc-windows-msvc
         working-directory: bevy
         run: |
-          nix flake build .#targets.x86_64-pc-windows-msvc.only
+          nix build .#targets.x86_64-pc-windows-msvc.only
 
       - name: build breakout for x86_64-unknown-linux-gnu
         working-directory: bevy
         run: |
-          nix flake build .#targets.x86_64-unknown-linux-gnu.only
+          nix build .#targets.x86_64-unknown-linux-gnu.only
 
       - name: build breakout for aarch64-apple-darwin
         working-directory: bevy
         run: |
-          nix flake build .#targets.aarch64-apple-darwin.only
+          nix build .#targets.aarch64-apple-darwin.only
 
       - name: build breakout for wasm32-unknown-unknown
         working-directory: bevy
         run: |
-          nix flake build .#targets.wasm32-unknown-unknown.only
+          nix build .#targets.wasm32-unknown-unknown.only
         
       - name: push
         run: |
