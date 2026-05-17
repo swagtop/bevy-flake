@@ -25,11 +25,17 @@ jobs:
           nix flake lock ../.
           nix flake lock --override-input bevy-flake git+file:../. --allow-dirty-locks
 
-      - name: Add toolchain to PATH
+      - name: Add toolchain to runner
         working-directory: bevy
         run: nix profile add .#rust-toolchain
 
-      # Build each target, cleaning each afterwards to not exceed maximum storage usage for runner.
+      # Build each target, cleaning afterwards to not exceed max storage usage.
+
+      - name: Build Breakout example for runner
+        working-directory: bevy
+        run: |
+          cargo build --example breakout
+          cargo clean --profile dev
 
       - name: Build Breakout example for aarch64-pc-windows-msvc
         working-directory: bevy
