@@ -91,6 +91,7 @@ jobs:
       # If every target builds successfully, update is good and we can push.
         
       - name: Push update lockfile
+        working-directory: bevy-flake
         run: |
           git config --global user.name 'github-actions'
           git config --global user.email 'github-actions@users.noreply.github.com'
