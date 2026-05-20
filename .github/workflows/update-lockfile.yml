@@ -5,25 +5,32 @@ on:
   workflow_dispatch:
 
 jobs:
-  update-inputs:
+  update-lockfile:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
       - uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/magic-nix-cache-action@main
 
+      - uses: actions/checkout@v6
+        with:
+          path: bevy-flake
+
       - name: Update flake lockfile
+        working-directory: bevy-flake
         run: nix flake update
       
-      - name: Clone bevy repo
-        run: git clone https://github.com/bevyengine/bevy.git bevy -b release-0.18.1
+      - uses: actions/checkout@v6
+        with:
+          repository: bevyengine/bevy
+          ref: release-0.18.1
+          path: bevy
 
       - name: Pull 'fenix' template, follow newly updated lockfile from bevy-flake
         working-directory: bevy
         run: |
-          nix flake init --template ..#fenix
-          nix flake lock ../.
-          nix flake lock --override-input bevy-flake git+file:../. --allow-dirty-locks
+          nix flake init --template ../bevy-flake#fenix
+          nix flake lock ../bevy-flake
+          nix flake lock --override-input bevy-flake ../bevy-flake
 
       - name: Add toolchain to runner
         working-directory: bevy
