@@ -29,8 +29,9 @@ jobs:
         working-directory: bevy
         run: |
           nix flake init --template ../bevy-flake#fenix
-          nix flake lock ../bevy-flake
-          nix flake lock --override-input bevy-flake ../bevy-flake
+          nix flake lock \
+            --reference-lock-file ../bevy-flake/flake.lock \
+            --override-input bevy-flake ../bevy-flake
 
       - name: Add toolchain to runner
         working-directory: bevy
