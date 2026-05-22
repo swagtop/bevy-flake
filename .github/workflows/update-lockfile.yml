@@ -169,6 +169,10 @@ jobs:
             --override-input bevy-flake ../bevy-flake \
             --allow-dirty-locks
 
+      - name: Build 'rust-toolchain' package.
+        working-directory: bevy
+        run: nix build .#rust-toolchain --no-link
+
       # Build each target, cleaning afterwards to not exceed max storage usage.
 
       - name: Build Breakout example for runner in dev environment
@@ -264,6 +268,10 @@ jobs:
             --reference-lock-file ../bevy-flake/flake.lock \
             --override-input bevy-flake ../bevy-flake \
             --allow-dirty-locks
+
+      - name: Build 'rust-toolchain' package.
+        working-directory: bevy
+        run: nix build .#rust-toolchain --no-link
 
       # Build each target, cleaning afterwards to not exceed max storage usage.
 
