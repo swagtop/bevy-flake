@@ -49,10 +49,14 @@ jobs:
 
       - name: Get bevy repo with lockfile from crates.io
         run: |
-          curl -L -o bevy-0.18.1.crate https://static.crates.io/crates/bevy/bevy-0.18.1.crate
+          curl -L -o download https://static.crates.io/crates/bevy/bevy-0.18.1.crate
           tar -xf download
           rm download
           mv bevy-0.18.1 bevy
+
+      - name: Add bevy repo to git
+        working-directory: bevy
+        run: git add .
           
       - name: Pull 'fenix' template, follow newly updated lockfile from bevy-flake
         working-directory: bevy
@@ -142,10 +146,14 @@ jobs:
       
       - name: Get bevy repo with lockfile from crates.io
         run: |
-          curl -L -o bevy-0.18.1.crate https://static.crates.io/crates/bevy/bevy-0.18.1.crate
+          curl -L -o download https://static.crates.io/crates/bevy/bevy-0.18.1.crate
           tar -xf download
           rm download
           mv bevy-0.18.1 bevy
+
+      - name: Add bevy repo to git
+        working-directory: bevy
+        run: git add .
 
       - name: Pull 'fenix' template, follow newly updated lockfile from bevy-flake
         working-directory: bevy
@@ -231,10 +239,14 @@ jobs:
 
       - name: Get bevy repo with lockfile from crates.io
         run: |
-          curl -L -o bevy-0.18.1.crate https://static.crates.io/crates/bevy/bevy-0.18.1.crate
+          curl -L -o download https://static.crates.io/crates/bevy/bevy-0.18.1.crate
           tar -xf download
           rm download
           mv bevy-0.18.1 bevy
+
+      - name: Add bevy repo to git
+        working-directory: bevy
+        run: git add .
       
       - name: Pull 'fenix' template, follow newly updated lockfile from bevy-flake
         working-directory: bevy
