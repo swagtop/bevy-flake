@@ -19,8 +19,11 @@ jobs:
       - name: Update flake lockfile
         run: nix flake update
 
-      - name: Output
-        run: echo "lockfile=$(cat ./flake.lock)" >> "$GITHUB_OUTPUT"
+      - name: Send lockfile to next jobs
+        uses: actions/upload-artifact@v4
+        with:
+          name: flake.lock
+          path: flake.lock
   
   build-macos:
     runs-on: macos-26
@@ -35,6 +38,11 @@ jobs:
         with:
           path: bevy-flake
 
+      - uses: actions/download-artifact@v5
+        with:
+          name: flake.lock
+          path: bevy-flake/flake.lock
+
       - uses: actions/checkout@v6
         with:
           repository: bevyengine/bevy
@@ -43,13 +51,10 @@ jobs:
 
       - name: Pull 'fenix' template, follow newly updated lockfile from bevy-flake
         working-directory: bevy
-        env: |
-          LOCKFILE: ${{needs.update-lockfile.lockfile}}
         run: |
-          echo "$LOCKFILE" > lockfile
           nix flake init --template ../bevy-flake#fenix
           nix flake lock \
-            --reference-lock-file ./lockfile \
+            --reference-lock-file ../bevy-flake/flake.lock \
             --override-input bevy-flake ../bevy-flake
 
       - name: Add toolchain to runner
@@ -121,9 +126,10 @@ jobs:
         with:
           path: bevy-flake
 
-      - name: Update flake lockfile
-        working-directory: bevy-flake
-        run: nix flake update
+      - uses: actions/download-artifact@v5
+        with:
+          name: flake.lock
+          path: bevy-flake/flake.lock
       
       - uses: actions/checkout@v6
         with:
@@ -133,13 +139,10 @@ jobs:
 
       - name: Pull 'fenix' template, follow newly updated lockfile from bevy-flake
         working-directory: bevy
-        env: |
-          LOCKFILE: ${{needs.update-lockfile.lockfile}}
         run: |
-          echo "$LOCKFILE" > lockfile
           nix flake init --template ../bevy-flake#fenix
           nix flake lock \
-            --reference-lock-file ./lockfile \
+            --reference-lock-file ../bevy-flake/flake.lock \
             --override-input bevy-flake ../bevy-flake
 
       - name: Add toolchain to runner
@@ -209,9 +212,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - uses: actions/download-artifact@v5
+        with:
+          name: flake.lock
+
       - name: Push update lockfile
         run: |
-          echo "$LOCKFILE" > flake.lock
           git config --global user.name 'github-actions'
           git config --global user.email 'github-actions@users.noreply.github.com'
           git add ./flake.lock
