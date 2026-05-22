@@ -7,6 +7,23 @@ on:
 jobs:
   update-lockfile:
     runs-on: ubuntu-latest
+    outputs:
+      lockfile: ${{ steps.Output.lockfile }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Update flake lockfile
+        working-directory: bevy-flake
+        run: nix flake update
+
+      - name: Output
+        working-directory: bevy-flake
+        run: echo "lockfile=$(cat ./flake.lock)" >> "$GITHUB_OUTPUT"
+  
+  build-macos:
+    runs-on: macos-26
+    needs: update-lockfile
     steps:
       - uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/magic-nix-cache-action@main
@@ -17,10 +34,6 @@ jobs:
         with:
           path: bevy-flake
 
-      - name: Update flake lockfile
-        working-directory: bevy-flake
-        run: nix flake update
-      
       - uses: actions/checkout@v6
         with:
           repository: bevyengine/bevy
@@ -29,10 +42,13 @@ jobs:
 
       - name: Pull 'fenix' template, follow newly updated lockfile from bevy-flake
         working-directory: bevy
+        env: |
+          LOCKFILE: ${{needs.update-lockfile.lockfile}}
         run: |
+          echo "$LOCKFILE" > lockfile
           nix flake init --template ../bevy-flake#fenix
           nix flake lock \
-            --reference-lock-file ../bevy-flake/flake.lock \
+            --reference-lock-file ./lockfile \
             --override-input bevy-flake ../bevy-flake
 
       - name: Add toolchain to runner
@@ -91,13 +107,113 @@ jobs:
           cargo build --example breakout --target wasm32-unknown-unknown 
           cargo clean --target wasm32-unknown-unknown
 
-      # If every target builds successfully, update is good and we can push.
-        
-      - name: Push update lockfile
+  build-linux:
+    runs-on: ubuntu-latest
+    needs: update-lockfile
+    steps:
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+        with:
+          use-flakehub: false
+
+      - uses: actions/checkout@v6
+        with:
+          path: bevy-flake
+
+      - name: Update flake lockfile
         working-directory: bevy-flake
+        run: nix flake update
+      
+      - uses: actions/checkout@v6
+        with:
+          repository: bevyengine/bevy
+          ref: release-0.18.1
+          path: bevy
+
+      - name: Pull 'fenix' template, follow newly updated lockfile from bevy-flake
+        working-directory: bevy
+        env: |
+          LOCKFILE: ${{needs.update-lockfile.lockfile}}
         run: |
-          git config --global user.name 'github-actions'
-          git config --global user.email 'github-actions@users.noreply.github.com'
-          git add ./flake.lock
-          git commit -m "Automatic lockfile update." | true
-          git push origin main
+          echo "$LOCKFILE" > lockfile
+          nix flake init --template ../bevy-flake#fenix
+          nix flake lock \
+            --reference-lock-file ./lockfile \
+            --override-input bevy-flake ../bevy-flake
+
+      - name: Add toolchain to runner
+        working-directory: bevy
+        run: nix profile add .#rust-toolchain
+
+      # Build each target, cleaning afterwards to not exceed max storage usage.
+
+      - name: Build Breakout example for runner
+        working-directory: bevy
+        run: |
+          cargo build --example breakout
+          cargo clean --profile dev
+
+      - name: Build Breakout example for aarch64-pc-windows-msvc
+        working-directory: bevy
+        run: |
+          cargo build --example breakout --target aarch64-pc-windows-msvc
+          cargo clean --target aarch64-pc-windows-msvc
+
+      - name: Build Breakout example for x86_64-pc-windows-msvc
+        working-directory: bevy
+        run: |
+          cargo build --example breakout --target x86_64-pc-windows-msvc
+          cargo clean --target x86_64-pc-windows-msvc
+
+      - name: Build Breakout example for aarch64-unknown-linux-gnu
+        working-directory: bevy
+        run: |
+          cargo build --example breakout --target aarch64-unknown-linux-gnu
+          cargo clean --target aarch64-unknown-linux-gnu
+
+      - name: Build Breakout example for x86_64-unknown-linux-gnu
+        working-directory: bevy
+        run: |
+          cargo build --example breakout --target x86_64-unknown-linux-gnu
+          cargo clean --target x86_64-unknown-linux-gnu
+
+      # Not building MacOS targets, as we have no SDK.
+      
+      # - name: Build Breakout example for aarch64-apple-darwin
+      #   working-directory: bevy
+      #   run: |
+      #     cargo build --example breakout --target aarch64-apple-darwin
+      #     cargo clean --target aarch64-apple-darwin
+
+      # - name: Build Breakout example for x86_64-apple-darwin
+      #   working-directory: bevy
+      #   run: |
+      #     cargo build --example breakout --target x86_64-apple-darwin
+      #     cargo clean --target x86_64-apple-darwin
+
+      - name: Build Breakout example for wasm32-unknown-unknown
+        working-directory: bevy
+        run: |
+          cargo build --example breakout --target wasm32-unknown-unknown 
+          cargo clean --target wasm32-unknown-unknown
+
+    push-lockfile:
+      runs-on: ubuntu-latest
+      needs: [update-lockfile, build-macos, build-linux]
+      env: |
+        LOCKFILE: ${{ update-lockfile.outputs.lockfile }}
+
+      # If every target builds successfully on both Linux and Macos, update is
+      # good and we can push.
+      steps:
+        - uses: actions/checkout@v6
+
+        - name: Push update lockfile
+          working-directory: bevy-flake
+          run: |
+            echo "$LOCKFILE" > flake.lock
+            git config --global user.name 'github-actions'
+            git config --global user.email 'github-actions@users.noreply.github.com'
+            git add ./flake.lock
+            git commit -m "Automatic lockfile update." | true
+            git push origin main
