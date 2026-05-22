@@ -20,7 +20,7 @@ jobs:
         run: nix flake update
 
       - name: Send lockfile to next jobs
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: flake.lock
           path: flake.lock
@@ -38,7 +38,7 @@ jobs:
         with:
           path: bevy-flake
 
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v8
         with:
           name: flake.lock
           path: bevy-flake
@@ -126,7 +126,7 @@ jobs:
         with:
           path: bevy-flake
 
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v8
         with:
           name: flake.lock
           path: bevy-flake
@@ -202,7 +202,7 @@ jobs:
           cargo clean --target wasm32-unknown-unknown
 
   build-linux-aarch64:
-    runs-on: ubuntu-latest-arm
+    runs-on: ubuntu-24.04-arm
     needs: update-lockfile
     steps:
       - uses: DeterminateSystems/nix-installer-action@main
@@ -214,7 +214,7 @@ jobs:
         with:
           path: bevy-flake
 
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v8
         with:
           name: flake.lock
           path: bevy-flake
@@ -239,7 +239,7 @@ jobs:
 
       # Build each target, cleaning afterwards to not exceed max storage usage.
 
-      - name: Build Breakout example for runner
+      - name: Build Breakout example for runner in dev environment
         working-directory: bevy
         run: |
           cargo build --example breakout
@@ -300,7 +300,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v8
         with:
           name: flake.lock
 
