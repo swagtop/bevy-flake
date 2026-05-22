@@ -41,7 +41,7 @@ jobs:
       - uses: actions/download-artifact@v5
         with:
           name: flake.lock
-          path: bevy-flake/flake.lock
+          path: bevy-flake
 
       - uses: actions/checkout@v6
         with:
@@ -129,7 +129,7 @@ jobs:
       - uses: actions/download-artifact@v5
         with:
           name: flake.lock
-          path: bevy-flake/flake.lock
+          path: bevy-flake
       
       - uses: actions/checkout@v6
         with:
