@@ -57,6 +57,8 @@ jobs:
       - name: Set up bevy crate as git repo
         working-directory: bevy
         run: |
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@users.noreply.github.com'
           git init
           git add .
           git commit -m "Lets build!"
@@ -158,6 +160,8 @@ jobs:
       - name: Set up bevy crate as git repo
         working-directory: bevy
         run: |
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@users.noreply.github.com'
           git init
           git add .
           git commit -m "Lets build!"
@@ -259,6 +263,8 @@ jobs:
       - name: Set up bevy crate as git repo
         working-directory: bevy
         run: |
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@users.noreply.github.com'
           git init
           git add .
           git commit -m "Lets build!"
