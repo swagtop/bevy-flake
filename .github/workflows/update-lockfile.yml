@@ -59,6 +59,7 @@ jobs:
         run: |
           git init
           git add .
+          git commit -m "Lets build!"
           
       - name: Pull 'fenix' template, follow newly updated lockfile from bevy-flake
         working-directory: bevy
@@ -159,6 +160,7 @@ jobs:
         run: |
           git init
           git add .
+          git commit -m "Lets build!"
 
       - name: Pull 'fenix' template, follow newly updated lockfile from bevy-flake
         working-directory: bevy
@@ -259,6 +261,7 @@ jobs:
         run: |
           git init
           git add .
+          git commit -m "Lets build!"
       
       - name: Pull 'fenix' template, follow newly updated lockfile from bevy-flake
         working-directory: bevy
