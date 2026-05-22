@@ -43,6 +43,10 @@ jobs:
           name: flake.lock
           path: bevy-flake
 
+      - name: Clean lock in bevy-flake
+        working-directory: bevy-flake
+        run: git add ./flake.lock
+
       - name: Get bevy repo with lockfile from crates.io
         run: |
           wget https://crates.io/api/v1/crates/bevy/0.18.1/download
@@ -50,20 +54,13 @@ jobs:
           rm download
           mv bevy-0.18.1 bevy
           
-      - uses: actions/checkout@v6
-        with:
-          repository: bevyengine/bevy
-          ref: release-0.18.1
-          path: bevy
-
       - name: Pull 'fenix' template, follow newly updated lockfile from bevy-flake
         working-directory: bevy
         run: |
           nix flake init --template ../bevy-flake#actions
           nix flake lock \
             --reference-lock-file ../bevy-flake/flake.lock \
-            --override-input bevy-flake ../bevy-flake \
-            --allow-dirty-locks
+            --override-input bevy-flake ../bevy-flake
 
       - name: Build 'rust-toolchain' package.
         working-directory: bevy
@@ -138,12 +135,17 @@ jobs:
         with:
           name: flake.lock
           path: bevy-flake
+
+      - name: Clean lock in bevy-flake
+        working-directory: bevy-flake
+        run: git add ./flake.lock
       
-      - uses: actions/checkout@v6
-        with:
-          repository: bevyengine/bevy
-          ref: release-0.18.1
-          path: bevy
+      - name: Get bevy repo with lockfile from crates.io
+        run: |
+          wget https://crates.io/api/v1/crates/bevy/0.18.1/download
+          tar -xf download
+          rm download
+          mv bevy-0.18.1 bevy
 
       - name: Pull 'fenix' template, follow newly updated lockfile from bevy-flake
         working-directory: bevy
@@ -151,8 +153,7 @@ jobs:
           nix flake init --template ../bevy-flake#actions
           nix flake lock \
             --reference-lock-file ../bevy-flake/flake.lock \
-            --override-input bevy-flake ../bevy-flake \
-            --allow-dirty-locks
+            --override-input bevy-flake ../bevy-flake
 
       # Build each target, cleaning afterwards to not exceed max storage usage.
 
@@ -223,21 +224,25 @@ jobs:
         with:
           name: flake.lock
           path: bevy-flake
-      
-      - uses: actions/checkout@v6
-        with:
-          repository: bevyengine/bevy
-          ref: release-0.18.1
-          path: bevy
 
+      - name: Clean lock in bevy-flake
+        working-directory: bevy-flake
+        run: git add ./flake.lock
+
+      - name: Get bevy repo with lockfile from crates.io
+        run: |
+          wget https://crates.io/api/v1/crates/bevy/0.18.1/download
+          tar -xf download
+          rm download
+          mv bevy-0.18.1 bevy
+      
       - name: Pull 'fenix' template, follow newly updated lockfile from bevy-flake
         working-directory: bevy
         run: |
           nix flake init --template ../bevy-flake#actions
           nix flake lock \
             --reference-lock-file ../bevy-flake/flake.lock \
-            --override-input bevy-flake ../bevy-flake \
-            --allow-dirty-locks
+            --override-input bevy-flake ../bevy-flake
 
       # Build each target, cleaning afterwards to not exceed max storage usage.
 
