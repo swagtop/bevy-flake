@@ -57,13 +57,15 @@ jobs:
             --reference-lock-file ../bevy-flake/flake.lock \
             --override-input bevy-flake ../bevy-flake
 
-      - name: Add toolchain to runner
+      - name: Alias 'cargo' to run through Nix with pure env.
         working-directory: bevy
-        run: nix profile add .#rust-toolchain
+        run: |
+          alias cargo="nix run --ignore-env .#rust-toolchain --"
+          cargo
 
       # Build each target, cleaning afterwards to not exceed max storage usage.
 
-      - name: Build Breakout example for runner
+      - name: Build Breakout example for runner in dev environment
         working-directory: bevy
         run: |
           cargo build --example breakout
@@ -145,13 +147,15 @@ jobs:
             --reference-lock-file ../bevy-flake/flake.lock \
             --override-input bevy-flake ../bevy-flake
 
-      - name: Add toolchain to runner
+      - name: Alias 'cargo' to run through Nix with pure env.
         working-directory: bevy
-        run: nix profile add .#rust-toolchain
+        run: |
+          alias cargo="nix run --ignore-env .#rust-toolchain --"
+          cargo
 
       # Build each target, cleaning afterwards to not exceed max storage usage.
 
-      - name: Build Breakout example for runner
+      - name: Build Breakout example for runner in dev environment
         working-directory: bevy
         run: |
           cargo build --example breakout
@@ -233,9 +237,11 @@ jobs:
             --reference-lock-file ../bevy-flake/flake.lock \
             --override-input bevy-flake ../bevy-flake
 
-      - name: Add toolchain to runner
+      - name: Alias 'cargo' to run through Nix with pure env.
         working-directory: bevy
-        run: nix profile add .#rust-toolchain
+        run: |
+          alias cargo="nix run --ignore-env .#rust-toolchain --"
+          cargo
 
       # Build each target, cleaning afterwards to not exceed max storage usage.
 
