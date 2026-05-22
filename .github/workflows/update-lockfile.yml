@@ -54,9 +54,11 @@ jobs:
           rm download
           mv bevy-0.18.1 bevy
 
-      - name: Add bevy repo to git
+      - name: Set up bevy crate as git repo
         working-directory: bevy
-        run: git add .
+        run: |
+          git init
+          git add .
           
       - name: Pull 'fenix' template, follow newly updated lockfile from bevy-flake
         working-directory: bevy
@@ -151,9 +153,11 @@ jobs:
           rm download
           mv bevy-0.18.1 bevy
 
-      - name: Add bevy repo to git
+      - name: Set up bevy crate as git repo
         working-directory: bevy
-        run: git add .
+        run: |
+          git init
+          git add .
 
       - name: Pull 'fenix' template, follow newly updated lockfile from bevy-flake
         working-directory: bevy
@@ -244,9 +248,11 @@ jobs:
           rm download
           mv bevy-0.18.1 bevy
 
-      - name: Add bevy repo to git
+      - name: Set up bevy crate as git repo
         working-directory: bevy
-        run: git add .
+        run: |
+          git init
+          git add .
       
       - name: Pull 'fenix' template, follow newly updated lockfile from bevy-flake
         working-directory: bevy
