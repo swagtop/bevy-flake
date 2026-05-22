@@ -25,8 +25,8 @@ jobs:
           name: flake.lock
           path: flake.lock
   
-  build-macos:
-    runs-on: macos-26
+  build-macos-aarch64:
+    runs-on: macos-latest
     needs: update-lockfile
     steps:
       - uses: DeterminateSystems/nix-installer-action@main
@@ -113,8 +113,96 @@ jobs:
           cargo build --example breakout --target wasm32-unknown-unknown 
           cargo clean --target wasm32-unknown-unknown
 
-  build-linux:
+  build-linux-x86_64:
     runs-on: ubuntu-latest
+    needs: update-lockfile
+    steps:
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+        with:
+          use-flakehub: false
+
+      - uses: actions/checkout@v6
+        with:
+          path: bevy-flake
+
+      - uses: actions/download-artifact@v5
+        with:
+          name: flake.lock
+          path: bevy-flake
+      
+      - uses: actions/checkout@v6
+        with:
+          repository: bevyengine/bevy
+          ref: release-0.18.1
+          path: bevy
+
+      - name: Pull 'fenix' template, follow newly updated lockfile from bevy-flake
+        working-directory: bevy
+        run: |
+          nix flake init --template ../bevy-flake#fenix
+          nix flake lock \
+            --reference-lock-file ../bevy-flake/flake.lock \
+            --override-input bevy-flake ../bevy-flake
+
+      - name: Add toolchain to runner
+        working-directory: bevy
+        run: nix profile add .#rust-toolchain
+
+      # Build each target, cleaning afterwards to not exceed max storage usage.
+
+      - name: Build Breakout example for runner
+        working-directory: bevy
+        run: |
+          cargo build --example breakout
+          cargo clean --profile dev
+
+      - name: Build Breakout example for aarch64-pc-windows-msvc
+        working-directory: bevy
+        run: |
+          cargo build --example breakout --target aarch64-pc-windows-msvc
+          cargo clean --target aarch64-pc-windows-msvc
+
+      - name: Build Breakout example for x86_64-pc-windows-msvc
+        working-directory: bevy
+        run: |
+          cargo build --example breakout --target x86_64-pc-windows-msvc
+          cargo clean --target x86_64-pc-windows-msvc
+
+      - name: Build Breakout example for aarch64-unknown-linux-gnu
+        working-directory: bevy
+        run: |
+          cargo build --example breakout --target aarch64-unknown-linux-gnu
+          cargo clean --target aarch64-unknown-linux-gnu
+
+      - name: Build Breakout example for x86_64-unknown-linux-gnu
+        working-directory: bevy
+        run: |
+          cargo build --example breakout --target x86_64-unknown-linux-gnu
+          cargo clean --target x86_64-unknown-linux-gnu
+
+      # Not building MacOS targets, as we have no SDK.
+      
+      # - name: Build Breakout example for aarch64-apple-darwin
+      #   working-directory: bevy
+      #   run: |
+      #     cargo build --example breakout --target aarch64-apple-darwin
+      #     cargo clean --target aarch64-apple-darwin
+
+      # - name: Build Breakout example for x86_64-apple-darwin
+      #   working-directory: bevy
+      #   run: |
+      #     cargo build --example breakout --target x86_64-apple-darwin
+      #     cargo clean --target x86_64-apple-darwin
+
+      - name: Build Breakout example for wasm32-unknown-unknown
+        working-directory: bevy
+        run: |
+          cargo build --example breakout --target wasm32-unknown-unknown 
+          cargo clean --target wasm32-unknown-unknown
+
+  build-linux-aarch64:
+    runs-on: ubuntu-latest-arm
     needs: update-lockfile
     steps:
       - uses: DeterminateSystems/nix-installer-action@main
@@ -203,7 +291,7 @@ jobs:
 
   push-lockfile:
     runs-on: ubuntu-latest
-    needs: [update-lockfile, build-macos, build-linux]
+    needs: [update-lockfile, build-macos-aarch64, build-linux-x86_64, build-linux-aarch64]
     env: |
       LOCKFILE: ${{ needs.update-lockfile.outputs.lockfile }}
 
