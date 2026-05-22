@@ -12,6 +12,8 @@ jobs:
       lockfile: ${{ steps.Output.outputs.lockfile }}
 
     steps:
+      - uses: DeterminateSystems/nix-installer-action@main
+
       - uses: actions/checkout@v6
 
       - name: Update flake lockfile
