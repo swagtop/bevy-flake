@@ -298,8 +298,6 @@ jobs:
   push-lockfile:
     runs-on: ubuntu-latest
     needs: [update-lockfile, build-macos-aarch64, build-linux-x86_64, build-linux-aarch64]
-    env: |
-      LOCKFILE: ${{ needs.update-lockfile.outputs.lockfile }}
 
     # If every target builds successfully on both Linux and Macos, update is
     # good and we can push.
