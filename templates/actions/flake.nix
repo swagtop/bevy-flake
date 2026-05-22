@@ -41,7 +41,10 @@
                 ];
               });
             }) packages.targets.list
-          );
+          )
+          // {
+            inherit (packages) rust-toolchain;
+          };
         };
 
       config =
