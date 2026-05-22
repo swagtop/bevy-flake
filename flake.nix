@@ -203,7 +203,7 @@
         };
         actions =
           warn "This template is for bevy-flake's own GitHub actions and should not be used externally." {
-            path = ./templates/nixpkgs;
+            path = ./templates/actions;
           };
       };
     };
