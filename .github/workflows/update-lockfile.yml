@@ -14,11 +14,9 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Update flake lockfile
-        working-directory: bevy-flake
         run: nix flake update
 
       - name: Output
-        working-directory: bevy-flake
         run: echo "lockfile=$(cat ./flake.lock)" >> "$GITHUB_OUTPUT"
   
   build-macos:
@@ -209,7 +207,6 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Push update lockfile
-        working-directory: bevy-flake
         run: |
           echo "$LOCKFILE" > flake.lock
           git config --global user.name 'github-actions'
