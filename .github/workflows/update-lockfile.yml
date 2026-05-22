@@ -7,8 +7,9 @@ on:
 jobs:
   update-lockfile:
     runs-on: ubuntu-latest
+
     outputs:
-      lockfile: ${{ steps.Output.lockfile }}
+      lockfile: ${{ steps.Output.outputs.lockfile }}
 
     steps:
       - uses: actions/checkout@v6
