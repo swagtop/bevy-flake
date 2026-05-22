@@ -49,7 +49,7 @@ jobs:
 
       - name: Get bevy repo with lockfile from crates.io
         run: |
-          wget https://crates.io/api/v1/crates/bevy/0.18.1/download
+          curl -L -o bevy-0.18.1.crate https://static.crates.io/crates/bevy/bevy-0.18.1.crate
           tar -xf download
           rm download
           mv bevy-0.18.1 bevy
@@ -142,7 +142,7 @@ jobs:
       
       - name: Get bevy repo with lockfile from crates.io
         run: |
-          wget https://crates.io/api/v1/crates/bevy/0.18.1/download
+          curl -L -o bevy-0.18.1.crate https://static.crates.io/crates/bevy/bevy-0.18.1.crate
           tar -xf download
           rm download
           mv bevy-0.18.1 bevy
@@ -231,7 +231,7 @@ jobs:
 
       - name: Get bevy repo with lockfile from crates.io
         run: |
-          wget https://crates.io/api/v1/crates/bevy/0.18.1/download
+          curl -L -o bevy-0.18.1.crate https://static.crates.io/crates/bevy/bevy-0.18.1.crate
           tar -xf download
           rm download
           mv bevy-0.18.1 bevy
