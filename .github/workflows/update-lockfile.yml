@@ -66,7 +66,8 @@ jobs:
           nix flake init --template ../bevy-flake#actions
           nix flake lock \
             --reference-lock-file ../bevy-flake/flake.lock \
-            --override-input bevy-flake ../bevy-flake
+            --override-input bevy-flake ../bevy-flake \
+            --allow-dirty-locks
 
       - name: Build 'rust-toolchain' package.
         working-directory: bevy
@@ -165,7 +166,8 @@ jobs:
           nix flake init --template ../bevy-flake#actions
           nix flake lock \
             --reference-lock-file ../bevy-flake/flake.lock \
-            --override-input bevy-flake ../bevy-flake
+            --override-input bevy-flake ../bevy-flake \
+            --allow-dirty-locks
 
       # Build each target, cleaning afterwards to not exceed max storage usage.
 
@@ -260,7 +262,8 @@ jobs:
           nix flake init --template ../bevy-flake#actions
           nix flake lock \
             --reference-lock-file ../bevy-flake/flake.lock \
-            --override-input bevy-flake ../bevy-flake
+            --override-input bevy-flake ../bevy-flake \
+            --allow-dirty-locks
 
       # Build each target, cleaning afterwards to not exceed max storage usage.
 
