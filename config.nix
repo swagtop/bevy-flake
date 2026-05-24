@@ -96,9 +96,9 @@ in
       bintools = pkgs.llvmPackages.bintools-unwrapped;
 
       linuxEnvironmentFor =
-        crossSystem:
+        targetSystem:
         let
-          reimportedPkgs = import pkgs.path { system = crossSystem; };
+          reimportedPkgs = import pkgs.path { system = targetSystem; };
         in
         {
           CC = "${cc}/bin/clang";
@@ -128,18 +128,18 @@ in
                   aarch64-linux = pkgs.pkgsCross.aarch64-multiplatform.clangStdenv.cc;
                   x86_64-linux = pkgs.pkgsCross.gnu64.clangStdenv.cc;
                 }
-                .${crossSystem};
+                .${targetSystem};
             in
             [
-              "-C link-arg=-fuse-ld=${bintools}/bin/ld.lld"
               "-C linker=${target-linker}/bin/${target-linker.meta.mainProgram}"
-            ]
-            ++ optionals (crossSystem == "aarch64-linux") [
-              "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-aarch64.so.1"
-            ]
-
-            ++ optionals (crossSystem == "x86_64-linux") [
-              "-C link-arg=-Wl,--dynamic-linker=/lib64/ld-linux-x86-64.so.2"
+              "-C link-arg=-fuse-ld=${bintools}/bin/ld.lld"
+              "-C link-arg=-Wl,--dynamic-linker=${
+                  {
+                    aarch64-linux = "/lib64/ld-linux-aarch64.so.1";
+                    x86_64-linux = "/lib64/ld-linux-x86-64.so.2";
+                  }
+                  .${targetSystem}
+              }"
             ]
           );
         };

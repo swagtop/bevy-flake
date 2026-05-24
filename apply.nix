@@ -70,16 +70,14 @@ config
 
   devEnvironment = pkgs.writeTextFile (
     let
-      env = 
-        devEnvironment
-        // {
-          PKG_CONFIG_PATH =
-            "${devEnvironment.PKG_CONFIG_PATH or ""}:"
-            + makeSearchPath "lib/pkgconfig" (map (p: p.dev or null) runtimeInputs);
-          RUSTFLAGS =
-            "${devEnvironment.RUSTFLAGS or ""} "
-            + optionalString pkgs.stdenv.isLinux "-C link-args=-Wl,-rpath,${makeSearchPath "lib" runtimeInputs}";
-        };
+      env = devEnvironment // {
+        PKG_CONFIG_PATH =
+          "${devEnvironment.PKG_CONFIG_PATH or ""}:"
+          + makeSearchPath "lib/pkgconfig" (map (p: p.dev or null) runtimeInputs);
+        RUSTFLAGS =
+          "${devEnvironment.RUSTFLAGS or ""} "
+          + optionalString pkgs.stdenv.isLinux "-C link-args=-Wl,-rpath,${makeSearchPath "lib" runtimeInputs}";
+      };
     in
     {
       name = "bevy-flake-dev-environment.bash";
@@ -92,13 +90,11 @@ config
     target:
     pkgs.writeTextFile (
       let
-        env = 
-          targetEnvironments.${target}
-          // {
-            RUSTFLAGS =
-              "${targetEnvironments.${target}.RUSTFLAGS or ""} "
-              + concatStringsSep " " (config.crossPlatformRustflags or [ ]);
-          };
+        env = targetEnvironments.${target} // {
+          RUSTFLAGS =
+            "${targetEnvironments.${target}.RUSTFLAGS or ""} "
+            + concatStringsSep " " (config.crossPlatformRustflags or [ ]);
+        };
       in
       {
         name = "bevy-flake-${target}-environment.bash";

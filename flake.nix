@@ -202,9 +202,10 @@
           description = "Get the Rust toolchain from nixpkgs, no cross-compilation.";
         };
         actions =
-          warn "This template is for bevy-flake's own GitHub actions and should not be used externally." {
-            path = ./templates/actions;
-          };
+          warn "This template is for bevy-flake's own GitHub actions and should not be used externally."
+            {
+              path = ./templates/actions;
+            };
       };
     };
 }
