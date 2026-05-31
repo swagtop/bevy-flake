@@ -43,9 +43,6 @@ jobs:
           name: flake.lock
           path: bevy-flake
 
-      - name: Remove '.git' from base directory.
-        run: rm -rf .git
-
       - name: Clean lock in bevy-flake
         working-directory: bevy-flake
         run: git add ./flake.lock
@@ -56,6 +53,7 @@ jobs:
           tar -xf download
           rm download
           mv bevy-0.18.1 bevy
+          rm bevy/.gitignore
 
       - name: Pull 'fenix' template, follow newly updated lockfile from bevy-flake
         working-directory: bevy
@@ -165,28 +163,17 @@ jobs:
           name: flake.lock
           path: bevy-flake
 
-      - name: Remove '.git' from base directory.
-        run: rm -rf .git
-
       - name: Clean lock in bevy-flake
         working-directory: bevy-flake
         run: git add ./flake.lock
-      
+
       - name: Get bevy repo with lockfile from crates.io
         run: |
           curl -L -o download https://static.crates.io/crates/bevy/bevy-0.18.1.crate
           tar -xf download
           rm download
           mv bevy-0.18.1 bevy
-
-      - name: Set up bevy crate as git repo
-        working-directory: bevy
-        run: |
-          git config --global user.name 'github-actions'
-          git config --global user.email 'github-actions@users.noreply.github.com'
-          git init
-          git add .
-          git commit -m "Lets build!"
+          rm bevy/.gitignore
 
       - name: Pull 'fenix' template, follow newly updated lockfile from bevy-flake
         working-directory: bevy
@@ -286,9 +273,6 @@ jobs:
           name: flake.lock
           path: bevy-flake
 
-      - name: Remove '.git' from base directory.
-        run: rm -rf .git
-
       - name: Clean lock in bevy-flake
         working-directory: bevy-flake
         run: git add ./flake.lock
@@ -299,16 +283,8 @@ jobs:
           tar -xf download
           rm download
           mv bevy-0.18.1 bevy
+          rm bevy/.gitignore
 
-      - name: Set up bevy crate as git repo
-        working-directory: bevy
-        run: |
-          git config --global user.name 'github-actions'
-          git config --global user.email 'github-actions@users.noreply.github.com'
-          git init
-          git add .
-          git commit -m "Lets build!"
-      
       - name: Pull 'fenix' template, follow newly updated lockfile from bevy-flake
         working-directory: bevy
         run: |

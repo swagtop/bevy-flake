@@ -30,20 +30,26 @@
           ...
         }:
         {
-          packages = pkgs.lib.listToAttrs (
-            map (item: {
-              inherit (item) name;
-              value = item.value.overrideAttrs (old: {
-                cargoProfile = "dev";
-                cargoBuildFlags = old.cargoBuildFlags ++ [
-                  "--example"
-                  "breakout"
-                ];
-              });
-            }) packages.targets.list
-          )
-          // {
-            inherit (packages) rust-toolchain;
+          packages =
+            pkgs.lib.listToAttrs (
+              map (item: {
+                inherit (item) name;
+                value = item.value.overrideAttrs (old: {
+                  cargoProfile = "dev";
+                  cargoBuildFlags = old.cargoBuildFlags ++ [
+                    "--example"
+                    "breakout"
+                  ];
+                });
+              }) packages.targets.list
+            )
+            // {
+              inherit (packages) rust-toolchain;
+            };
+
+          devShells.default = pkgs.mkShell {
+            name = "github-actions";
+            packages = [ pkgs.rust-toolchain ];
           };
         };
 
