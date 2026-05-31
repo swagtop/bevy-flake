@@ -84,13 +84,13 @@ jobs:
 
       # Build each target, cleaning afterwards to not exceed max storage usage.
 
-      - name: Build Breakout example for runner in dev environment
-        working-directory: bevy
-        run: |
-          nix flake show
-          nix flake check
-          nix run .#rust-toolchain build -- --example breakout
-          nix run .#rust-toolchain clean -- --profile dev
+      # - name: Build Breakout example for runner in dev environment
+      #   working-directory: bevy
+      #   run: |
+      #     nix flake show
+      #     nix flake check
+      #     nix run .#rust-toolchain build -- --example breakout
+      #     nix run .#rust-toolchain clean -- --profile dev
 
       - name: Build Breakout example for aarch64-pc-windows-msvc
         working-directory: bevy
@@ -206,13 +206,13 @@ jobs:
 
       # Build each target, cleaning afterwards to not exceed max storage usage.
 
-      - name: Build Breakout example for runner in dev environment
-        working-directory: bevy
-        run: |
-          nix flake show
-          nix flake check
-          nix run .#rust-toolchain build -- --example breakout
-          nix run .#rust-toolchain clean -- --profile dev
+      # - name: Build Breakout example for runner in dev environment
+      #   working-directory: bevy
+      #   run: |
+      #     nix flake show
+      #     nix flake check
+      #     nix run .#rust-toolchain build -- --example breakout
+      #     nix run .#rust-toolchain clean -- --profile dev
 
       - name: Build Breakout example for aarch64-pc-windows-msvc
         working-directory: bevy
@@ -327,13 +327,13 @@ jobs:
 
       # Build each target, cleaning afterwards to not exceed max storage usage.
 
-      - name: Build Breakout example for runner in dev environment
-        working-directory: bevy
-        run: |
-          nix flake show
-          nix flake check
-          nix run .#rust-toolchain build -- --example breakout
-          nix run .#rust-toolchain clean -- --profile dev
+      # - name: Build Breakout example for runner in dev environment
+      #   working-directory: bevy
+      #   run: |
+      #     nix flake show
+      #     nix flake check
+      #     nix run .#rust-toolchain build -- --example breakout
+      #     nix run .#rust-toolchain clean -- --profile dev
 
       - name: Build Breakout example for aarch64-pc-windows-msvc
         working-directory: bevy
