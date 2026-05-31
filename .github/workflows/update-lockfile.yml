@@ -54,15 +54,6 @@ jobs:
           rm download
           mv bevy-0.18.1 bevy
 
-      - name: Set up bevy crate as git repo
-        working-directory: bevy
-        run: |
-          git config --global user.name 'github-actions'
-          git config --global user.email 'github-actions@users.noreply.github.com'
-          git init
-          git add .
-          git commit -m "Lets build!"
-          
       - name: Pull 'fenix' template, follow newly updated lockfile from bevy-flake
         working-directory: bevy
         run: |
@@ -71,6 +62,15 @@ jobs:
             --reference-lock-file ../bevy-flake/flake.lock \
             --override-input bevy-flake ../bevy-flake \
             --allow-dirty-locks
+
+      - name: Set up bevy crate as git repo
+        working-directory: bevy
+        run: |
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@users.noreply.github.com'
+          git init
+          git add .
+          git commit -m "Lets build!"
 
       - name: Build 'rust-toolchain' package.
         working-directory: bevy
