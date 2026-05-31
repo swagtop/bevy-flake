@@ -74,7 +74,9 @@ jobs:
 
       - name: Build 'rust-toolchain' package.
         working-directory: bevy
-        run: nix build .#rust-toolchain --no-link
+        run: |
+          nix flake show
+          nix build .#rust-toolchain --no-link
 
       # Build each target, cleaning afterwards to not exceed max storage usage.
 
@@ -177,7 +179,9 @@ jobs:
 
       - name: Build 'rust-toolchain' package.
         working-directory: bevy
-        run: nix build .#rust-toolchain --no-link
+        run: |
+          nix flake show
+          nix build .#rust-toolchain --no-link
 
       # Build each target, cleaning afterwards to not exceed max storage usage.
 
@@ -280,7 +284,9 @@ jobs:
 
       - name: Build 'rust-toolchain' package.
         working-directory: bevy
-        run: nix build .#rust-toolchain --no-link
+        run: |
+          nix flake show
+          nix build .#rust-toolchain --no-link
 
       # Build each target, cleaning afterwards to not exceed max storage usage.
 
