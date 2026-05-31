@@ -58,9 +58,14 @@ jobs:
           rm download
           mv bevy-0.18.1 bevy
 
-      - name: Add toolchian to system.
+      - name: Add toolchian from 'fenix' template to runner.
         working-directory: bevy
-        run: nix profile add ../bevy-flake#rust-toolchain
+        run: |
+          nix flake init --template ../bevy-flake#fenix
+          nix flake lock \
+            --reference-lock-file ../bevy-flake/flake.lock \
+            --override-input bevy-flake ../bevy-flake
+          nix profile add .#rust-toolchain
 
       - name: Build Breakout example for runner in dev environment.
         working-directory: bevy
@@ -131,9 +136,14 @@ jobs:
           rm download
           mv bevy-0.18.1 bevy
 
-      - name: Add toolchian to system.
+      - name: Add toolchian from 'fenix' template to runner.
         working-directory: bevy
-        run: nix profile add ../bevy-flake#rust-toolchain
+        run: |
+          nix flake init --template ../bevy-flake#fenix
+          nix flake lock \
+            --reference-lock-file ../bevy-flake/flake.lock \
+            --override-input bevy-flake ../bevy-flake
+          nix profile add .#rust-toolchain
 
       - name: Build Breakout example for runner in dev environment.
         working-directory: bevy
@@ -204,9 +214,14 @@ jobs:
           rm download
           mv bevy-0.18.1 bevy
 
-      - name: Add toolchian to system.
+      - name: Add toolchian from 'fenix' template to runner.
         working-directory: bevy
-        run: nix profile add ../bevy-flake#rust-toolchain
+        run: |
+          nix flake init --template ../bevy-flake#fenix
+          nix flake lock \
+            --reference-lock-file ../bevy-flake/flake.lock \
+            --override-input bevy-flake ../bevy-flake
+          nix profile add .#rust-toolchain
 
       - name: Build Breakout example for runner in dev environment.
         working-directory: bevy
