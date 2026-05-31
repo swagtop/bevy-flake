@@ -32,19 +32,34 @@
         {
           packages = {
             inherit (packages) rust-toolchain;
-            targets = pkgs.symlinkJoin {
-              name = "targets-breakout";
-              paths = map (item: {
-                inherit (item) name;
-                value = item.value.overrideAttrs (old: {
-                  cargoProfile = "dev";
-                  cargoBuildFlags = old.cargoBuildFlags ++ [
-                    "--example"
-                    "breakout"
-                  ];
-                });
-              }) packages.targets.list;
-            };
+            targets =
+              let
+                buildList = map (item: {
+                  inherit (item) name;
+                  value = item.value.overrideAttrs (old: {
+                    cargoProfile = "dev";
+                    cargoBuildFlags = old.cargoBuildFlags ++ [
+                      "--example"
+                      "breakout"
+                    ];
+                  });
+                }) packages.targets.list;
+              in
+              pkgs.stdenvNoCC.mkDerivation {
+                name = "all-targets";
+
+                nativeBuildInputs = buildList;
+
+                phases = [ "installPhase" ];
+
+                installPhase = ''
+                  mkdir -p $out
+
+                  ${builtins.concatStringsSep "\n" (
+                    map (build: "ln -s \"${build.value}\" $out/\"${build.name}\"") buildList
+                  )}
+                '';
+              };
           };
         };
 

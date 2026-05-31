@@ -55,7 +55,7 @@ jobs:
           mv bevy-0.18.1 bevy
           rm bevy/.gitignore
 
-      - name: Pull 'fenix' template, follow newly updated lockfile from bevy-flake
+      - name: Pull 'actions' template, follow newly updated lockfile from bevy-flake
         working-directory: bevy
         run: |
           nix flake init --template ../bevy-flake#actions
@@ -114,7 +114,7 @@ jobs:
           mv bevy-0.18.1 bevy
           rm bevy/.gitignore
 
-      - name: Pull 'fenix' template, follow newly updated lockfile from bevy-flake
+      - name: Pull 'actions' template, follow newly updated lockfile from bevy-flake
         working-directory: bevy
         run: |
           nix flake init --template ../bevy-flake#actions
@@ -164,7 +164,7 @@ jobs:
           mv bevy-0.18.1 bevy
           rm bevy/.gitignore
 
-      - name: Pull 'fenix' template, follow newly updated lockfile from bevy-flake
+      - name: Pull 'actions' template, follow newly updated lockfile from bevy-flake
         working-directory: bevy
         run: |
           nix flake init --template ../bevy-flake#actions
