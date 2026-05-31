@@ -76,6 +76,7 @@ jobs:
         working-directory: bevy
         run: |
           nix flake show
+          nix flake check
           nix build .#rust-toolchain --no-link
 
       # Build each target, cleaning afterwards to not exceed max storage usage.
@@ -84,6 +85,7 @@ jobs:
         working-directory: bevy
         run: |
           nix flake show
+          nix flake check
           nix run .#rust-toolchain build -- --example breakout
           nix run .#rust-toolchain clean -- --profile dev
 
@@ -91,6 +93,7 @@ jobs:
         working-directory: bevy
         run: |
           nix flake show
+          nix flake check
           nix build .#aarch64-unknown-pc-windows-msvc
           nix store delete ./result
 
@@ -98,6 +101,7 @@ jobs:
         working-directory: bevy
         run: |
           nix flake show
+          nix flake check
           nix build .#x86_64-unknown-pc-windows-msvc
           nix store delete ./result
 
@@ -105,6 +109,7 @@ jobs:
         working-directory: bevy
         run: |
           nix flake show
+          nix flake check
           nix build .#aarch64-unknown-linux-gnu
           nix store delete ./result
 
@@ -112,6 +117,7 @@ jobs:
         working-directory: bevy
         run: |
           nix flake show
+          nix flake check
           nix build .#x86_64-unknown-linux-gnu
           nix store delete ./result
 
@@ -133,6 +139,8 @@ jobs:
         working-directory: bevy
         run: |
           nix flake show
+          nix flake check
+
           nix build .#wasm32-unknown-unknown
           nix store delete ./result
 
@@ -187,6 +195,7 @@ jobs:
         working-directory: bevy
         run: |
           nix flake show
+          nix flake check
           nix build .#rust-toolchain --no-link
 
       # Build each target, cleaning afterwards to not exceed max storage usage.
@@ -195,6 +204,7 @@ jobs:
         working-directory: bevy
         run: |
           nix flake show
+          nix flake check
           nix run .#rust-toolchain build -- --example breakout
           nix run .#rust-toolchain clean -- --profile dev
 
@@ -202,6 +212,7 @@ jobs:
         working-directory: bevy
         run: |
           nix flake show
+          nix flake check
           nix build .#aarch64-unknown-pc-windows-msvc
           nix store delete ./result
 
@@ -209,6 +220,7 @@ jobs:
         working-directory: bevy
         run: |
           nix flake show
+          nix flake check
           nix build .#x86_64-unknown-pc-windows-msvc
           nix store delete ./result
 
@@ -216,6 +228,7 @@ jobs:
         working-directory: bevy
         run: |
           nix flake show
+          nix flake check
           nix build .#aarch64-unknown-linux-gnu
           nix store delete ./result
 
@@ -223,6 +236,7 @@ jobs:
         working-directory: bevy
         run: |
           nix flake show
+          nix flake check
           nix build .#x86_64-unknown-linux-gnu
           nix store delete ./result
 
@@ -244,6 +258,7 @@ jobs:
         working-directory: bevy
         run: |
           nix flake show
+          nix flake check
           nix build .#wasm32-unknown-unknown
           nix store delete ./result
 
@@ -298,6 +313,7 @@ jobs:
         working-directory: bevy
         run: |
           nix flake show
+          nix flake check
           nix build .#rust-toolchain --no-link
 
       # Build each target, cleaning afterwards to not exceed max storage usage.
@@ -306,6 +322,7 @@ jobs:
         working-directory: bevy
         run: |
           nix flake show
+          nix flake check
           nix run .#rust-toolchain build -- --example breakout
           nix run .#rust-toolchain clean -- --profile dev
 
@@ -313,6 +330,7 @@ jobs:
         working-directory: bevy
         run: |
           nix flake show
+          nix flake check
           nix build .#aarch64-unknown-pc-windows-msvc
           nix store delete ./result
 
@@ -320,6 +338,7 @@ jobs:
         working-directory: bevy
         run: |
           nix flake show
+          nix flake check
           nix build .#x86_64-unknown-pc-windows-msvc
           nix store delete ./result
 
@@ -327,6 +346,7 @@ jobs:
         working-directory: bevy
         run: |
           nix flake show
+          nix flake check
           nix build .#aarch64-unknown-linux-gnu
           nix store delete ./result
 
@@ -334,6 +354,7 @@ jobs:
         working-directory: bevy
         run: |
           nix flake show
+          nix flake check
           nix build .#x86_64-unknown-linux-gnu
           nix store delete ./result
 
@@ -355,6 +376,7 @@ jobs:
         working-directory: bevy
         run: |
           nix flake show
+          nix flake check
           nix build .#wasm32-unknown-unknown
           nix store delete ./result
 
