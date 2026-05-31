@@ -43,6 +43,9 @@ jobs:
           name: flake.lock
           path: bevy-flake
 
+      - name: Remove '.git' from base directory.
+        run: rm -rf .git
+
       - name: Clean lock in bevy-flake
         working-directory: bevy-flake
         run: git add ./flake.lock
@@ -162,6 +165,9 @@ jobs:
           name: flake.lock
           path: bevy-flake
 
+      - name: Remove '.git' from base directory.
+        run: rm -rf .git
+
       - name: Clean lock in bevy-flake
         working-directory: bevy-flake
         run: git add ./flake.lock
@@ -279,6 +285,9 @@ jobs:
         with:
           name: flake.lock
           path: bevy-flake
+
+      - name: Remove '.git' from base directory.
+        run: rm -rf .git
 
       - name: Clean lock in bevy-flake
         working-directory: bevy-flake
