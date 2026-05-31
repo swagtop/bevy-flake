@@ -65,7 +65,7 @@ jobs:
       - name: Build Breakout example for runner in dev environment.
         working-directory: bevy
         run: |
-          cargo build --target --example breakout
+          cargo build --example breakout
           cargo clean --profile dev
 
       - name: Build Breakout example for aarch64-pc-windows-msvc.
@@ -138,7 +138,7 @@ jobs:
       - name: Build Breakout example for runner in dev environment.
         working-directory: bevy
         run: |
-          cargo build --target --example breakout
+          cargo build --example breakout
           cargo clean --profile dev
 
       - name: Build Breakout example for aarch64-pc-windows-msvc.
@@ -211,7 +211,7 @@ jobs:
       - name: Build Breakout example for runner in dev environment.
         working-directory: bevy
         run: |
-          cargo build --target --example breakout
+          cargo build --example breakout
           cargo clean --profile dev
 
       - name: Build Breakout example for aarch64-pc-windows-msvc.
