@@ -47,11 +47,7 @@
               in
               pkgs.stdenvNoCC.mkDerivation {
                 name = "all-targets";
-
-                nativeBuildInputs = buildList;
-
                 phases = [ "installPhase" ];
-
                 installPhase = ''
                   mkdir -p $out
 
