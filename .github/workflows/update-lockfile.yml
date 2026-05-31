@@ -80,9 +80,25 @@ jobs:
           nix flake check
           nix build .#rust-toolchain --no-link
 
-      - name: Build Breakout example for each target with Nix.
+      - name: Build Breakout example for aarch64-pc-windows-msvc with Nix.
         working-directory: bevy
-        run: nix build .#targets --max-jobs 1
+        run: nix build .#targets.aarch64-pc-windows-msvc -L
+
+      - name: Build Breakout example for x86_64-pc-windows-msvc with Nix.
+        working-directory: bevy
+        run: nix build .#targets.x86_64-pc-windows-msvc -L
+
+      - name: Build Breakout example for aarch64-unknown-linux-gnu with Nix.
+        working-directory: bevy
+        run: nix build .#targets.aarch64-unknown-linux-gnu -L
+
+      - name: Build Breakout example for x86_64-unknown-linux-gnu with Nix.
+        working-directory: bevy
+        run: nix build .#targets.x86_64-unknown-linux-gnu -L
+
+      - name: Build Breakout example for wasm32-unknown-unknown with Nix.
+        working-directory: bevy
+        run: nix build .#targets.wasm32-unknown-unknown -L
 
   build-linux-x86_64:
     runs-on: ubuntu-latest
@@ -130,9 +146,25 @@ jobs:
           nix flake check
           nix build .#rust-toolchain --no-link
 
-      - name: Build Breakout example for each target with Nix.
+      - name: Build Breakout example for aarch64-pc-windows-msvc with Nix.
         working-directory: bevy
-        run: nix build .#targets --max-jobs 1
+        run: nix build .#targets.aarch64-pc-windows-msvc -L
+
+      - name: Build Breakout example for x86_64-pc-windows-msvc with Nix.
+        working-directory: bevy
+        run: nix build .#targets.x86_64-pc-windows-msvc -L
+
+      - name: Build Breakout example for aarch64-unknown-linux-gnu with Nix.
+        working-directory: bevy
+        run: nix build .#targets.aarch64-unknown-linux-gnu -L
+
+      - name: Build Breakout example for x86_64-unknown-linux-gnu with Nix.
+        working-directory: bevy
+        run: nix build .#targets.x86_64-unknown-linux-gnu -L
+
+      - name: Build Breakout example for wasm32-unknown-unknown with Nix.
+        working-directory: bevy
+        run: nix build .#targets.wasm32-unknown-unknown -L
 
   build-linux-aarch64:
     runs-on: ubuntu-24.04-arm
@@ -180,9 +212,25 @@ jobs:
           nix flake check
           nix build .#rust-toolchain --no-link
 
-      - name: Build Breakout example for each target with Nix.
+      - name: Build Breakout example for aarch64-pc-windows-msvc with Nix.
         working-directory: bevy
-        run: nix build .#targets --max-jobs 1
+        run: nix build .#targets.aarch64-pc-windows-msvc -L
+
+      - name: Build Breakout example for x86_64-pc-windows-msvc with Nix.
+        working-directory: bevy
+        run: nix build .#targets.x86_64-pc-windows-msvc -L
+
+      - name: Build Breakout example for aarch64-unknown-linux-gnu with Nix.
+        working-directory: bevy
+        run: nix build .#targets.aarch64-unknown-linux-gnu -L
+
+      - name: Build Breakout example for x86_64-unknown-linux-gnu with Nix.
+        working-directory: bevy
+        run: nix build .#targets.x86_64-unknown-linux-gnu -L
+
+      - name: Build Breakout example for wasm32-unknown-unknown with Nix.
+        working-directory: bevy
+        run: nix build .#targets.wasm32-unknown-unknown -L
 
   push-lockfile:
     runs-on: ubuntu-latest

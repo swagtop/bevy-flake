@@ -55,6 +55,7 @@
                     map (build: "ln -s \"${build.value}\" $out/\"${build.name}\"") buildList
                   )}
                 '';
+                passthru.targets = builtins.listToAttrs buildList;
               };
           };
         };
