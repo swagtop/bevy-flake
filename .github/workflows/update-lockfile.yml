@@ -83,30 +83,35 @@ jobs:
       - name: Build Breakout example for runner in dev environment
         working-directory: bevy
         run: |
+          nix flake show
           nix run .#rust-toolchain build -- --example breakout
           nix run .#rust-toolchain clean -- --profile dev
 
       - name: Build Breakout example for aarch64-pc-windows-msvc
         working-directory: bevy
         run: |
+          nix flake show
           nix build .#aarch64-unknown-pc-windows-msvc
           nix store delete ./result
 
       - name: Build Breakout example for x86_64-pc-windows-msvc
         working-directory: bevy
         run: |
+          nix flake show
           nix build .#x86_64-unknown-pc-windows-msvc
           nix store delete ./result
 
       - name: Build Breakout example for aarch64-unknown-linux-gnu
         working-directory: bevy
         run: |
+          nix flake show
           nix build .#aarch64-unknown-linux-gnu
           nix store delete ./result
 
       - name: Build Breakout example for x86_64-unknown-linux-gnu
         working-directory: bevy
         run: |
+          nix flake show
           nix build .#x86_64-unknown-linux-gnu
           nix store delete ./result
 
@@ -127,6 +132,7 @@ jobs:
       - name: Build Breakout example for wasm32-unknown-unknown
         working-directory: bevy
         run: |
+          nix flake show
           nix build .#wasm32-unknown-unknown
           nix store delete ./result
 
@@ -188,30 +194,35 @@ jobs:
       - name: Build Breakout example for runner in dev environment
         working-directory: bevy
         run: |
+          nix flake show
           nix run .#rust-toolchain build -- --example breakout
           nix run .#rust-toolchain clean -- --profile dev
 
       - name: Build Breakout example for aarch64-pc-windows-msvc
         working-directory: bevy
         run: |
+          nix flake show
           nix build .#aarch64-unknown-pc-windows-msvc
           nix store delete ./result
 
       - name: Build Breakout example for x86_64-pc-windows-msvc
         working-directory: bevy
         run: |
+          nix flake show
           nix build .#x86_64-unknown-pc-windows-msvc
           nix store delete ./result
 
       - name: Build Breakout example for aarch64-unknown-linux-gnu
         working-directory: bevy
         run: |
+          nix flake show
           nix build .#aarch64-unknown-linux-gnu
           nix store delete ./result
 
       - name: Build Breakout example for x86_64-unknown-linux-gnu
         working-directory: bevy
         run: |
+          nix flake show
           nix build .#x86_64-unknown-linux-gnu
           nix store delete ./result
 
@@ -232,6 +243,7 @@ jobs:
       - name: Build Breakout example for wasm32-unknown-unknown
         working-directory: bevy
         run: |
+          nix flake show
           nix build .#wasm32-unknown-unknown
           nix store delete ./result
 
@@ -293,30 +305,35 @@ jobs:
       - name: Build Breakout example for runner in dev environment
         working-directory: bevy
         run: |
+          nix flake show
           nix run .#rust-toolchain build -- --example breakout
           nix run .#rust-toolchain clean -- --profile dev
 
       - name: Build Breakout example for aarch64-pc-windows-msvc
         working-directory: bevy
         run: |
+          nix flake show
           nix build .#aarch64-unknown-pc-windows-msvc
           nix store delete ./result
 
       - name: Build Breakout example for x86_64-pc-windows-msvc
         working-directory: bevy
         run: |
+          nix flake show
           nix build .#x86_64-unknown-pc-windows-msvc
           nix store delete ./result
 
       - name: Build Breakout example for aarch64-unknown-linux-gnu
         working-directory: bevy
         run: |
+          nix flake show
           nix build .#aarch64-unknown-linux-gnu
           nix store delete ./result
 
       - name: Build Breakout example for x86_64-unknown-linux-gnu
         working-directory: bevy
         run: |
+          nix flake show
           nix build .#x86_64-unknown-linux-gnu
           nix store delete ./result
 
@@ -337,6 +354,7 @@ jobs:
       - name: Build Breakout example for wasm32-unknown-unknown
         working-directory: bevy
         run: |
+          nix flake show
           nix build .#wasm32-unknown-unknown
           nix store delete ./result
 
