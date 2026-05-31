@@ -134,11 +134,11 @@ in
               "-C linker=${target-linker}/bin/${target-linker.meta.mainProgram}"
               "-C link-arg=-fuse-ld=${bintools}/bin/ld.lld"
               "-C link-arg=-Wl,--dynamic-linker=${
-                  {
-                    aarch64-linux = "/lib64/ld-linux-aarch64.so.1";
-                    x86_64-linux = "/lib64/ld-linux-x86-64.so.2";
-                  }
-                  .${targetSystem}
+                {
+                  aarch64-linux = "/lib64/ld-linux-aarch64.so.1";
+                  x86_64-linux = "/lib64/ld-linux-x86-64.so.2";
+                }
+                .${targetSystem}
               }"
             ]
           );

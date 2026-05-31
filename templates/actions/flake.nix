@@ -30,9 +30,11 @@
           ...
         }:
         {
-          packages =
-            pkgs.lib.listToAttrs (
-              map (item: {
+          packages = {
+            inherit (packages) rust-toolchain;
+            targets = pkgs.symlinkJoin {
+              name = "targets-breakout";
+              paths = map (item: {
                 inherit (item) name;
                 value = item.value.overrideAttrs (old: {
                   cargoProfile = "dev";
@@ -41,15 +43,8 @@
                     "breakout"
                   ];
                 });
-              }) packages.targets.list
-            )
-            // {
-              inherit (packages) rust-toolchain;
+              }) packages.targets.list;
             };
-
-          devShells.default = pkgs.mkShell {
-            name = "github-actions";
-            packages = [ pkgs.rust-toolchain ];
           };
         };
 
