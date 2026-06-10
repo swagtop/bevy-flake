@@ -116,6 +116,8 @@ in
 }
 ```
 
+## Non-flake usage
+
 If you are importing `bevy-flake` on a non-flake enabled system, you can
 configure it like so:
 

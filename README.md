@@ -37,9 +37,11 @@ nix flake init --template github:swagtop/bevy-flake#nixpkgs
 Switching later is very easy, and you should very easily be able to use any
 other toolchain provider not listed here. More on this [here.][config-toolchain]
 
-This flake is equipped with `flake-compat`, should you be a non-flake user.
+The packages this flake provides can also be imported by non-flake users, like
+you would import `nixpkgs`. Read more about this [here.][non-flake-import]
 
 [config-toolchain]: docs/config.md#rusttoolchain
+[non-flake-import]: docs/config.md#non-flakeusage
 
 
 ## How to use
