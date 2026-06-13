@@ -50,7 +50,7 @@ let
     };
 
   editTargets =
-    environments: list: f:
+    environments: list: input:
     foldl' (
       accumulator: target:
       let
@@ -58,7 +58,7 @@ let
       in
       accumulator
       // {
-        ${target} = recursiveUpdate targetEnv (applyIfFunction f targetEnv);
+        ${target} = recursiveUpdate targetEnv (applyIfFunction input targetEnv);
       }
     ) environments list;
 in
