@@ -28,7 +28,7 @@ you can use like so:
 
 ## Packaging 
 
-> ![NOTE]
+> [!IMPORTANT]
 > This can only be run on Linux systems, as the Windows MSVC SDK produced by
 > nixpkgs on MacOS systems are missing critical symlinks needed on
 > case-sensitive systems.
