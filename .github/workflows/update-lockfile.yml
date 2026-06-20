@@ -8,9 +8,6 @@ jobs:
   update-lockfile:
     runs-on: ubuntu-latest
 
-    outputs:
-      lockfile: ${{ steps.Output.outputs.lockfile }}
-
     steps:
       - uses: DeterminateSystems/nix-installer-action@main
 
@@ -24,10 +21,14 @@ jobs:
         with:
           name: flake.lock
           path: flake.lock
-  
-  build-macos-aarch64:
-    runs-on: macos-latest
-    needs: update-lockfile
+
+  build-on-supported-systems:
+    strategy:
+      matrix:
+        system: [ubuntu-latest, ubuntu-24.04-arm, macos-latest]
+
+    runs-on: ${{ matrix.system }}
+
     steps:
       - uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/magic-nix-cache-action@main
@@ -49,7 +50,7 @@ jobs:
           git config --global user.name 'github-actions'
           git config --global user.email 'github-actions@users.noreply.github.com'
           git add ./flake.lock
-          git commit -m "Fetched updated lock."
+          git commit -m "Fetched updated lock." | true
 
       - name: Get bevy repo with lockfile from crates.io
         run: |
@@ -103,165 +104,9 @@ jobs:
           cargo build --target wasm32-unknown-unknown --example breakout
           cargo clean --target wasm32-unknown-unknown
 
-  build-linux-x86_64:
-    runs-on: ubuntu-latest
-    needs: update-lockfile
-    steps:
-      - uses: DeterminateSystems/nix-installer-action@main
-      - uses: DeterminateSystems/magic-nix-cache-action@main
-        with:
-          use-flakehub: false
-
-      - uses: actions/checkout@v6
-        with:
-          path: bevy-flake
-
-      - uses: actions/download-artifact@v8
-        with:
-          name: flake.lock
-          path: bevy-flake
-
-      - name: Clean lock in bevy-flake
-        working-directory: bevy-flake
-        run: |
-          git config --global user.name 'github-actions'
-          git config --global user.email 'github-actions@users.noreply.github.com'
-          git add ./flake.lock
-          git commit -m "Fetched updated lock."
-
-      - name: Get bevy repo with lockfile from crates.io
-        run: |
-          curl -L -o download https://static.crates.io/crates/bevy/bevy-0.18.1.crate
-          tar -xf download
-          rm download
-          mv bevy-0.18.1 bevy
-
-      - name: Add toolchian from 'fenix' template to runner.
-        working-directory: bevy
-        run: |
-          nix flake init --template ../bevy-flake#fenix
-          nix flake lock \
-            --reference-lock-file ../bevy-flake/flake.lock \
-            --override-input bevy-flake ../bevy-flake
-          nix profile add .#rust-toolchain
-
-      - name: Build Breakout example for runner in dev environment.
-        working-directory: bevy
-        run: |
-          cargo build --example breakout
-          cargo clean --profile dev
-
-      - name: Build Breakout example for aarch64-pc-windows-msvc.
-        working-directory: bevy
-        run: |
-          cargo build --target aarch64-pc-windows-msvc --example breakout
-          cargo clean --target aarch64-pc-windows-msvc
-
-      - name: Build Breakout example for x86_64-pc-windows-msvc.
-        working-directory: bevy
-        run: |
-          cargo build --target x86_64-pc-windows-msvc --example breakout
-          cargo clean --target x86_64-pc-windows-msvc
-
-      - name: Build Breakout example for aarch64-unknown-linux-gnu.
-        working-directory: bevy
-        run: |
-          cargo build --target aarch64-unknown-linux-gnu --example breakout
-          cargo clean --target aarch64-unknown-linux-gnu
-
-      - name: Build Breakout example for x86_64-unknown-linux-gnu.
-        working-directory: bevy
-        run: |
-          cargo build --target x86_64-unknown-linux-gnu --example breakout
-          cargo clean --target x86_64-unknown-linux-gnu
-
-      - name: Build Breakout example for wasm32-unknown-unknown.
-        working-directory: bevy
-        run: |
-          cargo build --target wasm32-unknown-unknown --example breakout
-          cargo clean --target wasm32-unknown-unknown
-
-  build-linux-aarch64:
-    runs-on: ubuntu-24.04-arm
-    needs: update-lockfile
-    steps:
-      - uses: DeterminateSystems/nix-installer-action@main
-      - uses: DeterminateSystems/magic-nix-cache-action@main
-        with:
-          use-flakehub: false
-
-      - uses: actions/checkout@v6
-        with:
-          path: bevy-flake
-
-      - uses: actions/download-artifact@v8
-        with:
-          name: flake.lock
-          path: bevy-flake
-
-      - name: Clean lock in bevy-flake
-        working-directory: bevy-flake
-        run: |
-          git config --global user.name 'github-actions'
-          git config --global user.email 'github-actions@users.noreply.github.com'
-          git add ./flake.lock
-          git commit -m "Fetched updated lock."
-
-      - name: Get bevy repo with lockfile from crates.io
-        run: |
-          curl -L -o download https://static.crates.io/crates/bevy/bevy-0.18.1.crate
-          tar -xf download
-          rm download
-          mv bevy-0.18.1 bevy
-
-      - name: Add toolchian from 'fenix' template to runner.
-        working-directory: bevy
-        run: |
-          nix flake init --template ../bevy-flake#fenix
-          nix flake lock \
-            --reference-lock-file ../bevy-flake/flake.lock \
-            --override-input bevy-flake ../bevy-flake
-          nix profile add .#rust-toolchain
-
-      - name: Build Breakout example for runner in dev environment.
-        working-directory: bevy
-        run: |
-          cargo build --example breakout
-          cargo clean --profile dev
-
-      - name: Build Breakout example for aarch64-pc-windows-msvc.
-        working-directory: bevy
-        run: |
-          cargo build --target aarch64-pc-windows-msvc --example breakout
-          cargo clean --target aarch64-pc-windows-msvc
-
-      - name: Build Breakout example for x86_64-pc-windows-msvc.
-        working-directory: bevy
-        run: |
-          cargo build --target x86_64-pc-windows-msvc --example breakout
-          cargo clean --target x86_64-pc-windows-msvc
-
-      - name: Build Breakout example for aarch64-unknown-linux-gnu.
-        working-directory: bevy
-        run: |
-          cargo build --target aarch64-unknown-linux-gnu --example breakout
-          cargo clean --target aarch64-unknown-linux-gnu
-
-      - name: Build Breakout example for x86_64-unknown-linux-gnu.
-        working-directory: bevy
-        run: |
-          cargo build --target x86_64-unknown-linux-gnu --example breakout
-          cargo clean --target x86_64-unknown-linux-gnu
-
-      - name: Build Breakout example for wasm32-unknown-unknown.
-        working-directory: bevy
-        run: |
-          cargo build --target wasm32-unknown-unknown --example breakout
-          cargo clean --target wasm32-unknown-unknown
-
   push-lockfile:
     runs-on: ubuntu-latest
-    needs: [update-lockfile, build-macos-aarch64, build-linux-x86_64, build-linux-aarch64]
+    needs: [update-lockfile, build-on-supported-systems]
 
     # If every target builds successfully on both Linux and Macos, update is
     # good and we can push.
