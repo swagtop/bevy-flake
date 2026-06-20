@@ -26,6 +26,7 @@
           }
         ) { } attrList;
 
+      # The only place where 'inputs' is used is to set 'withPkgs' in here.
       defaultConfig = import ./config.nix inputs;
 
       # Merge all individual configs into one, from oldest to newest.
