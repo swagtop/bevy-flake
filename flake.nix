@@ -98,27 +98,20 @@
           # flake-parts features that aren't supported by bevy-flake.
           finalConfigList =
             let
-              throwExplain =
-                explaination:
-                throw (
-                  "'bevy-flake.lib.mkFlake' is not identical to 'flake-parts.lib.mkFlake'.\n"
-                  + "It is merely mimicking its interface for ease-of-use.\n\n"
-                  + explaination
-                );
+              assertMsg = pred: msg: pred || throw (
+                "'bevy-flake.lib.mkFlake' is not identical to 'flake-parts.lib.mkFlake'.\n"
+                + "It is merely mimicking its interface for ease-of-use.\n\n"
+                + msg
+              );
             in
-            if isFunction flake then
-              throwExplain (
-                "It will not work with anything more complicated than the input:\n\n"
-                + "{\n  config = <config>;\n  perSystem = <function>;\n  flake = <attrs>;\n}"
-              )
-            else if flake ? systems then
-              throwExplain "Set systems with '{ config.systems = [ <system> ]; }'."
-            else if flake ? imports then
-              throwExplain "Use flake-parts for features like 'imports'."
-            else if flake ? inputs then
-              throwExplain "Remove '{ inherit inputs; }', or use flake-parts for this feature."
-            else
-              configList ++ [ flake.config or { } ];
+            assert assertMsg (!isFunction flake) (
+              "It will not work with anything more complicated than the input:\n\n"
+              + "{\n  config = <config>;\n  perSystem = <function>;\n  flake = <attrs>;\n}"
+            );
+            assert assertMsg (!flake ? systems) "Set systems with '{ config.systems = [ <system> ]; }'.";
+            assert assertMsg (!flake ? imports) "Use flake-parts for features like 'imports'.";
+            assert assertMsg (!flake ? inputs) "Remove '{ inherit inputs; }', or use flake-parts for this feature.";
+            configList ++ [ flake.config or { } ];
 
           assembledConfig = assembleConfigs finalConfigList;
 
