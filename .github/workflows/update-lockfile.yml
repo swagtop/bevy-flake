@@ -53,7 +53,7 @@ jobs:
 
       - name: Get bevy repo with lockfile from crates.io
         run: |
-          curl -L -o download https://static.crates.io/crates/bevy/bevy-0.18.1.crate
+          curl -L -o download https://static.crates.io/crates/bevy/bevy-0.19.0.crate
           tar -xf download
           rm download
           mv bevy-0.18.1 bevy
