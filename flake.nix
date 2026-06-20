@@ -98,11 +98,14 @@
           # flake-parts features that aren't supported by bevy-flake.
           finalConfigList =
             let
-              assertMsg = pred: msg: pred || throw (
-                "'bevy-flake.lib.mkFlake' is not identical to 'flake-parts.lib.mkFlake'.\n"
-                + "It is merely mimicking its interface for ease-of-use.\n\n"
-                + msg
-              );
+              assertMsg =
+                pred: msg:
+                pred
+                || throw (
+                  "'bevy-flake.lib.mkFlake' is not identical to 'flake-parts.lib.mkFlake'.\n"
+                  + "It is merely mimicking its interface for ease-of-use.\n\n"
+                  + msg
+                );
             in
             assert assertMsg (!isFunction flake) (
               "It will not work with anything more complicated than the input:\n\n"
@@ -110,7 +113,10 @@
             );
             assert assertMsg (!flake ? systems) "Set systems with '{ config.systems = [ <system> ]; }'.";
             assert assertMsg (!flake ? imports) "Use flake-parts for features like 'imports'.";
-            assert assertMsg (!flake ? inputs) "Remove '{ inherit inputs; }', or use flake-parts for this feature.";
+            assert assertMsg (
+              !flake ? inputs
+            ) "Remove '{ inherit inputs; }', or use flake-parts for this feature.";
+
             configList ++ [ flake.config or { } ];
 
           assembledConfig = assembleConfigs finalConfigList;
