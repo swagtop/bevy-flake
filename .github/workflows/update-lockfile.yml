@@ -22,12 +22,13 @@ jobs:
           name: flake.lock
           path: flake.lock
 
-  build-on-supported-systems:
+  build-bevy-breakout:
     strategy:
       matrix:
         system: [ubuntu-latest, ubuntu-24.04-arm, macos-latest]
 
     runs-on: ${{ matrix.system }}
+    needs: [update-lockfile]
 
     steps:
       - uses: DeterminateSystems/nix-installer-action@main
@@ -106,7 +107,7 @@ jobs:
 
   push-lockfile:
     runs-on: ubuntu-latest
-    needs: [update-lockfile, build-on-supported-systems]
+    needs: [update-lockfile, build-bevy-breakout]
 
     # If every target builds successfully on both Linux and Macos, update is
     # good and we can push.
