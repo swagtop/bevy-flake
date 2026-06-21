@@ -8,8 +8,8 @@ With `bevy-flake` you can effortlessly develop your Bevy project in a Nix
 environment, and cross-compile release-ready portable binaries for platforms
 like non-Nix Linux, MacOS[^1], Windows and WASM.
 
-[^1]: For MacOS builds you need to set up the SDK, it takes no more than 5
-      minutes. Read how to do this [here.](docs/macos.md)
+[^1]: For MacOS builds you need to set up the SDK. This takes no more than 5
+      minutes. Read the MacOS docs for the guide on how to do this.
 
 [bevy]: https://github.com/bevyengine/bevy
 
