@@ -2,6 +2,7 @@ name: Automatic lockfile update
 on:
   schedule:
     - cron: '39 0 * * 6'
+  workflow_dispatch:
 
 jobs:
   # Update lockfile to reference latest nixpkgs/nixos-unstable commit.
