@@ -2,7 +2,6 @@ name: Automatic lockfile update
 on:
   schedule:
     - cron: '39 0 * * 6'
-  workflow_dispatch:
 
 jobs:
   # Update lockfile to reference latest nixpkgs/nixos-unstable commit.
@@ -31,10 +30,17 @@ jobs:
 
     env:
       BEVY_VERSION: 0.19.0
+      TARGETS: |
+        aarch64-unknown-linux-gnu
+        x86_64-unknown-linux-gnu
+        aarch64-pc-windows-msvc
+        x86_64-pc-windows-msvc
+        wasm32-unknown-unknown
 
     runs-on: ${{ matrix.system }}
     needs: [update-lockfile]
 
+    # Use nixpkgs system names, instead of the ones that come with the runners.
     name: |-
       build-${{ case(
         matrix.system == 'ubuntu-latest', 'x86_64-linux',
@@ -88,35 +94,17 @@ jobs:
           cargo build --example breakout
           cargo clean --profile dev
 
-      - name: Build Breakout example for aarch64-pc-windows-msvc
+      - name: Build Breakout examples for all targets
         working-directory: bevy
         run: |
-          cargo build --target aarch64-pc-windows-msvc --example breakout
-          cargo clean --target aarch64-pc-windows-msvc
+          for target in "$TARGETS"; do
+            echo "::group::Build Breakout example for $target"
 
-      - name: Build Breakout example for x86_64-pc-windows-msvc
-        working-directory: bevy
-        run: |
-          cargo build --target x86_64-pc-windows-msvc --example breakout
-          cargo clean --target x86_64-pc-windows-msvc
+            cargo build --target "$target" --example breakout
+            cargo clean --target "$target"
 
-      - name: Build Breakout example for aarch64-unknown-linux-gnu
-        working-directory: bevy
-        run: |
-          cargo build --target aarch64-unknown-linux-gnu --example breakout
-          cargo clean --target aarch64-unknown-linux-gnu
-
-      - name: Build Breakout example for x86_64-unknown-linux-gnu
-        working-directory: bevy
-        run: |
-          cargo build --target x86_64-unknown-linux-gnu --example breakout
-          cargo clean --target x86_64-unknown-linux-gnu
-
-      - name: Build Breakout example for wasm32-unknown-unknown
-        working-directory: bevy
-        run: |
-          cargo build --target wasm32-unknown-unknown --example breakout
-          cargo clean --target wasm32-unknown-unknown
+            echo "::endgroup::"
+          done
 
   # Push lockfile if all supported systems build all targets successfully.
   push-lockfile:
