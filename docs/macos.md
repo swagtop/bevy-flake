@@ -6,7 +6,7 @@ Regardless of if you are on MacOS or not, you need to add a MacOS SDK to your
 bevy-flake instance to compile a portable MacOS binary for non-Nix systems.
 
 This is done by first getting your hands on an SDK. You can package one
-yourself quite easily, using a helper script powered by [osxcross][osxcross],
+yourself quite easily, using a helper script powered by [osxcross,][osxcross]
 included in this flake.
 
 You will not find a link to one anywhere on this repo.
@@ -22,12 +22,10 @@ You will not find a link to one anywhere on this repo.
 
 ## Using a packaged SDK
 
-1. Acquire a URL to a packaged SDK. This can be done by packaging one yourself,
-   or finding a pre-packaged one online. Regardless of where you find it, you
-   should upload it yourself, so that you don't risk the one you are using
-   becoming unavailable.
-
-   The reproducability of your project is dependent on this SDK being available.
+1. Get your hands on a MacOS SDK tarball. You can find one online, or package it
+   and make it available to yourself, such that Nix can download it from a URL.
+   Referring to a different user or websites tarball is not recommended, as
+   your MacOS builds stop working, should you lose access to it.
 
 2. Add it to your config like so:
    ```nix
@@ -53,10 +51,8 @@ You will not find a link to one anywhere on this repo.
    ```
    ... where `<xcode.xip>` is the path to the Xcode archive you have downloaded.
 
-3. Upload the resulting `MacOSX__.sdk.tar.xz` file somewhere Nix can fetch it
-   from. This could be a fileserver, or the releases section of your repo
-   (provided it is public). You could make an empty repo for the sole purpose of
-   uploading these SDK's.
+3. You now have a `MacOSX<version>.sdk.tar.xz` file in the directory you are in,
+   which unpacks into the MacOS SDK.
 
 
 ## Structure of the SDK
