@@ -34,17 +34,13 @@ nix flake init --template github:swagtop/bevy-flake#fenix
 nix flake init --template github:swagtop/bevy-flake#nixpkgs
 ```
 
-Switching later is very easy, and you should very easily be able to use any
-other toolchain provider not listed here. More on this [here.][config-toolchain]
-
 The packages this flake provides can also be imported and configured by
 non-flake users. Read more about this [here.][non-flake-import]
 
-[config-toolchain]: docs/config.md#rusttoolchain
 [non-flake-import]: docs/config.md#non-flake-usage
 
 
-## How to use
+## Usage
 
 Add the packages you want from `bevy-flake` to your environment with
 `nix develop`, with `nix shell`, or any other means.
