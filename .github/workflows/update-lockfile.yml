@@ -23,7 +23,7 @@ jobs:
           name: flake.lock
           path: flake.lock
 
-  # Build the breakout example from the Bevy repo on all supported systems.
+  # Build the Breakout example from the Bevy repo on all supported systems.
   build-bevy-breakout:
     strategy:
       matrix:
@@ -95,10 +95,10 @@ jobs:
           cargo build --example breakout
           cargo clean --profile dev
 
-      - name: Build Breakout examples for all targets
+      - name: Build Breakout example for each supported target
         working-directory: bevy
         run: |
-          for target in "$TARGETS"; do
+          for target in $TARGETS; do
             echo "::group::Build Breakout example for $target"
 
             cargo build --target "$target" --example breakout
