@@ -42,6 +42,7 @@ jobs:
         wasm32-unknown-unknown
 
     runs-on: ${{ matrix.system }}
+    shell: bash
     needs: [update-lockfile]
 
     # Use nixpkgs system names, instead of the ones that come with the runners.
