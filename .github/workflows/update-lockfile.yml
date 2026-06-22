@@ -41,8 +41,11 @@ jobs:
         x86_64-apple-darwin
         wasm32-unknown-unknown
 
+    defaults:
+      run:
+        shell: bash
+
     runs-on: ${{ matrix.system }}
-    shell: bash
     needs: [update-lockfile]
 
     # Use nixpkgs system names, instead of the ones that come with the runners.
