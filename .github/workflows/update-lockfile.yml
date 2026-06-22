@@ -96,16 +96,13 @@ jobs:
             --reference-lock-file ../bevy-flake/flake.lock \
             --override-input bevy-flake ../bevy-flake
 
-          # Install gnu coreutils for same awk on all systems.
-          nix profile add nixpkgs#coreutils
-
           # Insert MacOS SDK configuration after toolchain definition.
           TMP=$(
-            awk -v block="$MACOS_SDK" \
+            nix run nixpkgs#gawk -- -v block="$MACOS_SDK" \
               '/fx.combine \(\[ fx.\${channel}.toolchain ] \+\+ stds);/ \
               { print; print block; next }1' \
               flake.nix
-            )
+          )
           echo "$TMP" > flake.nix
 
           # Install toolchain on runner.
