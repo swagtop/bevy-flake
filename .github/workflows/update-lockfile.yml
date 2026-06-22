@@ -96,7 +96,7 @@ jobs:
         working-directory: bevy
         run: |
           awk '/fx.combine \(\[ fx.\${channel}.toolchain ] \+\+ stds);/ \
-            { print; print "$MACOS_SDK"; next }1' flake.nix
+            { print; print "$MACOS_SDK"; next }1' flake.nix > flake.nix
 
       - name: Build Breakout example for runner in dev environment
         working-directory: bevy
