@@ -94,7 +94,7 @@ jobs:
 
           # Insert MacOS SDK configuration after toolchain definition.
           TMP=$(
-            awk -v block="$MACOS_SDK" \
+            nix run nixpkgs#awk -- -v block="$MACOS_SDK" \
               '/fx.combine \(\[ fx.\${channel}.toolchain ] \+\+ stds);/ \
               { print; print block; next }1' \
               flake.nix
