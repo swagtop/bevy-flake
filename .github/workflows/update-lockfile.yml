@@ -92,9 +92,14 @@ jobs:
             --reference-lock-file ../bevy-flake/flake.lock \
             --override-input bevy-flake ../bevy-flake
 
-          # Add MacOS SDK to config.
-          awk '/fx.combine \(\[ fx.\${channel}.toolchain ] \+\+ stds);/ \
-            { print; print "$MACOS_SDK"; next }1' flake.nix > flake.nix
+          # Insert MacOS SDK configuration after toolchain definition.
+          TMP=$(
+            awk -v block="$MACOS_SDK" \
+              '/fx.combine \(\[ fx.\${channel}.toolchain ] \+\+ stds);/ \
+              { print; print block; next }1' \
+              flake.nix
+            )
+          echo "$TMP" > flake.nix
 
           # Install toolchain on runner.
           nix profile add .#rust-toolchain
