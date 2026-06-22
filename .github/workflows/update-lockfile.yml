@@ -86,17 +86,18 @@ jobs:
       - name: Add toolchian from 'fenix' template to runner
         working-directory: bevy
         run: |
+          # Set pull flake template and lock it to new bevy-flake lockfile.
           nix flake init --template ../bevy-flake#fenix
           nix flake lock \
             --reference-lock-file ../bevy-flake/flake.lock \
             --override-input bevy-flake ../bevy-flake
-          nix profile add .#rust-toolchain
 
-      - name: Add MacOS SDK from secrets to bevy-flake config
-        working-directory: bevy
-        run: |
+          # Add MacOS SDK to config.
           awk '/fx.combine \(\[ fx.\${channel}.toolchain ] \+\+ stds);/ \
             { print; print "$MACOS_SDK"; next }1' flake.nix > flake.nix
+
+          # Install toolchain on runner.
+          nix profile add .#rust-toolchain
 
       - name: Build Breakout example for runner in dev environment
         working-directory: bevy
