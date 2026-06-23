@@ -1,31 +1,35 @@
 # Cross-compiling for MacOS
 
-## Adding the MacOS SDK to the config
+## Why do you need the MacOS SDK
 
 Regardless of if you are on MacOS or not, you need to add a MacOS SDK to your
 bevy-flake instance to compile a portable MacOS binary for non-Nix systems.
 
-This is done by first getting your hands on an SDK. You can package one
-yourself quite easily, using a helper script powered by [osxcross,][osxcross]
-included in this flake.
+This is because Apple makes it hard to build for MacOS outside of their own
+hardware. They disallow the distribution of their SDK by anyone other than
+themselves, and therefore nixpkgs no longer has it in their repo. This is
+also why there is no MacOS SDK pre-configured in `bevy-flake` by default.
 
-You will not find a link to one anywhere on this repo.
+You can find or make your own MacOS SDK quite easily, and after you have done
+that, configuring it in `bevy-flake` is trivial.
 
-[osxcross]: https://github.com/tpoechtrager/osxcross
+You will not find a link to a MacOS SDK in this repo.
 
 > [!NOTE]
-> By packaging and using the MacOS SDK, you are agreeing with the
+> By building and developing with the MacOS SDK, you are agreeing with the
 > [Xcode and Apple SDKs Agreement.][license]
 
 [license]: https://www.apple.com/legal/sla/docs/xcode.pdf
 
 
-## Using a packaged SDK
+## Adding the MacOS SDK to the config
 
-1. Get your hands on a MacOS SDK tarball. You can find one online, or package it
-   and make it available to yourself, such that Nix can download it from a URL.
-   Referring to a different user or websites tarball is not recommended, as
-   your MacOS builds stop working, should you lose access to it.
+1. Get your hands on a MacOS SDK tarball.
+
+   You can find one online, or package and make it available to yourself,
+   such that Nix can download it from a URL. Referencing a different user or
+   websites tarball is not recommended, as your MacOS builds stop working,
+   should you lose access to it.
 
 2. Add it to your config like so:
    ```nix
@@ -38,8 +42,16 @@ You will not find a link to one anywhere on this repo.
    };
    ```
 
+3. If Nix complains about a hash mismatch, simply replace the 'sha256' value
+   with what Nix actually got.
+
 
 ## Packaging 
+
+Packaging the MacOS SDK yourself is made easy by a helper script powered by
+[osxcross.][osxcross]
+
+[osxcross]: https://github.com/tpoechtrager/osxcross
 
 1. Download Xcode (version 8.0 or above) from
    [here.](https://developer.apple.com/download/all/?q=xcode)
