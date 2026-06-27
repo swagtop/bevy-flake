@@ -1,7 +1,7 @@
 {
   system ? builtins.currentSystem,
-  config ? {
-    systems = [ builtins.currentSystem ];
+  config ? { default, ... }: {
+    systems = default.systems ++ [ builtins.currentSystem ];
   },
 }:
 let
@@ -11,5 +11,4 @@ let
   }) { src = ./.; };
   configuredFlake = flakeCompatOutput.defaultNix.lib.configure config;
 in
-# flakeCompatOutput
 (configuredFlake).packages.${system}
