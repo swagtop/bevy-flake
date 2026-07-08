@@ -98,21 +98,21 @@ in
       linuxEnvironmentFor =
         targetSystem:
         let
-          reimportedPkgs = import pkgs.path { system = targetSystem; };
+          targetPkgs = import pkgs.path { system = targetSystem; };
         in
         {
           CC = "${cc}/bin/clang";
 
           # Need these for the 'cc-rs' crate.
-          CFLAGS = "-I${reimportedPkgs.llvmPackages.libc.libc.dev}/include";
-          LDFLAGS = "-L${reimportedPkgs.llvmPackages.libc-full}/lib";
+          CFLAGS = "-I${targetPkgs.llvmPackages.libc.libc.dev}/include";
+          LDFLAGS = "-L${targetPkgs.llvmPackages.libc-full}/lib";
 
           PKG_CONFIG_PATH = makeSearchPath "lib/pkgconfig" (
             # Getting these libraries through re-importing nixpkgs instead of
             # doing 'pkgs.pkgsCross.<system>', lets us fetch them directly
             # without needing to build a ton of stuff through the nixpkgs cross-
             # compilation system.
-            with reimportedPkgs;
+            with targetPkgs;
             [
               alsa-lib-with-plugins.dev
               libxkbcommon.dev
@@ -231,7 +231,7 @@ in
       bfDefaultToolchain = true;
     };
 
-  runtimeInputs = optionals (pkgs.stdenv.isLinux) (
+  runtimeInputs = optionals pkgs.stdenv.isLinux (
     with pkgs;
     [
       alsa-lib-with-plugins
