@@ -23,7 +23,12 @@ let
     executable = appliedConfig.rustToolchain + "/bin/cargo";
     symlinkPackage = appliedConfig.rustToolchain;
     passthru = {
-      wrapExecutable = warn "'wrapExecutable' is being moved to 'tools.wrapExecutable'" wrapExecutable;
+      wrapExecutable = warn (
+        "The 'rust-toolchain.wrapExecutable' attribute is moved to "
+        + "'tools.wrapExecutable', and will be removed at the date "
+        + "'2027-01-01'."
+      ) wrapExecutable;
+
       unwrapped = appliedConfig.rustToolchain;
 
       # Attributes needed for 'makeRustPlatform' compatibility.
