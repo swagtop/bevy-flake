@@ -11,4 +11,4 @@ let
   }) { src = ./.; };
   configuredFlake = flakeCompatOutput.defaultNix.lib.configure config;
 in
-(configuredFlake).packages.${system}
+configuredFlake.packages.${system}
