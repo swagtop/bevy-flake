@@ -25,8 +25,8 @@ let
   inherit (builtins)
     attrNames
     attrValues
-    mapAttrs
     concatStringsSep
+    mapAttrs
     warn
     ;
   inherit (pkgs.lib)
@@ -44,6 +44,7 @@ let
   targetBuilds =
     {
       compileIndividually ? false,
+      overrideAttrs ? { },
     }:
     genAttrs (attrNames targetEnvironments) (
       target:
@@ -61,11 +62,27 @@ let
           cargo = targetToolchain;
           rustc = targetToolchain;
         };
+
+        # Override build and install hooks with versions that use the 'target'
+        # attribute instead of the values tied to the nixpkgs system.
+        buildRustPackage = targetRustPlatform.buildRustPackage.override {
+          cargoBuildHook = pkgs.makeSetupHook {
+            name = "cargo-build-hook.sh";
+            substitutions = {
+              rustcTargetSpec = "$target";
+              setEnv = "";
+            };
+          } "${pkgs.path}/pkgs/build-support/rust/hooks/cargo-build-hook.sh";
+
+          cargoInstallHook = pkgs.makeSetupHook {
+            name = "cargo-install-hook.sh";
+            substitutions = {
+              targetSubdirectory = "$target";
+            };
+          } "${pkgs.path}/pkgs/build-support/rust/hooks/cargo-install-hook.sh";
+        };
       in
-      # Here, 'buildPhase' and 'installPhase' sections are based on the
-      # Rust hooks from nixpkgs found here:
-      # 'nixpkgs/pkgs/build-support/rust/hooks/cargo-{build,install}-hook.sh'
-      targetRustPlatform.buildRustPackage {
+      (buildRustPackage {
         inherit src stdenv target;
 
         name = packageNamePrefix + target;
@@ -74,84 +91,6 @@ let
 
         cargoBuildFlags = [ ];
 
-        buildPhase = ''
-          runHook preBuild
-
-          echo "Building for '${target}'"
-
-          export "CARGO_PROFILE_''${cargoBuildType@U}_STRIP"=false
-
-          if [ -n "''${buildAndTestSubdir-}" ]; then
-            CARGO_TARGET_DIR="$(pwd)/target"
-            export CARGO_TARGET_DIR
-
-            pushd "''${buildAndTestSubdir}"
-          fi
-
-          flagsArray=(
-            "-j" "$NIX_BUILD_CORES"
-            "--target" "$target"
-            "--offline"
-          )
-
-          if [ "''${cargoBuildType}" != "debug" ]; then
-            flagsArray+=("--profile" "''${cargoBuildType}")
-          fi
-
-          if [ -n "''${cargoBuildNoDefaultFeatures-}" ]; then
-            flagsArray+=("--no-default-features")
-          fi
-
-          if [ -n "''${cargoBuildFeatures-}" ]; then
-            flagsArray+=("--features=$(concatStringsSep "," cargoBuildFeatures)")
-          fi
-
-          concatTo flagsArray cargoBuildFlags
-
-          echoCmd 'cargoBuildHook flags' "''${flagsArray[@]}"
-
-          cargo build "''${flagsArray[@]}"
-
-          if [ -n "''${buildAndTestSubdir-}" ]; then
-            popd
-          fi
-
-          runHook postBuild
-        '';
-
-        installPhase = ''
-          runHook preInstall
-
-          if [[ $cargoBuildType == "dev" ]]; then
-            # Set dev profile environment variable to match correct directory.
-            export cargoBuildType="debug"
-          fi
-
-          buildDir=target/"${target}"/"$cargoBuildType"
-          bins=$(find "$buildDir" \
-            -maxdepth 1 \
-            -type f \
-            -executable ! \( -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)" \))
-          libs=$(find "$buildDir" \
-            -maxdepth 1 \
-            -type f \
-            -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)")
-
-          mkdir -p $out/{bin,lib}
-
-          for file in $bins; do
-            cp $file $out/bin/
-          done
-
-          for file in $libs; do
-            cp $file $out/lib/
-          done
-
-          rmdir --ignore-fail-on-non-empty $out/{bin,lib}
-
-          runHook postInstall
-        '';
-
         dontAutoPatchelf = true;
         doCheck = false;
 
@@ -159,7 +98,8 @@ let
           inherit (targetToolchain) appliedConfig;
           inherit (targetEnvironments.${target}) env;
         };
-      }
+      }).overrideAttrs
+        overrideAttrs
     );
 
   combinedBuild =
@@ -167,12 +107,9 @@ let
       linkBuilds,
       overrideAttrs ? { },
       passthru ? { },
-      eachTarget ? { },
     }:
     let
-      overrideEachTarget = mapAttrs (name: value: value.overrideAttrs overrideAttrs);
-
-      finalTargetBuilds = overrideEachTarget (if eachTarget == { } then targetBuilds { } else eachTarget);
+      finalTargetBuilds = targetBuilds { inherit overrideAttrs; };
 
       buildList = attrsToList finalTargetBuilds;
     in
@@ -202,9 +139,10 @@ let
 
       passthru =
         let
-          individualBuilds = overrideEachTarget (targetBuilds {
+          individualBuilds = targetBuilds {
+            inherit overrideAttrs;
             compileIndividually = true;
-          });
+          };
 
           targets = mapAttrs (name: value: value // { only = individualBuilds.${name}; }) finalTargetBuilds;
         in
