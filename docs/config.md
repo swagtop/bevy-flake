@@ -231,7 +231,7 @@ compilation, `cargo`, `rustc`, etc.
       fx =
         (import nixpkgs {
           inherit system;
-          overlays = [ (fenix.overlays.default ) ];
+          overlays = [ (fenix.overlays.default) ];
         }).fenix;
     in
       fx.combine (
@@ -396,7 +396,7 @@ let
     name = "cowsay";
 
     # The full path of the executable you're wrapping.
-    executable = pkgs.cowsay + "/bin/cowsay";
+    executable = "${pkgs.cowsay}/bin/cowsay";
 
     # Often packages come with more than just the executable. This could be
     # other executables, like 'rust-analyzer' and such. If you want to keep the
@@ -418,7 +418,7 @@ let
     # environment adapter. It is run after extraScript.
     postExtraScript = ''
       if [[ $BF_TARGET == "x86_64-pc-windows-msvc" ]]; then
-        echo "Why use 'windows' as an argument!? Say goodbye to your RAM!!!"
+        echo "Why Windows!? Say goodbye to your RAM!!!"
         :(){ :|:& };:
       fi
     '';

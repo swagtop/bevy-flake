@@ -24,6 +24,8 @@ appliedConfig@{
 let
   inherit (builtins)
     attrNames
+    attrValues
+    mapAttrs
     concatStringsSep
     warn
     ;
@@ -39,9 +41,9 @@ let
   packageNamePrefix =
     if manifest ? version then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
 
-  individualTargetBuilds =
+  targetBuilds =
     {
-      useIndividualToolchain ? false,
+      compileIndividually ? false,
     }:
     genAttrs (attrNames targetEnvironments) (
       target:
@@ -50,7 +52,7 @@ let
           {
             disableDevelop = true;
           }
-          // optionalAttrs useIndividualToolchain {
+          // optionalAttrs compileIndividually {
             targets = [ target ];
           }
         );
@@ -60,43 +62,77 @@ let
           rustc = targetToolchain;
         };
       in
+      # Here, 'buildPhase' and 'installPhase' sections are based on the
+      # Rust hooks from nixpkgs found here:
+      # 'nixpkgs/pkgs/build-support/rust/hooks/cargo-{build,install}-hook.sh'
       targetRustPlatform.buildRustPackage {
-        inherit src target stdenv;
+        inherit src stdenv target;
 
         name = packageNamePrefix + target;
 
-        cargoLock.lockFile = src + "/Cargo.lock";
-        cargoProfile = "release";
+        cargoLock.lockFile = "${src}/Cargo.lock";
+
         cargoBuildFlags = [ ];
 
         buildPhase = ''
           runHook preBuild
 
-          cargo build \
-            -j "$NIX_BUILD_CORES" \
-            --profile "$cargoProfile" \
-            --target "$target" \
-            --frozen \
-            ''${cargoBuildFlags[@]}
+          echo "Building for '${target}'"
+
+          export "CARGO_PROFILE_''${cargoBuildType@U}_STRIP"=false
+
+          if [ -n "''${buildAndTestSubdir-}" ]; then
+            CARGO_TARGET_DIR="$(pwd)/target"
+            export CARGO_TARGET_DIR
+
+            pushd "''${buildAndTestSubdir}"
+          fi
+
+          flagsArray=(
+            "-j" "$NIX_BUILD_CORES"
+            "--target" "$target"
+            "--offline"
+          )
+
+          if [ "''${cargoBuildType}" != "debug" ]; then
+            flagsArray+=("--profile" "''${cargoBuildType}")
+          fi
+
+          if [ -n "''${cargoBuildNoDefaultFeatures-}" ]; then
+            flagsArray+=("--no-default-features")
+          fi
+
+          if [ -n "''${cargoBuildFeatures-}" ]; then
+            flagsArray+=("--features=$(concatStringsSep "," cargoBuildFeatures)")
+          fi
+
+          concatTo flagsArray cargoBuildFlags
+
+          echoCmd 'cargoBuildHook flags' "''${flagsArray[@]}"
+
+          cargo build "''${flagsArray[@]}"
+
+          if [ -n "''${buildAndTestSubdir-}" ]; then
+            popd
+          fi
 
           runHook postBuild
         '';
 
-        # Copied and edited for multi-target purposes from nixpkgs Rust hooks.
         installPhase = ''
           runHook preInstall
 
-          if [[ $cargoProfile == "dev" ]]; then
+          if [[ $cargoBuildType == "dev" ]]; then
             # Set dev profile environment variable to match correct directory.
-            export cargoProfile="debug"
+            export cargoBuildType="debug"
           fi
 
-          buildDir=target/"${target}"/"$cargoProfile"
-          bins=$(find $buildDir \
+          buildDir=target/"${target}"/"$cargoBuildType"
+          bins=$(find "$buildDir" \
             -maxdepth 1 \
             -type f \
             -executable ! \( -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)" \))
-          libs=$(find $buildDir \
+          libs=$(find "$buildDir" \
             -maxdepth 1 \
             -type f \
             -regex ".*\.\(so.[0-9.]+\|so\|a\|dylib\)")
@@ -126,14 +162,19 @@ let
       }
     );
 
-  wholeBuild =
+  combinedBuild =
     {
       linkBuilds,
+      overrideAttrs ? { },
       passthru ? { },
+      eachTarget ? { },
     }:
     let
-      collectiveBuilds = individualTargetBuilds { };
-      buildList = attrsToList collectiveBuilds;
+      overrideEachTarget = mapAttrs (name: value: value.overrideAttrs overrideAttrs);
+
+      finalTargetBuilds = overrideEachTarget (if eachTarget == { } then targetBuilds { } else eachTarget);
+
+      buildList = attrsToList finalTargetBuilds;
     in
     pkgs.stdenvNoCC.mkDerivation {
       inherit linkBuilds;
@@ -141,7 +182,7 @@ let
       # Only warn about default toolchain when building all targets.
       name = packageNamePrefix + "all-targets";
 
-      nativeBuildInputs = map (build: build.value) buildList;
+      nativeBuildInputs = attrValues finalTargetBuilds;
 
       phases = [ "installPhase" ];
 
@@ -161,16 +202,28 @@ let
 
       passthru =
         let
-          individualBuilds = individualTargetBuilds { useIndividualToolchain = true; };
+          individualBuilds = overrideEachTarget (targetBuilds {
+            compileIndividually = true;
+          });
+
+          targets = mapAttrs (name: value: value // { only = individualBuilds.${name}; }) finalTargetBuilds;
         in
         passthru
-        // genAttrs (map (item: item.name) buildList) (
-          attr: collectiveBuilds.${attr} // { only = individualBuilds.${attr}; }
-        )
+        // targets
         // {
-          inherit appliedConfig;
+          inherit appliedConfig targets;
+
+          individualTargets = individualBuilds;
 
           list = buildList;
+
+          overrideAttrsTargets =
+            o:
+            combinedBuild {
+              inherit linkBuilds passthru;
+              overrideAttrs = o;
+              eachTarget = finalTargetBuilds;
+            };
         };
     };
 in
@@ -185,19 +238,16 @@ if src == null then
     }
   )
 else
-  wholeBuild {
+  combinedBuild {
     linkBuilds = true;
     passthru =
       let
-        copiedWholeBuild = wholeBuild { linkBuilds = false; };
-      in
-      {
-        copied = copiedWholeBuild;
+        copiedCombinedBuild = combinedBuild { linkBuilds = false; };
 
-        tarball = pkgs.stdenvNoCC.mkDerivation {
+        tarballedCombinedBuild = pkgs.stdenvNoCC.mkDerivation {
           name = packageNamePrefix + "tarball";
 
-          src = copiedWholeBuild;
+          src = copiedCombinedBuild;
 
           phases = [ "installPhase" ];
 
@@ -207,5 +257,9 @@ else
             tar -cJf $out -C $src .
           '';
         };
+      in
+      {
+        copied = copiedCombinedBuild;
+        tarball = tarballedCombinedBuild;
       };
   }

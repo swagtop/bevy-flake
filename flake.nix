@@ -177,7 +177,11 @@
             in
             mapAttrs (
               name: value:
-              warn "The '${name}' attribute is moved to 'lib.${name}', and will be removed at the date '2027-01-01'." value
+              warn (
+                "The 'bevy-flake.${name}' attribute has moved to "
+                + "'bevy-flake.lib.${name}', and will be removed from top "
+                + "level flake outputs at the date '2027-01-01'."
+              ) value
             ) lib
             // flake.flake or { }
             // {

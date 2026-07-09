@@ -32,6 +32,7 @@ let
     importJSON
     mapAttrsToList
     optionalAttrs
+    assertMsg
     ;
 
   makeOverridableAndDevelopable =
@@ -94,19 +95,25 @@ let
       runtimeInputs' = runtimeInputs ++ extraRuntimeInputs;
       argParser' = applyIfFunction argParser defaultArgParser;
       targets' = if targets != null then targets else attrNames targetEnvironments;
+
+      # Use targets provided by wrapper if supplied, to let users fetch
+      # dependencies for fewer targets (like in targets.<target>.only).
       rustToolchain' = if targets != null then rawConfig.rustToolchain targets' else rustToolchain;
 
       wrapped = pkgs.writeShellApplication {
         inherit name;
+
         runtimeInputs = runtimeInputs' ++ [
           stdenv.cc
           rustToolchain'
           pkgs.pkg-config
         ];
+
         bashOptions = [
           "errexit"
           "pipefail"
         ];
+
         text = ''
           ${argParser'}
 
@@ -162,9 +169,11 @@ let
           case "$BF_TARGET" in
             "")
               ${
-                if (disableDevelop && disableCrossCompile) then
-                  throw "You cannot disable both cross-compilation and develop mode at the same time."
-                else if disableDevelop then
+                assert assertMsg (
+                  !(disableDevelop && disableCrossCompile)
+                ) "You cannot disable both cross-compilation and develop mode at the same time.";
+
+                if disableDevelop then
                   ''
                     echo "bevy-flake: You are using this package in cross-compilation mode."
                     echo "You can therefore only cross-compile for your selected targets."

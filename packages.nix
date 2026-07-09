@@ -20,13 +20,16 @@ let
 
   wrapped-rust-toolchain = wrapExecutable {
     name = "cargo";
-    executable = appliedConfig.rustToolchain + "/bin/cargo";
+
+    executable = "${appliedConfig.rustToolchain}/bin/cargo";
+
     symlinkPackage = appliedConfig.rustToolchain;
+
     passthru = {
       wrapExecutable = warn (
-        "The 'rust-toolchain.wrapExecutable' attribute is moved to "
-        + "'tools.wrapExecutable', and will be removed at the date "
-        + "'2027-01-01'."
+        "The 'rust-toolchain.wrapExecutable' attribute has moved to "
+        + "'tools.wrapExecutable'. It will be removed from 'rust-toolchain' "
+        + "at the date '2027-01-01'."
       ) wrapExecutable;
 
       unwrapped = appliedConfig.rustToolchain;
@@ -39,34 +42,40 @@ let
 
   wrapped-bevy-cli =
     let
-      bevy-cli-package = pkgs.rustPlatform.buildRustPackage (
-        let
-          version = "0.1.0-alpha.2";
-          src = pkgs.fetchzip {
-            url = "https://github.com/TheBevyFlock/bevy_cli/archive/refs/tags/cli-v${version}.tar.gz";
-            sha256 = "sha256:02p2c3fzxi9cs5y2fn4dfcyca1z8l5d8i09jia9h5b50ym82cr8l";
-          };
-        in
-        {
-          inherit version src;
-          name = "bevy-cli-${version}";
-          nativeBuildInputs = [
-            pkgs.openssl.dev
-            pkgs.pkg-config
-          ];
-          PKG_CONFIG_PATH = pkgs.openssl.dev + "/lib/pkgconfig";
-          cargoLock.lockFile = src + "/Cargo.lock";
-          doCheck = false;
-        }
-      );
+      # For now we build 'bevy-cli' from source, as it is not in nixpkgs yet.
+      bevy-cli-package = pkgs.rustPlatform.buildRustPackage (finalAttrs: {
+        pname = "bevy-cli";
+        version = "0.1.0-alpha.2";
+
+        src = pkgs.fetchzip {
+          url = "https://github.com/TheBevyFlock/bevy_cli/archive/refs/tags/cli-v${finalAttrs.version}.tar.gz";
+          sha256 = "sha256:02p2c3fzxi9cs5y2fn4dfcyca1z8l5d8i09jia9h5b50ym82cr8l";
+        };
+
+        cargoLock.lockFile = "${finalAttrs.src}/Cargo.lock";
+
+        doCheck = false;
+
+        nativeBuildInputs = [
+          pkgs.openssl.dev
+          pkgs.pkg-config
+        ];
+
+        env.PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
+
+        meta.mainProgram = "bevy-cli";
+      });
     in
     wrapExecutable {
       name = "bevy";
+
+      executable = "${bevy-cli-package}/bin/bevy";
+
       extraRuntimeInputs = [
-        pkgs.binaryen
-        pkgs.cargo-generate
+        pkgs.binaryen # Needed for WASM optimizations.
+        pkgs.cargo-generate # Needed for 'bevy-cli' functionality.
       ];
-      executable = bevy-cli-package + "/bin/bevy";
+
       argParser =
         default:
         default
@@ -82,6 +91,7 @@ mapAttrs
     name: value:
     value
     // {
+      # Let users change the config on each individual package.
       configure = newConfig: (reconfigure newConfig).packages.${hostSystem}.${name};
     }
   )
@@ -90,14 +100,13 @@ mapAttrs
 
     dioxus-cli = wrapExecutable {
       name = "dx";
-      executable = pkgs.dioxus-cli + "/bin/dx";
+      executable = "${pkgs.dioxus-cli}/bin/dx";
       extraRuntimeInputs = [
         # Need 'lld' for hot-reloading.
         pkgs.llvmPackages.bintools
       ];
     };
 
-    # For now we build 'bevy-cli' from source, as it is not in nixpkgs yet.
     bevy-cli = wrapped-bevy-cli;
 
     targets = import ./build/targets.nix appliedConfig {
@@ -111,23 +120,21 @@ mapAttrs
     # Useful tools can be reached through this package.
     tools =
       pkgs.writeShellScriptBin "tools" ''
-        echo
-        echo "This package contains some tools to be run, and a function to "
-        echo "wrap your own programs with the bevy-flake wrapper script."
-        echo
-        echo "In Nix, use 'tools.wrapExecutable { /* ... */ }' to wrap programs."
-        echo
-        echo "In your shell, run 'nix run github:swagtop/bevy-flake#tools.<tool>' to use the following tools:"
-        echo
-        echo "package-macos-sdk:"
-        printf "  Call with the first argument being the 'Xcode.app' you want "
-        printf "to package the MacOS SDK from.\n  Get more info about this "
-        printf "from the bevy-flake docs.\n"
-        echo
-        echo "package-windows-sdk:"
-        printf "  Call with no arguments to fetch the Windows MSVC SDK found "
-        printf "in configured 'pkgs'.\n"
-        echo
+        printf "\n${''
+          This package contains some tools to be run, and a function to 
+          wrap your own programs with the bevy-flake wrapper script.
+
+          In Nix, use 'tools.wrapExecutable { /* ... */ }' to wrap programs.
+
+          In your shell, run 'nix run github:swagtop/bevy-flake#tools.<tool>' to use the following tools:
+
+          package-macos-sdk:
+            Call with the first argument being the 'Xcode.app' you want to package the MacOS SDK from.
+            Get more info about this from the bevy-flake docs.
+
+          package-windows-sdk:
+            Call with no arguments to fetch the Windows MSVC SDK found in configured 'pkgs'.
+        ''}\n"
       ''
       // {
         inherit wrapExecutable appliedConfig;

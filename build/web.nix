@@ -27,12 +27,15 @@ let
   inherit (pkgs.lib) importTOML;
 
   manifest = (importTOML "${src}/Cargo.toml").package or { name = "no-name"; };
+
   packageNamePrefix =
     if manifest ? version then "${manifest.name}-${manifest.version}-" else "${manifest.name}-";
+
   webToolchain = wrapped-rust-toolchain.overrideWrapper {
     disableDevelop = true;
     targets = [ "wasm32-unknown-unknown" ];
   };
+
   webRustPlatform = pkgs.makeRustPlatform {
     cargo = webToolchain;
     rustc = webToolchain;
@@ -50,7 +53,7 @@ if src == null then
   )
 else
   webRustPlatform.buildRustPackage {
-    inherit src;
+    inherit src stdenv;
 
     name = packageNamePrefix + "web";
     nativeBuildInputs = [
