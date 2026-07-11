@@ -26,6 +26,8 @@ let
     attrNames
     attrValues
     concatStringsSep
+    foldl'
+    listToAttrs
     mapAttrs
     warn
     ;
@@ -34,6 +36,7 @@ let
     genAttrs
     attrsToList
     optionalAttrs
+    toCamelCase
     ;
 
   manifest = (importTOML "${src}/Cargo.toml").package or { name = "no-name"; };
@@ -44,7 +47,7 @@ let
   targetBuilds =
     {
       compileIndividually ? false,
-      overrideAttrs ? { },
+      overrides,
     }:
     genAttrs (attrNames targetEnvironments) (
       target:
@@ -63,53 +66,72 @@ let
           rustc = targetToolchain;
         };
 
-        # Override build and install hooks with versions that use the 'target'
-        # attribute instead of the values tied to the nixpkgs system.
-        buildRustPackage = targetRustPlatform.buildRustPackage.override {
-          cargoBuildHook = pkgs.makeSetupHook {
-            name = "cargo-build-hook.sh";
-            substitutions = {
-              rustcTargetSpec = "$target";
-              setEnv = "";
-            };
-          } "${pkgs.path}/pkgs/build-support/rust/hooks/cargo-build-hook.sh";
+        # Override each hook that references the target being built to use the
+        # 'target' attribute instead of the default nixpkgs values.
+        buildRustPackage =
+          let
+            mkSetupHook =
+              hook:
+              pkgs.makeSetupHook {
+                name = "${hook}.sh";
+                substitutions = {
+                  rustcTargetSpec = "$target";
+                  setEnv = "";
+                  targetSubdirectory = "$target";
+                };
+              } "${pkgs.path}/pkgs/build-support/rust/hooks/${hook}.sh";
 
-          cargoInstallHook = pkgs.makeSetupHook {
-            name = "cargo-install-hook.sh";
-            substitutions = {
-              targetSubdirectory = "$target";
-            };
-          } "${pkgs.path}/pkgs/build-support/rust/hooks/cargo-install-hook.sh";
+            newHooks =
+              let
+                mkHook = map (
+                  type:
+                  let
+                    hookName = "cargo-${type}-hook";
+                  in
+                  {
+                    name = toCamelCase hookName;
+                    value = mkSetupHook hookName;
+                  }
+                );
+              in
+              listToAttrs (mkHook [
+                "build"
+                "install"
+                "nextest"
+                "check"
+              ]);
+          in
+          targetRustPlatform.buildRustPackage.override newHooks;
+
+        build = buildRustPackage {
+          inherit src stdenv target;
+
+          name = packageNamePrefix + target;
+
+          cargoLock.lockFile = "${src}/Cargo.lock";
+
+          cargoBuildFlags = [ ];
+
+          dontAutoPatchelf = true;
+          doCheck = false;
+
+          passthru = {
+            inherit (targetToolchain) appliedConfig;
+            inherit (targetEnvironments.${target}) env;
+          };
         };
       in
-      (buildRustPackage {
-        inherit src stdenv target;
-
-        name = packageNamePrefix + target;
-
-        cargoLock.lockFile = "${src}/Cargo.lock";
-
-        cargoBuildFlags = [ ];
-
-        dontAutoPatchelf = true;
-        doCheck = false;
-
-        passthru = {
-          inherit (targetToolchain) appliedConfig;
-          inherit (targetEnvironments.${target}) env;
-        };
-      }).overrideAttrs
-        overrideAttrs
+      foldl' (acc: o: acc.overrideAttrs o) build overrides
     );
 
   combinedBuild =
     {
       linkBuilds,
-      overrideAttrs ? { },
       passthru ? { },
+      overrides ? [ { } ],
     }:
     let
-      finalTargetBuilds = targetBuilds { inherit overrideAttrs; };
+      finalTargetBuilds = targetBuilds { inherit overrides; };
 
       buildList = attrsToList finalTargetBuilds;
     in
@@ -140,7 +162,7 @@ let
       passthru =
         let
           individualBuilds = targetBuilds {
-            inherit overrideAttrs;
+            inherit overrides;
             compileIndividually = true;
           };
 
@@ -159,8 +181,7 @@ let
             o:
             combinedBuild {
               inherit linkBuilds passthru;
-              overrideAttrs = o;
-              eachTarget = finalTargetBuilds;
+              overrides = overrides ++ [ o ];
             };
         };
     };
