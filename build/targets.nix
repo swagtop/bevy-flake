@@ -70,19 +70,19 @@ let
         # 'target' attribute instead of the default nixpkgs values.
         buildRustPackage =
           let
-            mkSetupHook =
-              hook:
-              pkgs.makeSetupHook {
-                name = "${hook}.sh";
-                substitutions = {
-                  rustcTargetSpec = "$target";
-                  setEnv = "";
-                  targetSubdirectory = "$target";
-                };
-              } "${pkgs.path}/pkgs/build-support/rust/hooks/${hook}.sh";
-
             newHooks =
               let
+                mkSetupHook =
+                  hook:
+                  pkgs.makeSetupHook {
+                    name = "${hook}.sh";
+                    substitutions = {
+                      rustcTargetSpec = "$target";
+                      setEnv = "";
+                      targetSubdirectory = "$target";
+                    };
+                  } "${pkgs.path}/pkgs/build-support/rust/hooks/${hook}.sh";
+
                 mkHooks = listToAttrs (map (
                   type:
                   let
