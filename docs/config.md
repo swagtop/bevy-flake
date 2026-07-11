@@ -70,7 +70,7 @@ let
   bf = bevy-flake.lib.configure {
     systems = [ "x86_64-darwin" ];
   };
-  # bf.systems == [ "x86_64-darwin" ]
+  # bf.lib.systems == [ "x86_64-darwin" ]
   
   bf' = bf.lib.configure (
     { previous, ... }:
@@ -78,7 +78,7 @@ let
       systems = previous.systems ++ [ "arm7l-linux" ];
     }
   );
-  # bf'.systems == [ "x86_64-darwin" "arm7l-linux" ]
+  # bf'.lib.systems == [ "x86_64-darwin" "arm7l-linux" ]
   
   bf'' = bf'.lib.configure (
     { default, ... }:
@@ -86,7 +86,7 @@ let
       systems = default.systems;
     }
   );
-  # bf''.systems == [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ]
+  # bf''.lib.systems == [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ]
 in
 ```
 
