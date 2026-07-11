@@ -83,7 +83,7 @@ let
 
             newHooks =
               let
-                mkHooks = map (
+                mkHooks = listToAttrs (map (
                   type:
                   let
                     hookName = "cargo-${type}-hook";
@@ -92,14 +92,14 @@ let
                     name = toCamelCase hookName;
                     value = mkSetupHook hookName;
                   }
-                );
+                ));
               in
-              listToAttrs (mkHooks [
+              mkHooks [
                 "build"
                 "install"
                 "nextest"
                 "check"
-              ]);
+              ];
           in
           targetRustPlatform.buildRustPackage.override newHooks;
 
