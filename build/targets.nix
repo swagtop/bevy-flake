@@ -83,7 +83,7 @@ let
 
             newHooks =
               let
-                mkHook = map (
+                mkHooks = map (
                   type:
                   let
                     hookName = "cargo-${type}-hook";
@@ -94,7 +94,7 @@ let
                   }
                 );
               in
-              listToAttrs (mkHook [
+              listToAttrs (mkHooks [
                 "build"
                 "install"
                 "nextest"
