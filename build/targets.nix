@@ -70,20 +70,21 @@ let
         # 'target' attribute instead of the default nixpkgs values.
         buildRustPackage =
           let
-            newHooks =
-              let
-                mkSetupHook =
-                  hook:
-                  pkgs.makeSetupHook {
-                    name = "${hook}.sh";
-                    substitutions = {
-                      rustcTargetSpec = "$target";
-                      setEnv = "";
-                      targetSubdirectory = "$target";
-                    };
-                  } "${pkgs.path}/pkgs/build-support/rust/hooks/${hook}.sh";
+            mkSetupHook =
+              hook:
+              pkgs.makeSetupHook {
+                name = "${hook}.sh";
+                substitutions = {
+                  rustcTargetSpec = "$target";
+                  setEnv = "";
+                  targetSubdirectory = "$target";
+                };
+              } "${pkgs.path}/pkgs/build-support/rust/hooks/${hook}.sh";
 
-                mkHooks = listToAttrs (map (
+            mkHooks =
+              hookList:
+              listToAttrs (
+                map (
                   type:
                   let
                     hookName = "cargo-${type}-hook";
@@ -92,16 +93,17 @@ let
                     name = toCamelCase hookName;
                     value = mkSetupHook hookName;
                   }
-                ));
-              in
-              mkHooks [
-                "build"
-                "install"
-                "nextest"
-                "check"
-              ];
+                ) hookList
+              );
+
+            targetHooks = mkHooks [
+              "build"
+              "install"
+              "nextest"
+              "check"
+            ];
           in
-          targetRustPlatform.buildRustPackage.override newHooks;
+          targetRustPlatform.buildRustPackage.override targetHooks;
 
         build = buildRustPackage {
           inherit src stdenv target;
