@@ -87,17 +87,25 @@
       mkFlake =
         configList: flake:
         let
-          pkgsWarn = throw (
-            "You cannot reference 'pkgs' and 'lib' from the config inputs in "
-            + "'systems' or 'withPkgs'.\n"
-            + "If you're using a 'lib' function, use 'nixpkgs.lib' instead."
-          );
+          # Use placeholder values with error messages for proper configuration
+          # initialization.
+          # To get the 'pkgs', we need to have the 'system', and to get that we
+          # need to have 'systems' from the config, without any of these
+          # values present. This is why we use these placeholder values.
+          placehold = {
+            pkgs = throw (
+              "You cannot reference 'pkgs' and 'lib' from the config inputs in "
+              + "'systems' or 'withPkgs'.\n"
+              + "If you're using a 'lib' function, use 'nixpkgs.lib' instead."
+            );
 
-          systemWarn = throw "You cannot reference 'system' from the config inputs in 'systems'.";
+            system = throw "You cannot reference 'system' from the config inputs in 'systems'.";
+          };
 
-          # Before assembling configs, check if user is trying to use
-          # flake-parts features that aren't supported by bevy-flake.
-          finalConfigList =
+          # Check if the user is trying to use flake-parts features that aren't
+          # supported by bevy-flake.
+          assertProperUsage =
+            expression:
             let
               assertMsg =
                 pred: msg:
@@ -117,18 +125,20 @@
             assert assertMsg (
               !flake ? inputs
             ) "Remove '{ inherit inputs; }', or use flake-parts for this feature.";
+            expression;
 
-            configList ++ [ flake.config or { } ];
+          # Assert proper usage before we move on to assembling configs.
+          finalConfigList = assertProperUsage (configList ++ [ flake.config or { } ]);
 
           assembledConfig = assembleConfigs finalConfigList;
 
-          inherit (assembledConfig systemWarn pkgsWarn) systems;
+          inherit (assembledConfig placehold.system placehold.pkgs) systems;
         in
         foldl'
           (
             accumulator: system:
             let
-              pkgs = applyIfFunction (assembledConfig system pkgsWarn).withPkgs system;
+              pkgs = applyIfFunction (assembledConfig system placehold.pkgs).withPkgs system;
 
               systemAttrs =
                 let
