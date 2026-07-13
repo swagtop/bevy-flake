@@ -89,9 +89,11 @@
         let
           # Use placeholder values with error messages for proper configuration
           # initialization.
-          # To get the 'pkgs', we need to have the 'system', and to get that we
-          # need to have 'systems' from the config, without any of these
-          # values present. This is why we use these placeholder values.
+          # To get 'pkgs', we need to have the 'system', and to get that we
+          # need to get the 'systems' from the config. We need to pass some
+          # temporary placeholder values to the configs, that won't be
+          # evaluated (throwing with helpful messages should they be), to get
+          # these values.
           placehold = {
             pkgs = throw (
               "You cannot reference 'pkgs' and 'lib' from the config inputs in "
@@ -142,7 +144,7 @@
 
               systemAttrs =
                 let
-                  systemAttrsInputs = {
+                  perSystemInputs = {
                     inherit (pkgs) lib;
                     inherit pkgs system;
                     formatter = pkgs.nixfmt-tree;
@@ -155,7 +157,7 @@
                     };
                   };
                 in
-                flake.perSystem systemAttrsInputs;
+                flake.perSystem perSystemInputs;
             in
             accumulator
             # Poperly merge perSystem attributes.
