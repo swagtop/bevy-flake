@@ -127,8 +127,8 @@ let
               hasTargets = p: any (i: builtins.elem i targets') p.targets;
             in
             {
-              LIBCLANG_PATH = pkgs.libclang.lib + "/lib";
-              LIBRARY_PATH = pkgs.libiconv + "/lib";
+              LIBCLANG_PATH = "${pkgs.libclang.lib}/lib";
+              LIBRARY_PATH = "${pkgs.libiconv}/lib";
             }
             # Only add variables relevant to cross-compiliation when not in
             # develop only mode.
