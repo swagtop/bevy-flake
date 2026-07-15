@@ -38,7 +38,7 @@ Run:
 nix run github:swagtop/bevy-flake#tools.package-windows-sdk
 ```
 This will fetch the latest Windows MSVC SDK from the nixpkgs repository, and
-package it into a 
+package it into a tarball in your current directory.
 
 
 ## Structure of the SDK
