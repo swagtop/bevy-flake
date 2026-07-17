@@ -2,9 +2,9 @@
 
 # bevy-flake
 
-A flake for painless development and distribution of [Bevy][bevy] programs.
+A flake for development and distribution of [Bevy][bevy] programs.
 
-With `bevy-flake` you can effortlessly develop your Bevy project in a Nix
+With `bevy-flake` you can painlessly develop your Bevy project in a Nix
 environment, and cross-compile release-ready portable binaries for platforms
 like non-Nix Linux, MacOS[^1], Windows and WASM.
 
