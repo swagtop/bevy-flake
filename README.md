@@ -4,10 +4,10 @@
 
 A flake for development and distribution of [Bevy][bevy] programs.
 
-With `bevy-flake` you can painlessly develop your Bevy project in a Nix
-environment, and cross-compile release-ready portable binaries for platforms
-like non-Nix Linux, MacOS[^1], Windows and WASM.
-
+This flake provides a pre-configured Nix environment for development, and
+enables you to cross-compile release-ready portable binaries for platforms like
+non-Nix Linux, MacOS[^1], Windows and WASM.
+ 
 [^1]: For MacOS builds you need to set up the SDK. This takes no more than 5
       minutes. Read the MacOS docs for the guide on how to do this.
 
@@ -19,7 +19,7 @@ like non-Nix Linux, MacOS[^1], Windows and WASM.
 
 [license]: https://go.microsoft.com/fwlink/?LinkId=2086102
 
-## Quick setup
+## Setup
 
 Navigate to your Bevy project root, then pull the template with the toolchain
 from your favourite provider:
