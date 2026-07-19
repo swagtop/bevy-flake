@@ -22,21 +22,19 @@ appliedConfig@{
 }:
 
 let
-  inherit (builtins)
+  inherit (pkgs.lib)
     attrNames
+    attrsToList
     attrValues
     concatStringsSep
     foldl'
+    genAttrs
+    importTOML
     listToAttrs
     mapAttrs
-    warn
-    ;
-  inherit (pkgs.lib)
-    importTOML
-    genAttrs
-    attrsToList
     optionalAttrs
     toCamelCase
+    warn
     ;
 
   manifest = (importTOML "${src}/Cargo.toml").package or { name = "no-name"; };

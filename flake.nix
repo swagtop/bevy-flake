@@ -152,7 +152,7 @@
                     # Import packages with final configuration.
                     packages = import ./packages.nix {
                       inherit pkgs applyIfFunction;
-                      reconfigure = (mkFlake finalConfigList defaultFlake).configure;
+                      reconfigure = (mkFlake finalConfigList defaultFlake).lib.configure;
                       rawConfig = assembledConfig system pkgs;
                     };
                   };

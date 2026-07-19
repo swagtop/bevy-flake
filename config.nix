@@ -10,10 +10,9 @@ inputs:
   ...
 }:
 let
-  inherit (builtins)
-    concatStringsSep
-    ;
   inherit (pkgs.lib)
+    concatStringsSep
+    getExe
     makeSearchPath
     optionals
     ;
@@ -95,13 +94,15 @@ in
       cc = pkgs.llvmPackages.clang-unwrapped;
       bintools = pkgs.llvmPackages.bintools-unwrapped;
 
+      unwrapped-clang = "${cc}/bin/clang";
+
       linuxEnvironmentFor =
         targetSystem:
         let
           targetPkgs = import pkgs.path { system = targetSystem; };
         in
         {
-          CC = "${cc}/bin/clang";
+          CC = unwrapped-clang;
 
           # Need these for the 'cc-rs' crate.
           CFLAGS = "-I${targetPkgs.llvmPackages.libc.libc.dev}/include";
@@ -131,7 +132,7 @@ in
                 .${targetSystem};
             in
             [
-              "-C linker=${target-linker}/bin/${target-linker.meta.mainProgram}"
+              "-C linker=${getExe target-linker}}"
               "-C link-arg=-fuse-ld=${bintools}/bin/ld.lld"
               "-C link-arg=-Wl,--dynamic-linker=${
                 {
@@ -144,29 +145,34 @@ in
           );
         };
 
-      windowsEnvironmentFor = arch: {
-        CC = "${cc}/bin/clang-cl";
-        AR = "${bintools}/bin/llvm-lib";
-        CFLAGS = concatStringsSep " " [
-          "-fuse-ld=${bintools}/bin/lld-link"
-          "-I$BF_WINDOWS_SDK_PATH/sdk/include/ucrt"
-          "-I$BF_WINDOWS_SDK_PATH/crt/include"
-        ];
-        RUSTFLAGS = concatStringsSep " " [
-          "-C linker=${bintools}/bin/lld-link"
-          "-L $BF_WINDOWS_SDK_PATH/crt/lib/${arch}"
-          "-L $BF_WINDOWS_SDK_PATH/sdk/lib/ucrt/${arch}"
-          "-L $BF_WINDOWS_SDK_PATH/sdk/lib/um/${arch}"
-          "$BF_WINDOWS_STATIC_FLAG"
-        ];
-      };
+      windowsEnvironmentFor =
+        arch:
+        let
+          windows-linker = "${bintools}/bin/lld-link";
+        in
+        {
+          CC = "${cc}/bin/clang-cl";
+          AR = "${bintools}/bin/llvm-lib";
+          CFLAGS = concatStringsSep " " [
+            "-fuse-ld=${windows-linker}"
+            "-I$BF_WINDOWS_SDK_PATH/sdk/include/ucrt"
+            "-I$BF_WINDOWS_SDK_PATH/crt/include"
+          ];
+          RUSTFLAGS = concatStringsSep " " [
+            "-C linker=${windows-linker}"
+            "-L $BF_WINDOWS_SDK_PATH/crt/lib/${arch}"
+            "-L $BF_WINDOWS_SDK_PATH/sdk/lib/ucrt/${arch}"
+            "-L $BF_WINDOWS_SDK_PATH/sdk/lib/um/${arch}"
+            "$BF_WINDOWS_STATIC_FLAG"
+          ];
+        };
 
       macosEnvironment =
         let
           frameworks = "$BF_MACOS_SDK_PATH/System/Library/Frameworks";
         in
         {
-          CC = "${cc}/bin/clang";
+          CC = unwrapped-clang;
           SDKROOT = "$BF_MACOS_SDK_PATH";
           COREAUDIO_SDK_PATH = "${frameworks}/CoreAudio.framwork/Headers";
           BINDGEN_EXTRA_CLANG_ARGS = concatStringsSep " " [
@@ -175,7 +181,7 @@ in
             "--sysroot=$BF_MACOS_SDK_PATH"
           ];
           RUSTFLAGS = concatStringsSep " " [
-            "-C linker=${cc}/bin/clang"
+            "-C linker=${unwrapped-clang}"
             "-C link-arg=-fuse-ld=${bintools}/bin/ld64.lld"
             "-C link-arg=--target=$BF_TARGET"
             "-C link-arg=${

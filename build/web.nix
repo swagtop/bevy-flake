@@ -23,8 +23,10 @@ appliedConfig@{
 }:
 
 let
-  inherit (builtins) warn;
-  inherit (pkgs.lib) importTOML;
+  inherit (pkgs.lib)
+    importTOML
+    warn
+    ;
 
   manifest = (importTOML "${src}/Cargo.toml").package or { name = "no-name"; };
 

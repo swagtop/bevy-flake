@@ -21,12 +21,9 @@ config@{
 }:
 
 let
-  inherit (builtins)
+  inherit (pkgs.lib)
     attrNames
     concatStringsSep
-    ;
-
-  inherit (pkgs.lib)
     genAttrs
     makeSearchPath
     mapAttrsToList

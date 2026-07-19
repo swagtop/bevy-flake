@@ -5,7 +5,7 @@
   reconfigure,
 }:
 let
-  inherit (builtins)
+  inherit (pkgs.lib)
     mapAttrs
     warn
     ;

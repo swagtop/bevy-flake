@@ -7,12 +7,12 @@
 previous:
 
 let
-  inherit (builtins)
-    foldl'
+  inherit (pkgs.lib)
     baseNameOf
+    foldl'
     isFunction
+    recursiveUpdate
     ;
-  inherit (pkgs.lib) recursiveUpdate;
 
   applyIfFunction = f: input: if isFunction f then f input else f;
 

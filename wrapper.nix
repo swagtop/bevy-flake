@@ -23,16 +23,14 @@ appliedConfig@{
 }:
 
 let
-  inherit (builtins)
+  inherit (pkgs.lib)
+    any
+    assertMsg
     attrNames
     concatStringsSep
-    any
-    ;
-  inherit (pkgs.lib)
     importJSON
     mapAttrsToList
     optionalAttrs
-    assertMsg
     ;
 
   makeOverridableAndDevelopable =
