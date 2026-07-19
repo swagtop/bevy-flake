@@ -132,7 +132,7 @@ in
                 .${targetSystem};
             in
             [
-              "-C linker=${getExe target-linker}}"
+              "-C linker=${getExe target-linker}"
               "-C link-arg=-fuse-ld=${bintools}/bin/ld.lld"
               "-C link-arg=-Wl,--dynamic-linker=${
                 {
