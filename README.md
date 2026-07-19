@@ -4,7 +4,7 @@
 
 A flake for development and distribution of [Bevy][bevy] programs.
 
-This flake provides a pre-configured Nix environment for development, and
+This flake provides a pre-configured Nix environment for Bevy development, and
 enables you to cross-compile release-ready portable binaries for platforms like
 non-Nix Linux, MacOS[^1], Windows and WASM.
  
