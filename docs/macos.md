@@ -59,7 +59,7 @@ Packaging the MacOS SDK yourself is made easy by a helper script powered by
 
 2. Run:
    ```sh
-   nix run github:swagtop/bevy-flake#rust-toolchain.package-macos-sdk <xcode.xip>
+   nix run github:swagtop/bevy-flake#tools.package-macos-sdk <xcode.xip>
    ```
    ... where `<xcode.xip>` is the path to the Xcode archive you have downloaded.
 
