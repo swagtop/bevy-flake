@@ -342,8 +342,7 @@ included by default, just add it to the `targetEnvironments` set.
 
 If you are editing existing environments, the constant use of `default` or
 `previous` will probably be annoying. It could be helpful to use a helper
-
-unction here:
+function here:
 
 ```nix
 { helpers, ...}:
