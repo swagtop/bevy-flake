@@ -19,16 +19,14 @@ or a package wrapped, that isn't included by default.
 
 ```nix
 {
-  # The list of systems supported.
-  systems = [ <system> ];
-
   lib = {
+    # The function used for configuring bevy-flake. Read docs/config.md for how to use this.
+    configure = <function>;
+
     forSystems = <function>; # Shorthand for 'nixpkgs.lib.genattrs systems'.
     mkFlake = <function>; # A 'flake-parts.lib.mkFlake'-like function.
+    systems = [ <system> ]; # The list of systems supported.
   };
-
-  # The function used for configuring bevy-flake. Read docs/config.md for info.
-  configure = <function>;
 
   # The default devShell, includes the packages that don't need to be built.
   devShells."<system>".default = <derivation>;
@@ -64,6 +62,7 @@ or a package wrapped, that isn't included by default.
     targets = <derivation>; # Build all targets, symlinked in one derivation.
     targets."<target>" = <derivation>; # Build individual targets.
     targets.list = [ { name = <target>; value = <derivation>; } ];
+    targets.targets = { "<target>" = <derivation> }; # Attrset containing only the targets.
   };
 }
 ```
