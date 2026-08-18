@@ -38,7 +38,7 @@ nix flake init --template github:swagtop/bevy-flake#nixpkgs
 ```
 
 The packages this flake provides can also be imported and configured by
-non-flake users. Read more about this [here.][non-flake-import]
+non-flake users. [More info here.][non-flake-import]
 
 [non-flake-import]: docs/config.md#non-flake-usage
 
@@ -100,12 +100,14 @@ nix build .#targets.x86_64-unknown-linux-gnu.only
 nix build github:username/repository/branch#targets --max-jobs 1
 ```
 
-You can compile to every target with a `targetEnvironments` [entry.][entries]
+You can compile to every target with a `targetEnvironments` entry.
 If the target you want isn't in the default configuration, you can add it
-yourself by setting its environment up. More on that [here.][environments]
+yourself by setting its environment up. [More info here.][environments]
 
 [entries]: config.nix#L155
 [environments]: docs/config.md#targetenvironments
+
+## Docs
 
 - [Configuration](docs/config.md)
 - [Pitfalls](docs/pitfalls.md)
