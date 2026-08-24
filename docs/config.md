@@ -273,7 +273,7 @@ removing the X and OpenGL libaries:
 { pkgs, ... }:
 {
   runtimeInputs =
-    optionals (pkgs.stdenv.isLinux) 
+    optionals pkgs.stdenv.hostPlatform.isLinux 
       (with pkgs; [
         alsa-lib-with-plugins
         libxkbcommon

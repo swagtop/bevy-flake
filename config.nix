@@ -237,7 +237,7 @@ in
       bfDefaultToolchain = true;
     };
 
-  runtimeInputs = optionals pkgs.stdenv.isLinux (
+  runtimeInputs = optionals pkgs.stdenv.hostPlatform.isLinux (
     with pkgs;
     [
       alsa-lib-with-plugins
