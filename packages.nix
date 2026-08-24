@@ -72,8 +72,10 @@ let
       executable = "${bevy-cli-package}/bin/bevy";
 
       extraRuntimeInputs = [
+        appliedConfig.web.wasm-bindgen # Needed for WASM bindings.
         pkgs.binaryen # Needed for WASM optimizations.
         pkgs.cargo-generate # Needed for 'bevy-cli' functionality.
+        pkgs.lld # Needed for 'lld'.
       ];
 
       argParser =
@@ -103,7 +105,7 @@ mapAttrs
       executable = "${pkgs.dioxus-cli}/bin/dx";
       extraRuntimeInputs = [
         # Need 'lld' for hot-reloading.
-        pkgs.llvmPackages.bintools
+        pkgs.lld
       ];
     };
 
