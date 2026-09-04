@@ -17,7 +17,6 @@
   writeShellScriptBin,
   xz,
   zlib,
-  ...
 }:
 let
   osxcross = fetchgit {

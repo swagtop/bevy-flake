@@ -6,9 +6,8 @@
   stdenv,
   writeShellApplication,
   xz,
-  ...
 }:
-if stdenv.isDarwin then
+if stdenv.hostPlatform.isDarwin then
   throw (
     "Packaging the Windows SDK is not supported on MacOS. "
     + "Because the MacOS filesystem is case-insensitive, the output of the "
