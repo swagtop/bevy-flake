@@ -56,7 +56,7 @@ or a package wrapped, that isn't included by default.
     tools = <derivation>; # A script that prints helpful information.
     tools.package-macos-sdk = <derivation>; # A script that packages the MacOS SDK.
     tools.package-windows-sdk = <derivation>; # A script that packages the Windows MSVC SDK.
-    tools.wrapExecutable = <function>; # Wrap y
+    tools.wrapExecutable = <function>; # Wrap packages yourself.
 
     # If you've set the 'src' config attribute to your Bevy source code:
     targets = <derivation>; # Build all targets, symlinked in one derivation.
