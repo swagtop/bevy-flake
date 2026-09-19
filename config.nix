@@ -105,7 +105,7 @@ in
           CC = unwrapped-clang;
 
           # Need these for the 'cc-rs' crate.
-          CFLAGS = "-I${targetPkgs.llvmPackages.libc.libc.dev}/include";
+          CFLAGS = "-I${targetPkgs.llvmPackages.libc-full.dev}/include";
           LDFLAGS = "-L${targetPkgs.llvmPackages.libc-full}/lib";
 
           PKG_CONFIG_PATH = makeSearchPath "lib/pkgconfig" (
