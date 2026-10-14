@@ -149,6 +149,27 @@ in
               }"
             ]
           );
+          RUSTDOCFLAGS = concatStringsSep " " (
+            let
+              target-linker =
+                {
+                  aarch64-linux = pkgs.pkgsCross.aarch64-multiplatform.clangStdenv.cc;
+                  x86_64-linux = pkgs.pkgsCross.gnu64.clangStdenv.cc;
+                }
+                .${targetSystem};
+            in
+            [
+              "-C linker=${getExe target-linker}"
+              "-C link-arg=-fuse-ld=${bintools}/bin/ld.lld"
+              "-C link-arg=-Wl,--dynamic-linker=${
+                {
+                  aarch64-linux = "/lib64/ld-linux-aarch64.so.1";
+                  x86_64-linux = "/lib64/ld-linux-x86-64.so.2";
+                }
+                .${targetSystem}
+              }"
+            ]
+          );
         };
 
       windowsEnvironmentFor =
