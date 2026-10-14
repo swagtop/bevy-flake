@@ -94,6 +94,9 @@ config
           RUSTFLAGS =
             "${targetEnvironments.${target}.RUSTFLAGS or ""} "
             + concatStringsSep " " (config.crossPlatformRustflags or [ ]);
+          RUSTDOCFLAGS =
+            "${targetEnvironments.${target}.RUSTDOCFLAGS or ""} "
+            + concatStringsSep " " (config.crossPlatformRustflags or [ ]);
         };
       in
       {
