@@ -74,6 +74,9 @@ config
         RUSTFLAGS =
           "${devEnvironment.RUSTFLAGS or ""} "
           + optionalString pkgs.stdenv.hostPlatform.isLinux "-C link-args=-Wl,-rpath,${makeSearchPath "lib" runtimeInputs}";
+        RUSTDOCFLAGS =
+          "${devEnvironment.RUSTDOCFLAGS or ""} "
+          + optionalString pkgs.stdenv.hostPlatform.isLinux "-C link-args=-Wl,-rpath,${makeSearchPath "lib" runtimeInputs}";
       };
     in
     {
