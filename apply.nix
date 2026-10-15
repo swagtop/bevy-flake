@@ -67,16 +67,14 @@ config
 
   devEnvironment = pkgs.writeTextFile (
     let
+      runtimeLibraries = optionalString pkgs.stdenv.hostPlatform.isLinux "-C link-args=-Wl,-rpath,${makeSearchPath "lib" runtimeInputs}";
+
       env = devEnvironment // {
         PKG_CONFIG_PATH =
           "${devEnvironment.PKG_CONFIG_PATH or ""}:"
           + makeSearchPath "lib/pkgconfig" (map (p: p.dev or null) runtimeInputs);
-        RUSTFLAGS =
-          "${devEnvironment.RUSTFLAGS or ""} "
-          + optionalString pkgs.stdenv.hostPlatform.isLinux "-C link-args=-Wl,-rpath,${makeSearchPath "lib" runtimeInputs}";
-        RUSTDOCFLAGS =
-          "${devEnvironment.RUSTDOCFLAGS or ""} "
-          + optionalString pkgs.stdenv.hostPlatform.isLinux "-C link-args=-Wl,-rpath,${makeSearchPath "lib" runtimeInputs}";
+        RUSTFLAGS = "${devEnvironment.RUSTFLAGS or ""} " + runtimeLibraries;
+        RUSTDOCFLAGS = "${devEnvironment.RUSTDOCFLAGS or ""} " + runtimeLibraries;
       };
     in
     {
