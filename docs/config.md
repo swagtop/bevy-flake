@@ -7,9 +7,9 @@ starting with the default configuration, which you can read [here.][default]
 
 [default]: ../config.nix
 
-Users can configure `bevy-flake` by either calling the `configure` function from
-the flake output, or by setting it in the `config` attribute used when calling
-`bevy-flake.lib.mkFlake`.
+Users can configure `bevy-flake` by either calling the `lib.configure` function
+from the flake output, or by setting it in the `config` attribute used when
+calling `bevy-flake.lib.mkFlake`.
 
 ```nix
 # Configuring by calling configure on the flake output:
