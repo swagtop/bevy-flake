@@ -74,6 +74,9 @@ config
         RUSTFLAGS =
           "${devEnvironment.RUSTFLAGS or ""} "
           + optionalString pkgs.stdenv.hostPlatform.isLinux "-C link-args=-Wl,-rpath,${makeSearchPath "lib" runtimeInputs}";
+        RUSTDOCFLAGS =
+          "${devEnvironment.RUSTDOCFLAGS or ""} "
+          + optionalString pkgs.stdenv.hostPlatform.isLinux "-C link-args=-Wl,-rpath,${makeSearchPath "lib" runtimeInputs}";
       };
     in
     {
@@ -90,6 +93,9 @@ config
         env = targetEnvironments.${target} // {
           RUSTFLAGS =
             "${targetEnvironments.${target}.RUSTFLAGS or ""} "
+            + concatStringsSep " " (config.crossPlatformRustflags or [ ]);
+          RUSTDOCFLAGS =
+            "${targetEnvironments.${target}.RUSTDOCFLAGS or ""} "
             + concatStringsSep " " (config.crossPlatformRustflags or [ ]);
         };
       in
